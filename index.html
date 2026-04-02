@@ -1,0 +1,262 @@
+<!DOCTYPE html>    
+<html lang="ja">    
+<head>    
+<meta charset="UTF-8">    
+<meta name="viewport" content="width=device-width, initial-scale=1.0">    
+<title>スマホ整理士 - 無料スマホ診断</title>    
+<style>    
+  /* 基本設定 */    
+  *, *::before, *::after { box-sizing: border-box; }    
+  body { font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Meiryo', sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; -webkit-text-size-adjust: 100%; }    
+  .container { max-width: 480px; margin: 0 auto; background-color: #ffffff; min-height: 100vh; box-shadow: 0 0 10px rgba(0,0,0,0.05); overflow-x: hidden; position: relative; }    
+      
+  /* ヘッダー */    
+  .header-image-area { width: 100%; text-align: center; border-bottom: 2px solid #82c4c3; }    
+  .header-image-area img { max-width: 100%; height: auto; display: block; }    
+      
+  /* 安心のお約束 */    
+  .guidelines { background-color: #f9fdfd; border: 1px solid #82c4c3; padding: 25px 20px; margin: 20px; border-radius: 8px; text-align: center; }    
+  .guidelines h3 { margin: 0 0 5px 0; font-size: 1.2rem; color: #1a2a40; }    
+  .guidelines .sub-title { display: block; font-size: 0.85rem; color: #82c4c3; font-weight: bold; margin-bottom: 20px; }    
+  .guideline-item { margin-bottom: 20px; }    
+  .guideline-item strong { display: block; font-size: 1.2rem; color: #1a2a40; margin-bottom: 8px; }    
+  .guideline-item p { font-size: 0.95rem; margin: 0; }    
+      
+  /* ステップ制御 */    
+  .step-container { padding: 0 20px 40px 20px; display: none; opacity: 0; transition: opacity 0.3s; width: 100%; }    
+  .step-container.active { display: flex; flex-direction: column; align-items: center; opacity: 1; }    
+  .step-badge { display: inline-block; background-color: #82c4c3; color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; margin-top: 20px; margin-bottom: 10px; }    
+  .step-icon { font-size: 3rem; margin: 10px 0; }    
+  .question-title { font-size: 1.2rem; font-weight: bold; color: #1a2a40; margin-bottom: 25px; text-align: center; width: 100%; }    
+      
+  /* グリッドとボタンの基本設定 */    
+  .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }    
+  .option-btn, .checkbox-label { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; min-height: 75px; padding: 10px; background-color: #ffffff; border: 2px solid #ddd; border-radius: 10px; font-size: 1rem; font-weight: bold; color: #333; cursor: pointer; transition: all 0.2s; text-align: center; }    
+  .full-width { grid-column: span 2; }    
+    
+  /* キャリア別カラー設定 */    
+  .btn-docomo { border-color: #CC0033; color: #CC0033; }    
+  .btn-au { border-color: #F04E23; color: #F04E23; }    
+  .btn-sb { border-color: #333333; color: #333333; }    
+  .btn-rakuten { border-color: #FF0099; color: #FF0099; } /* ピンク */    
+  .btn-uq { border-color: #00A0E9; color: #00A0E9; }     /* 薄い青 */    
+  .btn-ym { border-color: #E40046; color: #E40046; }    
+    
+  /* 選択時・アクティブ時の挙動 */    
+  .option-btn:active, .checkbox-label.checked { background-color: #f0f8f8; transform: scale(0.98); }    
+  .checkbox-label.checked { border-color: #82c4c3; border-width: 3px; color: #1a2a40; }    
+      
+  /* キャリアボタンの色を選択時にも維持する設定 */    
+  .btn-docomo:active { background-color: #fff0f0; }    
+  .btn-au:active { background-color: #fff5f0; }    
+  .btn-rakuten:active { background-color: #fff0f5; }    
+  .btn-uq:active { background-color: #f0faff; }    
+    
+  input[type="checkbox"] { display: none; }    
+  .option-sub { font-size: 0.7rem; font-weight: normal; color: #666; margin-top: 4px; }    
+      
+  /* 下部ボタン */    
+  .next-btn, .finish-btn { width: 100%; margin-top: 30px; padding: 16px; background-color: #1a2a40; color: #ffffff; border: none; border-radius: 10px; font-size: 1.1rem; font-weight: bold; cursor: pointer; align-self: stretch; }    
+  .back-btn { display: block; margin: 30px auto 0; color: #666; text-decoration: underline; background: none; border: none; font-size: 0.9rem; cursor: pointer; }    
+      
+  /* 送信中オーバーレイ */    
+  #loading { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 100; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; color: #1a2a40; }    
+</style>    
+</head>    
+<body>    
+    
+<div class="container">    
+  <div id="loading">🔄 診断結果を送信中...</div>    
+    
+  <div class="header-image-area">    
+<img src="header.png" alt="街のスマホ相談士" style="width: 100%; height: auto; display: block; object-fit: cover;">
+  </div>    
+    
+  <div class="guidelines" id="guidelines-area">    
+    <h3>安心のお約束</h3>    
+    <span class="sub-title">Service Guidelines</span>    
+    <div class="guideline-item"><strong>営業は一切しません</strong><p>スマホの乗り換えやプラン変更の<br>無理な営業はいたしません。</p></div>    
+    <div class="guideline-item"><strong>情報は厳重に管理します</strong><p>ご入力いただいた内容は情報の保護を徹底します。</p></div>    
+  </div>    
+    
+  <div id="step1" class="step-container active">    
+    <div class="step-badge">Step 1 / 7</div><span class="step-icon">📱</span>    
+    <div class="question-title">今お使いの携帯会社はどこですか？</div>    
+    <div class="options-grid">    
+      <button class="option-btn btn-docomo" onclick="saveAnswer('q1', 'docomo'); nextStep(1, 2)">docomo</button>    
+      <button class="option-btn btn-au" onclick="saveAnswer('q1', 'au'); nextStep(1, 2)">au</button>    
+      <button class="option-btn btn-sb" onclick="saveAnswer('q1', 'SoftBank'); nextStep(1, 2)">SoftBank</button>    
+      <button class="option-btn btn-rakuten" onclick="saveAnswer('q1', '楽天モバイル'); nextStep(1, 2)">楽天モバイル</button>    
+      <button class="option-btn btn-uq" onclick="saveAnswer('q1', 'UQ mobile'); nextStep(1, 2)">UQ mobile</button>    
+      <button class="option-btn btn-ym" onclick="saveAnswer('q1', 'Y!mobile'); nextStep(1, 2)">Y!mobile</button>    
+      <button class="option-btn full-width" onclick="saveAnswer('q1', 'その他'); nextStep(1, 2)">その他<span class="option-sub">ahamo, LINEMO, 格安スマホなど</span></button>    
+    </div>    
+  </div>    
+    
+  <div id="step2" class="step-container">    
+    <div class="step-badge">Step 2 / 7</div><span class="step-icon">💰</span>    
+    <div class="question-title">毎月の支払額（1人分）は<br>どのくらいですか？</div>    
+    <div class="options-grid">    
+      <button class="option-btn full-width" onclick="saveAnswer('q2', '3000円 以下'); nextStep(2, 3)">3,000円 以下</button>    
+      <button class="option-btn full-width" onclick="saveAnswer('q2', '5000円 前後'); nextStep(2, 3)">5,000円 前後</button>    
+      <button class="option-btn full-width" onclick="saveAnswer('q2', '8000円 前後'); nextStep(2, 3)">8,000円 前後</button>    
+      <button class="option-btn full-width" onclick="saveAnswer('q2', '10000円 以上'); nextStep(2, 3)">10,000円 以上</button>    
+    </div>    
+    <button class="back-btn" onclick="prevStep(2, 1)">← 前に戻る</button>    
+  </div>    
+    
+  <div id="step3" class="step-container">    
+    <div class="step-badge">Step 3 / 7</div><span class="step-icon">📶</span>    
+    <div class="question-title">毎月のデータ通信量はどのくらいですか？<br><span style="font-size: 0.9rem; font-weight: normal;">（複数選択可）</span></div>    
+    <div class="options-grid">    
+      <label class="checkbox-label" onclick="toggleCheck(this, 'q3', '動画をたっぷり')"><input type="checkbox">動画をたっぷり</label>    
+      <label class="checkbox-label" onclick="toggleCheck(this, 'q3', '検索やLINE中心')"><input type="checkbox">検索やLINE中心</label>    
+      <label class="checkbox-label" onclick="toggleCheck(this, 'q3', '4GB以下')"><input type="checkbox">4GB以下</label>    
+      <label class="checkbox-label" onclick="toggleCheck(this, 'q3', '30GB以下')"><input type="checkbox">30GB以下</label>    
+      <label class="checkbox-label full-width" onclick="toggleCheck(this, 'q3', 'それ以上（無制限など）')"><input type="checkbox">それ以上（無制限など）</label>    
+    </div>    
+    <button class="next-btn" onclick="nextStep(3, 4)">次の質問へ</button>    
+    <button class="back-btn" onclick="prevStep(3, 2)">← 前に戻る</button>    
+  </div>    
+    
+  <div id="step4" class="step-container">    
+    <div class="step-badge">Step 4 / 7</div><span class="step-icon">📞</span>    
+    <div class="question-title">通話のご利用スタイルについて</div>    
+    <div class="options-grid">    
+      <button class="option-btn full-width" onclick="saveAnswer('q4', '短い電話（5分以内）が多い'); nextStep(4, 5)">短い電話（5分以内）が多い</button>    
+      <button class="option-btn full-width" onclick="saveAnswer('q4', '長電話をよくする'); nextStep(4, 5)">長電話をよくする</button>    
+      <button class="option-btn full-width" onclick="saveAnswer('q4', 'LINE通話がほとんど'); nextStep(4, 5)">LINE通話がほとんど</button>    
+    </div>    
+    <button class="back-btn" onclick="prevStep(4, 3)">← 前に戻る</button>    
+  </div>    
+    
+  <div id="step5" class="step-container">    
+    <div class="step-badge">Step 5 / 7</div><span class="step-icon">🏠</span>    
+    <div class="question-title">ご自宅のインターネット環境</div>    
+    <div class="options-grid">    
+      <button class="option-btn" onclick="saveAnswer('q5', 'ドコモ光'); nextStep(5, 6)">ドコモ光</button>    
+      <button class="option-btn" onclick="saveAnswer('q5', 'auひかり'); nextStep(5, 6)">auひかり</button>    
+      <button class="option-btn" onclick="saveAnswer('q5', 'SB光/Air'); nextStep(5, 6)">SB光/Air</button>    
+      <button class="option-btn" onclick="saveAnswer('q5', 'コミュファ光'); nextStep(5, 6)">コミュファ光</button>    
+      <button class="option-btn full-width" onclick="saveAnswer('q5', 'その他・わからない'); nextStep(5, 6)">その他・わからない</button>    
+    </div>    
+    <button class="back-btn" onclick="prevStep(5, 4)">← 前に戻る</button>    
+  </div>    
+    
+  <div id="step6" class="step-container">    
+    <div class="step-badge">Step 6 / 7</div><span class="step-icon">🗓️</span>    
+    <div class="question-title">最後にスマホを買い替えたのは<br>いつですか？</div>    
+    <div class="options-grid">    
+      <button class="option-btn full-width" onclick="saveAnswer('q6', '２年以内'); nextStep(6, 7)">２年以内</button>    
+      <button class="option-btn full-width" onclick="saveAnswer('q6', '２〜４年以内'); nextStep(6, 7)">２〜４年以内</button>    
+      <button class="option-btn full-width" onclick="saveAnswer('q6', '４年以上'); nextStep(6, 7)">４年以上</button>    
+      <button class="option-btn full-width" onclick="saveAnswer('q6', 'わからない'); nextStep(6, 7)">わからない</button>    
+    </div>    
+    <button class="back-btn" onclick="prevStep(6, 5)">← 前に戻る</button>    
+  </div>    
+    
+  <div id="step7" class="step-container">    
+    <div class="step-badge">Step 7 / 7</div><span class="step-icon">📋</span>    
+    <div class="question-title">買い替えにあたって気になることは？<br><span style="font-size: 0.9rem; font-weight: normal;">（複数選択可）</span></div>    
+    <div class="options-grid">    
+      <label class="checkbox-label" onclick="toggleCheck(this, 'q7', 'データ移行')"><input type="checkbox">データ移行</label>    
+      <label class="checkbox-label" onclick="toggleCheck(this, 'q7', 'LINE引継ぎ')"><input type="checkbox">LINE引継ぎ</label>    
+      <label class="checkbox-label" onclick="toggleCheck(this, 'q7', '料金を抑えたい')"><input type="checkbox">料金を抑えたい</label>    
+      <label class="checkbox-label" onclick="toggleCheck(this, 'q7', '家族も一緒に')"><input type="checkbox">家族も一緒に</label>    
+      <label class="checkbox-label" onclick="toggleCheck(this, 'q7', '電波の質')"><input type="checkbox">電波の質</label>    
+      <label class="checkbox-label" onclick="toggleCheck(this, 'q7', '手続きの手間')"><input type="checkbox">手続きの手間</label>    
+    </div>    
+    <button class="finish-btn" onclick="finish()">診断を完了して結果を見る</button>    
+    <button class="back-btn" onclick="prevStep(7, 6)">← 前に戻る</button>    
+  </div>    
+    
+</div>    
+    
+<script>    
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbzxl7yQObNIrMdzbXXpQ3MZ9kka--2givLoR4LSCwOzPWs49nELG6_sHaB1-VIEtP8/exec";    
+    
+  // 回答を保存するオブジェクト
+  let answers = {    
+    q1: "", q2: "", q3: [], q4: "", q5: "", q6: "", q7: []
+  };    
+    
+  // 単一選択の回答を保存
+  function saveAnswer(questionId, answer) {    
+    answers[questionId] = answer;    
+  }    
+    
+  // 複数選択の回答をトグル（保存/削除）
+  function toggleCheck(el, questionId, value) {    
+    const cb = el.querySelector('input');    
+    cb.checked = !cb.checked;   
+        
+    if(cb.checked) {    
+      el.classList.add('checked');    
+      if (!Array.isArray(answers[questionId])) answers[questionId] = []; // 配列でない場合の安全策
+      answers[questionId].push(value);  
+    } else {    
+      el.classList.remove('checked');    
+      answers[questionId] = answers[questionId].filter(item => item !== value);    
+    }    
+  }    
+    
+  // 画面遷移（次へ）
+  function nextStep(current, next) {    
+    const currentStep = document.getElementById('step' + current);
+    const nextStepEl = document.getElementById('step' + next);
+    
+    if (currentStep) currentStep.classList.remove('active');    
+    if (current === 1) {
+      const gl = document.getElementById('guidelines-area');
+      if (gl) gl.style.display = 'none';
+    }
+    
+    setTimeout(() => {    
+      if (nextStepEl) nextStepEl.classList.add('active');    
+      window.scrollTo(0, 0);    
+    }, 200);    
+  }    
+    
+  // 画面遷移（戻る）
+  function prevStep(current, prev) {    
+    document.getElementById('step' + current).classList.remove('active');    
+    if (prev === 1) document.getElementById('guidelines-area').style.display = 'block';    
+    setTimeout(() => {    
+      document.getElementById('step' + prev).classList.add('active');    
+      window.scrollTo(0, 0);    
+    }, 200);    
+  }    
+    
+  // 診断完了・GASへ送信
+  async function finish() {    
+    document.getElementById('loading').style.display = 'flex';    
+        
+    try {    
+      await fetch(GAS_URL, {    
+        method: "POST",    
+        mode: "no-cors",  
+        headers: {  
+          "Content-Type": "text/plain",  
+        },  
+        body: JSON.stringify(answers)    
+      });    
+          
+      // 送信成功後のメッセージ
+      alert("診断ありがとうございます！診断結果を作成し、LINEにお送りします。OKを押してトーク画面にお戻りください。");    
+      
+      // 1.5秒後にLINE公式アカウントへ移動
+      setTimeout(() => {
+        window.location.href = "https://line.me/R/ti/p/@281jfkpu";
+      }, 500);
+    
+    } catch (e) {    
+      console.error(e);    
+      alert("送信中にエラーが発生しました。インターネット接続を確認し、もう一度お試しください。");    
+    } finally {    
+      document.getElementById('loading').style.display = 'none';    
+    }    
+  }    
+</script>
+    
+</body>    
+</html>  

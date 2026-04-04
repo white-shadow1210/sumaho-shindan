@@ -38,20 +38,14 @@
   .btn-docomo { border-color: #CC0033; color: #CC0033; }    
   .btn-au { border-color: #F04E23; color: #F04E23; }    
   .btn-sb { border-color: #333333; color: #333333; }    
-  .btn-rakuten { border-color: #FF0099; color: #FF0099; } /* ピンク */    
-  .btn-uq { border-color: #00A0E9; color: #00A0E9; }     /* 薄い青 */    
+  .btn-rakuten { border-color: #FF0099; color: #FF0099; }    
+  .btn-uq { border-color: #00A0E9; color: #00A0E9; }     
   .btn-ym { border-color: #E40046; color: #E40046; }    
     
   /* 選択時・アクティブ時の挙動 */    
   .option-btn:active, .checkbox-label.checked { background-color: #f0f8f8; transform: scale(0.98); }    
   .checkbox-label.checked { border-color: #82c4c3; border-width: 3px; color: #1a2a40; }    
       
-  /* キャリアボタンの色を選択時にも維持する設定 */    
-  .btn-docomo:active { background-color: #fff0f0; }    
-  .btn-au:active { background-color: #fff5f0; }    
-  .btn-rakuten:active { background-color: #fff0f5; }    
-  .btn-uq:active { background-color: #f0faff; }    
-    
   input[type="checkbox"] { display: none; }    
   .option-sub { font-size: 0.7rem; font-weight: normal; color: #666; margin-top: 4px; }    
       
@@ -69,21 +63,22 @@
   <div id="loading">🔄 診断結果を送信中...</div>    
     
   <div class="header-image-area">    
-<img src="header.png" alt="街のスマホ相談士" style="width: 100%; height: auto; display: block; object-fit: cover;">
+    <img src="header.png" alt="街のスマホ相談士" style="width: 100%; height: auto; display: block; object-fit: cover;">
   </div>    
-<div style="padding: 25px 20px 10px; text-align: center; color: #1a2a40;">
-  <p style="margin: 0; font-weight: bold; font-size: 1.15rem; line-height: 1.5;">
-    そのスマホプラン、<br>
-    今のあなたに最適ですか？
-  </p>
-  <p style="margin: 15px 0 0; font-size: 0.9rem; color: #555; line-height: 1.7; text-align: center;">
-    1分で終わる簡単な質問に答えるだけで、<br>
-    プロのスマホ相談士があなたの<br>
-    <strong>「家計の節約ポイント」</strong>を診断！<br>
-    後ほどLINEで<strong>『スマホカルテ』</strong>をお届けします。
-  </p>
-</div>
 
+  <div id="top-message" style="padding: 25px 20px 10px; text-align: center; color: #1a2a40;">
+    <p style="margin: 0; font-weight: bold; font-size: 1.15rem; line-height: 1.5;">
+      そのスマホプラン、<br>
+      今のあなたに最適ですか？
+    </p>
+    <p style="margin: 15px 0 0; font-size: 0.9rem; color: #555; line-height: 1.7; text-align: center;">
+      1分で終わる簡単な質問に答えるだけで、<br>
+      プロのスマホ相談士があなたの<br>
+      <strong>「家計の節約ポイント」</strong>を診断！<br>
+      後ほどLINEで<strong>『スマホカルテ』</strong>をお届けします。
+    </p>
+  </div>
+    
   <div class="guidelines" id="guidelines-area">    
     <h3>安心のお約束</h3>    
     <span class="sub-title">Service Guidelines</span>    
@@ -146,10 +141,12 @@
     <div class="step-badge">Step 5 / 7</div><span class="step-icon">🏠</span>    
     <div class="question-title">ご自宅のインターネット環境</div>    
     <div class="options-grid">    
-      <button class="option-btn" onclick="saveAnswer('q5', 'ドコモ光'); nextStep(5, 6)">ドコモ光</button>    
+      <button class="option-btn" onclick="saveAnswer('q5', 'ドコモ光/home5G'); nextStep(5, 6)">ドコモ光/home5G</button>    
       <button class="option-btn" onclick="saveAnswer('q5', 'auひかり'); nextStep(5, 6)">auひかり</button>    
       <button class="option-btn" onclick="saveAnswer('q5', 'SB光/Air'); nextStep(5, 6)">SB光/Air</button>    
       <button class="option-btn" onclick="saveAnswer('q5', 'コミュファ光'); nextStep(5, 6)">コミュファ光</button>    
+      <button class="option-btn" onclick="saveAnswer('q5', 'NURO光'); nextStep(5, 6)">NURO光</button>    
+      <button class="option-btn" onclick="saveAnswer('q5', 'TOKAIケーブル'); nextStep(5, 6)">TOKAIケーブル</button>    
       <button class="option-btn full-width" onclick="saveAnswer('q5', 'その他・わからない'); nextStep(5, 6)">その他・わからない</button>    
     </div>    
     <button class="back-btn" onclick="prevStep(5, 4)">← 前に戻る</button>    
@@ -169,15 +166,24 @@
     
   <div id="step7" class="step-container">    
     <div class="step-badge">Step 7 / 7</div><span class="step-icon">📋</span>    
-    <div class="question-title">買い替えにあたって気になることは？<br><span style="font-size: 0.9rem; font-weight: normal;">（複数選択可）</span></div>    
+    <div class="question-title">買い替え・見直しで気になることは？<br><span style="font-size: 0.9rem; font-weight: normal;">（複数選択可）</span></div>    
     <div class="options-grid">    
       <label class="checkbox-label" onclick="toggleCheck(this, 'q7', 'データ移行')"><input type="checkbox">データ移行</label>    
       <label class="checkbox-label" onclick="toggleCheck(this, 'q7', 'LINE引継ぎ')"><input type="checkbox">LINE引継ぎ</label>    
       <label class="checkbox-label" onclick="toggleCheck(this, 'q7', '料金を抑えたい')"><input type="checkbox">料金を抑えたい</label>    
+      <label class="checkbox-label" onclick="toggleCheck(this, 'q7', '機種代を抑えたい')"><input type="checkbox">機種代を抑えたい</label>    
       <label class="checkbox-label" onclick="toggleCheck(this, 'q7', '家族も一緒に')"><input type="checkbox">家族も一緒に</label>    
       <label class="checkbox-label" onclick="toggleCheck(this, 'q7', '電波の質')"><input type="checkbox">電波の質</label>    
+      <label class="checkbox-label" onclick="toggleCheck(this, 'q7', '自宅のネット環境')"><input type="checkbox">自宅のネット環境</label>    
       <label class="checkbox-label" onclick="toggleCheck(this, 'q7', '手続きの手間')"><input type="checkbox">手続きの手間</label>    
-    </div>    
+    </div>
+
+    <div style="margin-top: 30px; padding: 20px; background-color: #f0f8f8; border-radius: 10px; width: 100%; text-align: left; border: 1px solid #82c4c3;">
+      <p style="margin: 0 0 10px 0; font-weight: bold; color: #1a2a40; font-size: 0.95rem;">【最後にお願い】</p>
+      <p style="margin: 0 0 15px 0; font-size: 0.85rem; color: #555; line-height: 1.4;">LINEで診断結果をお送りするため、<br>あなたの<strong>「LINEのアカウント名(お名前)」</strong>を教えてください。</p>
+      <input type="text" id="user-name" placeholder="例：さくらい、S.Sakurai など" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 6px; font-size: 1rem;">
+    </div>
+    
     <button class="finish-btn" onclick="finish()">診断を完了して結果を見る</button>    
     <button class="back-btn" onclick="prevStep(7, 6)">← 前に戻る</button>    
   </div>    
@@ -187,24 +193,20 @@
 <script>    
   const GAS_URL = "https://script.google.com/macros/s/AKfycbzxl7yQObNIrMdzbXXpQ3MZ9kka--2givLoR4LSCwOzPWs49nELG6_sHaB1-VIEtP8/exec";    
     
-  // 回答を保存するオブジェクト
   let answers = {    
-    q1: "", q2: "", q3: [], q4: "", q5: "", q6: "", q7: []
+    q1: "", q2: "", q3: [], q4: "", q5: "", q6: "", q7: [], userName: ""
   };    
     
-  // 単一選択の回答を保存
   function saveAnswer(questionId, answer) {    
     answers[questionId] = answer;    
   }    
     
-  // 複数選択の回答をトグル（保存/削除）
   function toggleCheck(el, questionId, value) {    
     const cb = el.querySelector('input');    
     cb.checked = !cb.checked;   
-        
     if(cb.checked) {    
       el.classList.add('checked');    
-      if (!Array.isArray(answers[questionId])) answers[questionId] = []; // 配列でない場合の安全策
+      if (!Array.isArray(answers[questionId])) answers[questionId] = [];
       answers[questionId].push(value);  
     } else {    
       el.classList.remove('checked');    
@@ -212,15 +214,17 @@
     }    
   }    
     
-  // 画面遷移（次へ）
   function nextStep(current, next) {    
     const currentStep = document.getElementById('step' + current);
     const nextStepEl = document.getElementById('step' + next);
+    const topMessage = document.getElementById('top-message');
+    const glArea = document.getElementById('guidelines-area');
     
     if (currentStep) currentStep.classList.remove('active');    
+    
     if (current === 1) {
-      const gl = document.getElementById('guidelines-area');
-      if (gl) gl.style.display = 'none';
+      if (topMessage) topMessage.style.display = 'none';
+      if (glArea) glArea.style.display = 'none';
     }
     
     setTimeout(() => {    
@@ -229,41 +233,49 @@
     }, 200);    
   }    
     
-  // 画面遷移（戻る）
   function prevStep(current, prev) {    
+    const topMessage = document.getElementById('top-message');
+    const glArea = document.getElementById('guidelines-area');
     document.getElementById('step' + current).classList.remove('active');    
-    if (prev === 1) document.getElementById('guidelines-area').style.display = 'block';    
+    
+    if (prev === 1) {
+      if (topMessage) topMessage.style.display = 'block';
+      if (glArea) glArea.style.display = 'block';    
+    }
+
     setTimeout(() => {    
       document.getElementById('step' + prev).classList.add('active');    
       window.scrollTo(0, 0);    
     }, 200);    
   }    
     
-  // 診断完了・GASへ送信
   async function finish() {    
+    const nameInput = document.getElementById('user-name').value;
+    if (!nameInput) {
+      alert("お名前（LINE名）を入力してください。");
+      return;
+    }
+    answers.userName = nameInput;
+
     document.getElementById('loading').style.display = 'flex';    
         
     try {    
       await fetch(GAS_URL, {    
         method: "POST",    
         mode: "no-cors",  
-        headers: {  
-          "Content-Type": "text/plain",  
-        },  
+        headers: { "Content-Type": "text/plain" },  
         body: JSON.stringify(answers)    
       });    
           
-      // 送信成功後のメッセージ
       alert("診断ありがとうございます！診断結果を作成し、LINEにお送りします。OKを押してトーク画面にお戻りください。");    
       
-      // 1.5秒後にLINE公式アカウントへ移動
       setTimeout(() => {
         window.location.href = "https://line.me/R/ti/p/@281jfkpu";
       }, 500);
     
     } catch (e) {    
       console.error(e);    
-      alert("送信中にエラーが発生しました。インターネット接続を確認し、もう一度お試しください。");    
+      alert("送信中にエラーが発生しました。");    
     } finally {    
       document.getElementById('loading').style.display = 'none';    
     }    
@@ -271,4 +283,4 @@
 </script>
     
 </body>    
-</html>  
+</html>

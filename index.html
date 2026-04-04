@@ -181,7 +181,7 @@
     <div style="margin-top: 30px; padding: 20px; background-color: #f0f8f8; border-radius: 10px; width: 100%; text-align: left; border: 1px solid #82c4c3;">
       <p style="margin: 0 0 10px 0; font-weight: bold; color: #1a2a40; font-size: 0.95rem;">【最後にお願い】</p>
       <p style="margin: 0 0 15px 0; font-size: 0.85rem; color: #555; line-height: 1.4;">LINEで診断結果をお送りするため、<br>あなたの<strong>「LINEのアカウント名(お名前)」</strong>を教えてください。</p>
-      <input type="text" id="user-name" placeholder="例：さくらい、S.Sakurai など" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 6px; font-size: 1rem;">
+      <input type="text" id="username" placeholder="例：さくらい、S.Sakurai など" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 6px; font-size: 1rem;">
     </div>
     
     <button class="finish-btn" onclick="finish()">診断を完了して結果を見る</button>    
@@ -194,7 +194,7 @@
   const GAS_URL = "https://script.google.com/macros/s/AKfycbzxl7yQObNIrMdzbXXpQ3MZ9kka--2givLoR4LSCwOzPWs49nELG6_sHaB1-VIEtP8/exec";    
     
   let answers = {    
-    q1: "", q2: "", q3: [], q4: "", q5: "", q6: "", q7: [], userName: ""
+    q1: "", q2: "", q3: [], q4: "", q5: "", q6: "", q7: [], username: ""
   };    
     
   function saveAnswer(questionId, answer) {    
@@ -250,12 +250,12 @@
   }    
     
   async function finish() {    
-    const nameInput = document.getElementById('user-name').value;
+    const nameInput = document.getElementById('username').value;
     if (!nameInput) {
       alert("お名前（LINE名）を入力してください。");
       return;
     }
-    answers.userName = nameInput;
+    answers.username = nameInput;
 
     document.getElementById('loading').style.display = 'flex';    
         

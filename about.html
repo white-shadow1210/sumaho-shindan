@@ -3,87 +3,136 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>私の想い - スマホ整理士</title>
+<title>私の想いとサポートの流れ | スマホ整理士 櫻井</title>
 <style>
   body {
-    font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Meiryo', sans-serif;
+    font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
     color: #1a2a40;
     background-color: #f4eade;
     margin: 0;
-    padding: 15px;
+    padding: 0;
     line-height: 1.8;
-    -webkit-text-size-adjust: 100%;
   }
   .container {
-    max-width: 100%;
+    max-width: 500px;
     margin: 0 auto;
     background-color: #ffffff;
-    padding: 30px 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    box-sizing: border-box;
+    overflow: hidden;
   }
-  h1 {
-    font-size: 1.3rem;
-    color: #1a2a40;
+  header {
+    background-color: #82c4c3;
+    color: white;
+    padding: 40px 20px;
     text-align: center;
-    border-bottom: 3px solid #82c4c3;
-    padding-bottom: 15px;
-    margin-top: 0;
+  }
+  header h1 {
+    font-size: 1.4rem;
+    margin: 0;
     line-height: 1.5;
   }
-  p {
-    margin-bottom: 1.8rem;
-    font-size: 1.05rem;
-    word-break: break-word;
-    overflow-wrap: break-word;
+  section {
+    padding: 30px 20px;
+    border-bottom: 8px solid #f4eade;
   }
-  /* 特定の単語が途中で切れるのを防ぐクラス */
-  .no-split {
-    display: inline-block;
+  h2 {
+    font-size: 1.25rem;
+    color: #82c4c3;
+    border-left: 5px solid #82c4c3;
+    padding-left: 10px;
+    margin-bottom: 20px;
   }
-  .highlight {
+  p { font-size: 1.05rem; margin-bottom: 1.5rem; }
+  .highlight { font-weight: bold; background: linear-gradient(transparent 60%, rgba(130, 196, 195, 0.3) 60%); }
+  
+  /* ステップ図解 */
+  .step-box {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+  }
+  .step-num {
+    background: #82c4c3;
+    color: white;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    margin-right: 5px;
+  }
+  
+  /* スタッフ紹介 */
+  .profile-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: #f0f7f7;
+    padding: 15px;
+    border-radius: 10px;
+  }
+  .profile-text { font-size: 0.9rem; }
+
+  /* 誘導ボタン */
+  .cta-button {
+    display: block;
+    background-color: #06C755; /* LINEカラー */
+    color: white;
+    text-align: center;
+    padding: 20px;
+    text-decoration: none;
     font-weight: bold;
-    background: linear-gradient(transparent 60%, rgba(130, 196, 195, 0.4) 60%);
-  }
-  .list-item {
-    padding-left: 1em;
-    text-indent: -1em;
-    margin-bottom: 1rem;
-    font-size: 1rem;
-    color: #444;
-  }
-  .signature {
-    text-align: right;
-    margin-top: 40px;
-    font-size: 1.1rem;
-    font-weight: bold;
+    border-radius: 50px;
+    margin: 20px 0;
+    font-size: 1.2rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
   }
 </style>
 </head>
 <body>
 
 <div class="container">
-  <h1>料金の安さ以上に、<br>「ずっと任せられる安心」を。</h1>
-  
-  <p>はじめまして。<br><span class="no-split">「スマホ整理士」</span>の櫻井です。<br>この診断をご利用いただき、<br>誠にありがとうございます。</p>
-  
-  <p>携帯電話業界で10年。<br>数え切れないほどのお客様をサポートする中で、私が一番強く感じたこと。</p>
-  
-  <p>それは、多くの方が「料金が高い」こと以上に、<span class="highlight">「自分の使い方が合っているか分からない」</span><span class="highlight">「誰に頼ればいいか分からない」</span>という『不安』を抱えているという事実です。</p>
-  
-  <p>ただ安くするだけなら、ネットで調べればできる時代かもしれません。<br>しかし、私が吉田町や牧之原市の皆様にお届けしたいのは、単なる節約ではなく、<span class="highlight">ご家族全員が安心してスマホを使える環境</span>です。</p>
-  
-  <div class="list-item">・「データが消えたらどうしよう…」という機種変更の恐怖</div>
-  <div class="list-item">・「お店に行くと、不要なものをつけられそう…」という警戒心</div>
-  
-  <p>そんなモヤモヤを取り除き、複雑なプランやデータを綺麗に整えるのが、私の役目です。<br>ノルマのための無理な提案はいたしません。生活スタイルを丁寧に紐解き、本当に必要なものだけを残します。</p>
-  
-  <p>そして、一番面倒で不安な<br><span class="highlight">「データ移行」や「初期設定」</span>は、<br>私が隣について丸ごとサポートいたします。</p>
-  
-  <p>「ちょっと調子が悪くて…」と、いつでも気軽に頼れる<span class="no-split">『かかりつけ医』</span>のような存在でありたい。<br>まずは、あなたのスマホの「健康状態」を一緒に確認してみませんか？</p>
-  
-  <div class="signature">スマホ整理士 櫻井</div>
+  <header>
+    <h1>料金の安さ以上に、<br>「ずっと任せられる安心」を。</h1>
+  </header>
+
+  <section>
+    <h2>スマホ整理士の想い</h2>
+    <p>携帯業界で10年。1万人以上の方を接客して気づいたのは、多くの方が<span class="highlight">「誰に頼ればいいか分からない不安」</span>を抱えていることでした。</p>
+    <p>ショップの閉店やオンライン化が進む今だからこそ、地元・吉田町や牧之原市の皆様が気軽に頼れる<span class="highlight">「スマホのかかりつけ医」</span>でありたいと考えています。</p>
+  </section>
+
+  <section>
+    <h2>サポートの流れ</h2>
+    <div class="step-box">
+      <span class="step-num">STEP 1</span> <strong>無料スマホ診断</strong>
+      <p style="margin:5px 0 0; font-size:0.9rem;">LINEで届く診断に回答。今のリスクを可視化します。</p>
+    </div>
+    <div class="step-box">
+      <span class="step-num">STEP 2</span> <strong>個別アドバイス</strong>
+      <p style="margin:5px 0 0; font-size:0.9rem;">プロの目線で「安く・安全に」なるプランを提案。</p>
+    </div>
+    <div class="step-box">
+      <span class="step-num">STEP 3</span> <strong>対面・オンライン相談</strong>
+      <p style="margin:5px 0 0; font-size:0.9rem;">実際の乗り換えやデータ移行を隣で丸ごとサポート。</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>スタッフ紹介</h2>
+    <div class="profile-card">
+      <div class="profile-text">
+        <strong>櫻井（さくらい）</strong><br>
+        静岡県吉田町在住・40歳。キャリアショップでの販売やスマホ教室講師を10年経験。「効率よりも、一人ひとりに寄り添うサポート」をモットーに活動中。
+      </div>
+    </div>
+    <p style="font-size:0.9rem; margin-top:15px;">「スマホを変えるのが怖い」「LINEが消えるのが不安」そんな悩み、私がすべて解決します。無理な勧誘は一切しませんのでご安心ください。</p>
+  </section>
+
+  <section style="text-align: center;">
+    <p><strong>＼ まずはLINEでご相談ください ／</strong></p>
+    <a href="https://line.me/R/ti/p/@あなたのLINEのID" class="cta-button">相談・お問い合わせ</a>
+    <p style="font-size:0.8rem; color:#666;">※ボタンを押すとトーク画面に戻ります</p>
+  </section>
 </div>
 
 </body>

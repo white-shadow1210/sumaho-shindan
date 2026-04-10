@@ -219,31 +219,37 @@
 
   // 画面読み込み時にトップメッセージを切り替え
   window.onload = function() {
-    const topMsg = document.querySelector('#top-message p:nth-child(2)'); // 2つ目のPタグ（説明文）を変更
-    if(consultType === 'plan') {
-      topMsg.innerHTML = "1分で終わる簡単な質問に答えるだけで、<br>プロのスマホ相談士があなたの<br><strong>「家計の節約ポイント」</strong>を診断！<br>後ほどLINEで<strong>『スマホカルテ』</strong>をお届けします。";
-    } else if(consultType === 'device') {
-      topMsg.innerHTML = "1分で終わる簡単な質問に答えるだけで、<br>プロのスマホ相談士があなたに<br><strong>「最適な機種と買い替え時期」</strong>を診断！<br>後ほどLINEで<strong>『スマホカルテ』</strong>をお届けします。";
-    } else if(consultType === 'other') {
-      topMsg.innerHTML = "お困りの症状やご不安な点を<br>プロのスマホ相談士がしっかり確認し<br><strong>「最適な解決策」</strong>を診断！<br>後ほどLINEで<strong>『スマホカルテ』</strong>をお届けします。";
+  const topMsg = document.querySelector('#top-message p:nth-child(2)');
+  
+  // 🌟 テキストサイズを大きく設定（1rem → 1.15rem程度にアップ）
+  topMsg.style.fontSize = "1.15rem";
+  topMsg.style.lineHeight = "1.6";
+  topMsg.style.padding = "0 10px";
+
+  // 1. メッセージの中身を切り替える
+  if(consultType === 'plan') {
+    topMsg.innerHTML = "プロのスマホ相談士があなたの<br><strong style='color:#1a2a40; border-bottom:2px solid #82c4c3;'>「家計の節約ポイント」</strong>を診断します。";
+  } else if(consultType === 'device') {
+    topMsg.innerHTML = "プロのスマホ相談士があなたに<br><strong style='color:#1a2a40; border-bottom:2px solid #82c4c3;'>「最適な機種と買い替え時期」</strong>を診断します。";
+  } else if(consultType === 'other') {
+    topMsg.innerHTML = "お困りの症状やご不安な点をしっかり確認し、<br><strong style='color:#1a2a40; border-bottom:2px solid #82c4c3;'>「最適な解決策」</strong>を診断します。";
+  }
+
+  // 2. Step 8へジャンプする処理
+  const direct = urlParams.get('direct');
+  if (direct === 'step8') {
+    document.querySelectorAll('.step-container').forEach(step => step.classList.remove('active'));
+    if (document.getElementById('top-message')) document.getElementById('top-message').style.display = 'block';
+    if (document.getElementById('guidelines-area')) document.getElementById('guidelines-area').style.display = 'none';
+    
+    const step8 = document.getElementById('step8');
+    if (step8) {
+      step8.classList.add('active');
+      step8.style.opacity = 1;
     }
-    const direct = urlParams.get('direct');
-    if (direct === 'step8') {
-      // 全ステップを非表示に
-      document.querySelectorAll('.step-container').forEach(step => step.classList.remove('active'));
-      // トップメッセージとガイドラインも非表示に
-      if (document.getElementById('top-message')) document.getElementById('top-message').style.display = 'none';
-      if (document.getElementById('guidelines-area')) document.getElementById('guidelines-area').style.display = 'none';
-      
-      // Step8だけを表示
-      const step8 = document.getElementById('step8');
-      if (step8) {
-        step8.classList.add('active');
-        step8.style.opacity = 1;
-      }
-      window.scrollTo(0, 0);
-    }
-  };
+    window.scrollTo(0, 0);
+  }
+};
 
   function saveAnswer(questionId, answer) {   
 

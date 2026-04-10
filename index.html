@@ -302,7 +302,21 @@
         body: JSON.stringify(answers)    
       });    
           
-      alert("診断ありがとうございます！診断結果を作成し、LINEにお送りします。OKを押してトーク画面にお戻りください。");    
+      // alertの代わりにこれを使う
+const overlay = document.createElement('div');
+overlay.style = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;";
+overlay.innerHTML = `
+  <div style="background:white;padding:30px;border-radius:15px;text-align:center;">
+    <p style="font-weight:bold;font-size:1.1rem;line-height:1.6;">診断ありがとうございます！</p>
+    <p style="font-size:0.9rem;color:#555;margin-bottom:20px;">診断結果を作成し、LINEでお送りします。<br>下のボタンを押してトーク画面にお戻りください。</p>
+    <button onclick="location.href='https://line.me/R/oaMessage/@281jfkpu/?カルテ診断完了'" 
+            style="background:#1a2a40;color:white;border:none;padding:12px 25px;border-radius:5px;font-weight:bold;">
+      LINEに戻る
+    </button>
+  </div>
+`;
+document.body.appendChild(overlay);
+    
       
       setTimeout(() => {
         window.location.href = "https://line.me/R/ti/p/@281jfkpu";

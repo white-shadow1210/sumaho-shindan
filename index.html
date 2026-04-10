@@ -227,6 +227,22 @@
     } else if(consultType === 'other') {
       topMsg.innerHTML = "お困りの症状やご不安な点を<br>プロのスマホ相談士がしっかり確認し<br><strong>「最適な解決策」</strong>を診断！<br>後ほどLINEで<strong>『スマホカルテ』</strong>をお届けします。";
     }
+    const direct = urlParams.get('direct');
+    if (direct === 'step8') {
+      // 全ステップを非表示に
+      document.querySelectorAll('.step-container').forEach(step => step.classList.remove('active'));
+      // トップメッセージとガイドラインも非表示に
+      if (document.getElementById('top-message')) document.getElementById('top-message').style.display = 'none';
+      if (document.getElementById('guidelines-area')) document.getElementById('guidelines-area').style.display = 'none';
+      
+      // Step8だけを表示
+      const step8 = document.getElementById('step8');
+      if (step8) {
+        step8.classList.add('active');
+        step8.style.opacity = 1;
+      }
+      window.scrollTo(0, 0);
+    }
   };
 
   function saveAnswer(questionId, answer) {   

@@ -3,7 +3,7 @@
 <head>    
 <meta charset="UTF-8">    
 <meta name="viewport" content="width=device-width, initial-scale=1.0">    
-<title>スマホ整理士 - 無料スマホ診断</title>    
+<title>スマホ相談士 - 無料スマホ診断</title>    
 <style>    
   /* 基本設定 */    
   *, *::before, *::after { box-sizing: border-box; }    
@@ -164,8 +164,8 @@
     <button class="back-btn" onclick="prevStep(6, 5)">← 前に戻る</button>    
   </div>    
     
-  <div id="step7" class="step-container">    
-    <div class="step-badge">Step 7 / 7</div><span class="step-icon">📋</span>    
+    <div id="step7" class="step-container">    
+    <div class="step-badge">Step 7 / 8</div><span class="step-icon">📋</span>    
     <div class="question-title">買い替え・見直しで気になることは？<br><span style="font-size: 0.9rem; font-weight: normal;">（複数選択可）</span></div>    
     <div class="options-grid">    
       <label class="checkbox-label" onclick="toggleCheck(this, 'q7', 'データ移行')"><input type="checkbox">データ移行</label>    
@@ -178,26 +178,59 @@
       <label class="checkbox-label" onclick="toggleCheck(this, 'q7', '手続きの手間')"><input type="checkbox">手続きの手間</label>    
     </div>
 
-    <div style="margin-top: 30px; padding: 20px; background-color: #f0f8f8; border-radius: 10px; width: 100%; text-align: left; border: 1px solid #82c4c3;">
+    <button class="next-btn" onclick="nextStep(7, 8)">次の質問へ</button>    
+    <button class="back-btn" onclick="prevStep(7, 6)">← 前に戻る</button>    
+  </div>    
+    
+  <div id="step8" class="step-container">    
+    <div class="step-badge">Step 8 / 8</div><span class="step-icon">✍️</span>    
+    <div class="question-title">具体的なご相談内容を<br>お聞かせください</div>    
+    <div style="width: 100%; margin-bottom: 20px;">
+      <p style="font-size: 0.85rem; color: #555; line-height: 1.5; text-align: left; margin-bottom: 10px;">
+        ※現在の状況や、特に困っていること、ご希望などがあれば自由にご記入ください。空欄でも構いません。
+      </p>
+      <textarea id="detail-text" rows="4" placeholder="例：iPhone15にしたいけど安く買える場所が知りたい、LINEの引き継ぎだけお願いしたい、など" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 6px; font-size: 1rem; resize: none;"></textarea>
+    </div>
+
+    <div style="padding: 20px; background-color: #f0f8f8; border-radius: 10px; width: 100%; text-align: left; border: 1px solid #82c4c3;">
       <p style="margin: 0 0 10px 0; font-weight: bold; color: #1a2a40; font-size: 0.95rem;">【最後にお願い】</p>
-      <p style="margin: 0 0 15px 0; font-size: 0.85rem; color: #555; line-height: 1.4;">LINEで診断結果をお送りするため、<br>あなたの<strong>「LINEのアカウント名(お名前)」</strong>を教えてください。</p>
+      <p style="margin: 0 0 15px 0; font-size: 0.85rem; color: #555; line-height: 1.4;">LINEであなた専用の『スマホカルテ』とご案内をお送りします。<strong>「LINEのアカウント名(お名前)」</strong>を教えてください。</p>
       <input type="text" id="name" placeholder="例：さくらい、S.Sakurai など" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 6px; font-size: 1rem;">
     </div>
     
-    <button class="finish-btn" onclick="finish()">診断を完了して結果を見る</button>    
-    <button class="back-btn" onclick="prevStep(7, 6)">← 前に戻る</button>    
+    <button class="finish-btn" onclick="finish()">カルテを作成して相談に進む</button>    
+    <button class="back-btn" onclick="prevStep(8, 7)">← 前に戻る</button>    
   </div>    
     
 </div>    
     
 <script>    
-  const GAS_URL = "https://script.google.com/macros/s/AKfycbzwEdKjP3FYYb_lJKdULcI1OoCr4nWVfLoxObWyqclqhd8WZ4BlW_uCz3kw27Mbp1A/exec";    
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbzxfGPPKRLBM-1tbxpM7_dDZ6U1IY5UAKvz104iDPiXPVSwkpL4HcXk4DFJljtNHMQ/exec";    
     
+  // URLパラメータを取得して相談タイプを判別
+  const urlParams = new URLSearchParams(window.location.search);
+  const consultType = urlParams.get('type') || 'general';
+
+  // consult_type と detail を追加し、q7はそのまま！
   let answers = {    
-    q1: "", q2: "", q3: [], q4: "", q5: "", q6: "", q7: [], name: ""
+    consult_type: consultType,
+    q1: "", q2: "", q3: [], q4: "", q5: "", q6: "", q7: [], detail: "", name: ""
   };    
-    
-  function saveAnswer(questionId, answer) {    
+
+  // 画面読み込み時にトップメッセージを切り替え
+  window.onload = function() {
+    const topMsg = document.querySelector('#top-message p:nth-child(2)'); // 2つ目のPタグ（説明文）を変更
+    if(consultType === 'plan') {
+      topMsg.innerHTML = "1分で終わる簡単な質問に答えるだけで、<br>プロのスマホ相談士があなたの<br><strong>「家計の節約ポイント」</strong>を診断！<br>後ほどLINEで<strong>『スマホカルテ』</strong>をお届けします。";
+    } else if(consultType === 'device') {
+      topMsg.innerHTML = "1分で終わる簡単な質問に答えるだけで、<br>プロのスマホ相談士があなたに<br><strong>「最適な機種と買い替え時期」</strong>を診断！<br>後ほどLINEで<strong>『スマホカルテ』</strong>をお届けします。";
+    } else if(consultType === 'other') {
+      topMsg.innerHTML = "お困りの症状やご不安な点を<br>プロのスマホ相談士がしっかり確認し<br><strong>「最適な解決策」</strong>を診断！<br>後ほどLINEで<strong>『スマホカルテ』</strong>をお届けします。";
+    }
+  };
+
+  function saveAnswer(questionId, answer) {   
+
     answers[questionId] = answer;    
   }    
     
@@ -256,6 +289,8 @@
       return;
     }
     answers.name = nameInput;
+
+    answers.detail = document.getElementById('detail-text').value;
 
     document.getElementById('loading').style.display = 'flex';    
         

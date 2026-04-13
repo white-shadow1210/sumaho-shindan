@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>料金メニュー | スマホ相談士</title>
+    <style>
+        /* ユニバーサルデザイン設定 */
+        body { 
+            font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; 
+            background-color: #f8f9fa; 
+            margin: 0; 
+            padding: 0; 
+            color: #222; /* より濃くして視認性アップ */
+            line-height: 1.8; /* 行間を広く */
+        }
+        .container { max-width: 500px; margin: 0 auto; background: #fff; min-height: 100vh; padding-bottom: 60px; }
+        
+        .header { background: #1a2a40; color: white; padding: 40px 20px; text-align: center; }
+        .header h1 { margin: 0; font-size: 26px; letter-spacing: 1px; } /* サイズアップ */
+        
+        .section-title { 
+            background: #f4eade; 
+            color: #5d4a26; 
+            padding: 12px 20px; 
+            font-weight: bold; 
+            border-left: 6px solid #8a6d3b; 
+            margin: 30px 0 15px 0; 
+            display: flex; 
+            align-items: center;
+            font-size: 19px;
+        }
+        
+        .card { margin: 20px; border: 1px solid #ddd; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.08); }
+        .card-body { padding: 20px; }
+        
+        /* 時間目安を目立たせる */
+        .time-badge { 
+            display: inline-flex; 
+            align-items: center; 
+            font-size: 14px; /* サイズアップ */
+            background: #eee; 
+            color: #333; 
+            padding: 4px 12px; 
+            border-radius: 15px; 
+            margin-bottom: 10px; 
+            font-weight: bold;
+        }
+        .time-badge::before { content: '⏱'; margin-right: 6px; }
+
+        .menu-name { font-weight: bold; font-size: 19px; color: #1a2a40; display: block; margin-bottom: 5px; }
+        .menu-price { font-size: 24px; font-weight: bold; color: #d32f2f; display: block; margin-bottom: 10px; }
+        .menu-desc { font-size: 16px; color: #444; margin-bottom: 15px; } /* 説明文を大きく */
+        
+        /* サブスクエリア */
+        .sub-container { margin: 20px; padding: 25px; border: 3px solid #82c4c3; border-radius: 15px; background: #f0f8ff; }
+        .sub-title { color: #1a2a40; font-weight: bold; font-size: 22px; text-align: center; margin-bottom: 20px; border-bottom: 2px solid #82c4c3; padding-bottom: 10px; }
+        
+        .sub-plan { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 15px; 
+            padding: 15px; 
+            background: white; 
+            border-radius: 10px; 
+            border: 1px solid #82c4c3;
+        }
+        .sub-plan-name { font-weight: bold; font-size: 18px; line-height: 1.4; }
+        .sub-plan-price { font-size: 24px; font-weight: bold; color: #d32f2f; white-space: nowrap; }
+        .sub-plan-price small { font-size: 14px; }
+
+        .benefit-list { font-size: 17px; padding-left: 20px; margin: 20px 0; color: #333; }
+        .benefit-list li { margin-bottom: 12px; list-style-type: '✅ '; }
+
+        /* 予約ボタン（追加） */
+        .btn-reserve {
+            display: block;
+            background: #1a2a40;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            padding: 18px;
+            margin: 20px;
+            border-radius: 35px;
+            font-size: 20px;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        /* フッター */
+        .footer-note { font-size: 15px; color: #444; padding: 30px 20px; text-align: left; background: #f0f0f0; border-top: 1px solid #ddd; }
+        .privacy-note { 
+            font-size: 13px; 
+            color: #666; 
+            margin-top: 20px; 
+            padding: 15px; 
+            border: 1px solid #ccc; 
+            border-radius: 8px; 
+            background: #fff;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>スマホ相談士 料金メニュー</h1>
+        <p style="font-size: 16px; opacity: 0.9; margin-top:10px;">あなたのスマホライフに「安心」をプラス</p>
+    </div>
+
+    <div class="section-title">📍 スポットサポート</div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="time-badge">目安：60分〜90分</div>
+            <span class="menu-name">📱 プラン見直し・最適化診断</span>
+            <span class="menu-price">¥5,500 <span style="font-size:14px; color:#666; font-weight:normal;">(税込)</span></span>
+            <div class="menu-desc">現状の固定費を分析し、最適なプランのご提案。契約のサポートをします。</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="time-badge">目安：90分〜120分</div>
+            <span class="menu-name">📦 完全データ移行パック</span>
+            <span class="menu-price">¥11,000 <span style="font-size:14px; color:#666; font-weight:normal;">(税込)</span></span>
+            <div class="menu-desc">端末選びのアドバイス、購入手続き同行、キャリアがやらない全アプリのログイン確認、初期設定まで丸ごと代行します。</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="time-badge">目安：45分〜60分</div>
+            <span class="menu-name">🔍 スマホの整理・お悩み相談</span>
+            <span class="menu-price">¥3,300 <span style="font-size:14px; color:#666; font-weight:normal;">(税込)</span></span>
+            <div class="menu-desc">「動きが遅い」「写真がいっぱい」「変な通知が来る」など、日々の小さなお悩みをスッキリ解決します。</div>
+        </div>
+    </div>
+
+    <div class="section-title">⭐ スマホの顧問料（月額）</div>
+    <div class="sub-container">
+        <div class="sub-title">継続サポートプラン</div>
+        
+        <div class="sub-plan">
+            <span class="sub-plan-name">👤 個人プラン</span>
+            <span class="sub-plan-price">¥440<small>/月(税込)</small></span>
+        </div>
+
+        <div class="sub-plan">
+            <span class="sub-plan-name">👨‍👩‍👧‍👦 ご家族プラン<br><small style="font-weight: normal; color: #666;">(同居家族4名様まで)</small></span>
+            <span class="sub-plan-price">¥980<small>/月(税込)</small></span>
+        </div>
+
+        <ul class="benefit-list">
+            <li><b>吉田町内：出張費がいつでも無料</b></li>
+            <li>LINEでの操作質問・相談が無料</li>
+            <li>年1回のスマホ健康診断(カルテ更新)</li>
+            <li>スポットメニューがすべて<b>20%OFF</b></li>
+        </ul>
+    </div>
+
+    <a href="#" class="btn-reserve">WEB予約・空き状況確認</a>
+
+    <div class="footer-note">
+        <p><b>【出張エリア】</b><br>吉田町・牧之原市周辺</p>
+        <p>吉田町以外への出張：1,000円<br>（会員様：550円）</p>
+        <p style="font-size: 13px; color: #777;">※作業時間はあくまで目安です。状況により前後する場合がございます。</p>
+
+        <div class="privacy-note">
+            <b>【安心のお約束・個人情報の取り扱い】</b><br>
+            ・お客様のデータ（写真・連絡先等）を閲覧・保存・外部へ送信することは一切ございません。<br>
+            ・ご入力いただいた内容は、適切なアドバイスおよびサービス提供のみに利用し、第三者への提供は行いません。
+        </div>
+        <p style="text-align: center; font-size: 12px; margin-top: 20px;">© 2026 スマホ相談士 西舘</p>
+    </div>
+</div>
+</body>
+</html>

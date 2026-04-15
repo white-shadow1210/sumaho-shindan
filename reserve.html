@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>スマホの相談士 - 予約フォーム</title>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <style>
     :root {
         --primary-blue: #249496; /* メディカルブルー */
@@ -269,11 +270,27 @@
         }
     };
 
+    // ▼修正：ログイン画面をSweetAlert2に変更
     function tryMemberLogin() {
         if(isMemberMode) return;
-        const pass = prompt("会員専用のパスワードを入力してください。\n（デモ用：1234）");
-        if(pass === "1234") enableMemberMode();
-        else if (pass !== null) alert("パスワードが違います。");
+        
+        Swal.fire({
+            title: "会員ログイン",
+            text: "会員専用のパスワードを入力してください。\n（デモ用：1234）",
+            input: "password",
+            showCancelButton: true,
+            confirmButtonText: "ログイン",
+            cancelButtonText: "キャンセル"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                if (result.value === "1234") {
+                    enableMemberMode();
+                    Swal.fire("成功", "会員モードに切り替わりました", "success");
+                } else {
+                    Swal.fire("エラー", "パスワードが違います", "error");
+                }
+            }
+        });
     }
 
     function enableMemberMode() {
@@ -293,7 +310,7 @@
         selected = { id: menuId, name: name, price: (isMemberMode && basePrice > 0) ? basePrice * 0.8 : basePrice, duration: duration };
     }
 
-    let calendarMatrix = []; // セル参照用
+    let calendarMatrix = [];
 
     function generateCalendar() {
         const thead = document.getElementById('calendar-head'), tbody = document.getElementById('calendar-body');
@@ -335,6 +352,7 @@
         }
     }
 
+    // ▼修正：カレンダーエラーをSweetAlert2に変更
     function handleSlotClick(clickedTd) {
         const row = parseInt(clickedTd.dataset.row), col = parseInt(clickedTd.dataset.col);
         const required = Math.ceil((selected.duration + 30) / INTERVAL); 
@@ -344,7 +362,7 @@
             if(row+i >= calendarMatrix.length || calendarMatrix[row+i][col].classList.contains('slot-full')){ canBook = false; break; }
             slotsToBook.push(calendarMatrix[row+i][col]);
         }
-        if(!canBook) return alert('連続した空き枠がありません。別の時間をお選びください。');
+        if(!canBook) return Swal.fire("エラー", "連続した空き枠がありません。別の時間をお選びください。", "error");
 
         document.querySelectorAll('td').forEach(td => {
             if(td.classList.contains('slot-selected') || td.classList.contains('slot-blocked')){
@@ -374,21 +392,35 @@
         }
     }
 
+    // ▼修正：バリデーションと予約確定のポップアップをSweetAlert2に変更
     function goNext() {
-        if(currentStep === 1 && !selected.id) return alert('メニューを選択してください');
-        if(currentStep === 2 && !selected.dateRaw) return alert('日時を選択してください');
+        if(currentStep === 1 && !selected.id) return Swal.fire("確認", "メニューを選択してください", "warning");
+        if(currentStep === 2 && !selected.dateRaw) return Swal.fire("確認", "日時を選択してください", "warning");
         if(currentStep === 3) {
             const name = document.getElementById('input-name').value;
             const tel = document.getElementById('input-tel').value;
             const email = document.getElementById('input-email').value;
-            if(!name || !tel || !email) return alert('必須項目（名前・電話・メール）をすべて入力してください');
+            if(!name || !tel || !email) return Swal.fire("エラー", "必須項目（名前・電話・メール）をすべて入力してください", "error");
             
-            submitToGAS(); // GASへの送信処理を呼び出す
+            // 予約確定のポップアップ
+            Swal.fire({
+                title: "確認",
+                text: "この内容で予約を確定しますか？",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: "確定する",
+                cancelButtonText: "キャンセル"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    submitToGAS(); // 確定されたらGASへ送信
+                }
+            });
             return;
         }
         currentStep++; window.scrollTo({top:0, behavior:'smooth'}); updateNavAndButtons();
     }
     
+    // ▼修正：GASへデータを送信する本番用処理を追加
     function submitToGAS() {
         const btnNext = document.getElementById('btn-next');
         btnNext.disabled = true;
@@ -412,9 +444,36 @@
             time: data.time
         }));
 
-        // ※ここでGASのWebアプリURLへFetchを行う設定を後で行います
-        alert('予約ありがとうございます！\n西舘より確認メールをお送りします。\n（※まだGASを公開していない場合はメールは届きません）');
-        location.reload(); // デモ用にリロード
+        // ★★★重要★★★
+        // 下記の "URLをここに貼り付け" の部分を、新しくデプロイしたGASのURLに書き換えてください。
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbzEFVz8YuqHWhDacdRoK0YFBqTZ315rk6uFa7fcgurNF3h-4dFemnyCwoyhDLiQCg/exec"; 
+
+        if (GAS_URL === "https://script.google.com/macros/s/AKfycbzEFVz8YuqHWhDacdRoK0YFBqTZ315rk6uFa7fcgurNF3h-4dFemnyCwoyhDLiQCg/exec") {
+             Swal.fire("注意", "GASのURLが設定されていません。コード内のGAS_URLを書き換えてください。", "warning");
+             btnNext.disabled = false;
+             btnNext.innerText = 'この内容で予約を確定する';
+             return;
+        }
+
+        // GASへデータを送信
+        fetch(GAS_URL, {
+            method: 'POST',
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            Swal.fire({
+                title: "予約完了！",
+                text: "予約ありがとうございます！\n西舘より確認メールをお送りします。",
+                icon: "success"
+            }).then(() => {
+                location.reload(); 
+            });
+        })
+        .catch(error => {
+            Swal.fire("エラー", "送信に失敗しました。もう一度お試しください。", "error");
+            btnNext.disabled = false;
+            btnNext.innerText = 'この内容で予約を確定する';
+        });
     }
 
     function goBack() { if(currentStep > 1){ currentStep--; window.scrollTo({top:0, behavior:'smooth'}); updateNavAndButtons(); } }

@@ -77,7 +77,8 @@
     .step-item.active { background: var(--primary-blue); color: #fff; }
     .step-item:not(:last-child)::after {
         content: ''; position: absolute; top: 0; right: -15px;
-        border-top: 25px solid transparent; border-bottom: 25px solid transparent; border-left: 15px solid var(--step-bg); z-index: 1;
+        border-top: 25px solid transparent; border-bottom: 25px solid transparent;
+        border-left: 15px solid var(--step-bg); z-index: 1;
     }
     .step-item.active::after { border-left-color: var(--primary-blue); z-index: 2; }
 
@@ -86,10 +87,16 @@
 
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-    .section-title { font-size: 1.2rem; margin-top: 0; margin-bottom: 20px; border-left: 4px solid var(--primary-blue); padding-left: 10px; transition: 0.3s; }
+    .section-title {
+        font-size: 1.2rem; margin-top: 0; margin-bottom: 20px;
+        border-left: 4px solid var(--primary-blue); padding-left: 10px; transition: 0.3s;
+    }
 
-    .subscriber-login { background: #e8f5f5; padding: 15px; border-radius: 8px; margin-bottom: 25px; text-align: center; border: 1px solid #bce0e0; transition: 0.3s; }
-    .subscriber-login p { margin: 0 0 10px 0; font-size: 0.9rem;}
+    .subscriber-login {
+        background: #e8f5f5; padding: 15px; border-radius: 8px;
+        margin-bottom: 25px; text-align: center; border: 1px solid #bce0e0; transition: 0.3s;
+    }
+    .subscriber-login p { margin: 0 0 10px 0; font-size: 0.9rem; }
     .btn-line { background: #06C755; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; }
     .btn-line:hover { background: #05b34c; }
 
@@ -99,40 +106,38 @@
     .member-mode .step-item.active::after { border-left-color: var(--member-gold); }
 
     .menu-card {
-        border: 2px solid var(--border-color); border-radius: 8px; padding: 15px; margin-bottom: 15px; cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between; align-items: center;
+        border: 2px solid var(--border-color); border-radius: 8px; padding: 15px;
+        margin-bottom: 15px; cursor: pointer; transition: 0.2s;
+        display: flex; justify-content: space-between; align-items: center;
     }
     .menu-card:hover { border-color: var(--primary-blue); background: #f0f8f8; }
     .member-mode .menu-card:hover { border-color: var(--member-gold); background: #fcfbf8; }
     .menu-card input[type="radio"] { transform: scale(1.5); margin-right: 15px; accent-color: var(--primary-blue); }
     .member-mode .menu-card input[type="radio"] { accent-color: var(--member-gold); }
     .menu-content { flex: 1; }
-    .menu-title { font-weight: bold; font-size: 1.1rem; margin-bottom: 5px;}
-    .menu-desc { font-size: 0.85rem; color: #666;}
+    .menu-title { font-weight: bold; font-size: 1.1rem; margin-bottom: 5px; }
+    .menu-desc { font-size: 0.85rem; color: #666; }
     .subs-upsell { font-size: 0.75rem; color: #e74c3c; margin-top: 5px; display: inline-block; background: #fdf0ed; padding: 3px 8px; border-radius: 4px; font-weight: bold; }
     .member-mode .subs-upsell { display: none; }
-    .menu-price { font-weight: bold; color: var(--primary-blue); text-align: right; min-width: 90px;}
+    .menu-price { font-weight: bold; color: var(--primary-blue); text-align: right; min-width: 90px; }
     .member-mode .menu-price { color: var(--member-gold); }
-    .price-original { display: none; text-decoration: line-through; color: #999; font-size: 0.8rem; font-weight: normal;}
+    .price-original { display: none; text-decoration: line-through; color: #999; font-size: 0.8rem; font-weight: normal; }
     .member-mode .price-original { display: block; }
 
-    /* カレンダー */
     .calendar-wrap { overflow-x: auto; margin-bottom: 20px; border: 1px solid var(--border-color); border-radius: 8px; }
     .calendar-table { width: 100%; border-collapse: collapse; min-width: 1000px; background: #fff; table-layout: fixed; }
     .calendar-table th, .calendar-table td { border: 1px solid var(--border-color); text-align: center; padding: 12px 5px; vertical-align: middle; width: 80px; }
     .calendar-table th { background: var(--step-bg); font-weight: normal; font-size: 0.9rem; line-height: 1.4; }
-    
     .time-slot { background: #f9f9f9; font-weight: bold; font-size: 0.9rem; width: 60px !important; position: sticky; left: 0; z-index: 10; border-right: 2px solid var(--border-color); }
-    
     .slot-available { color: var(--accent-orange); font-size: 1.2rem; cursor: pointer; transition: 0.2s; }
     .slot-available:hover { background: #fff3e0; }
     .slot-full { color: #ccc; font-size: 1.2rem; }
-    
     .slot-selected { background: var(--accent-orange) !important; color: #fff !important; font-size: 0.9rem !important; font-weight: bold; }
     .slot-blocked { background: #fcdfb6 !important; color: #d35400 !important; font-size: 0.8rem !important; }
 
     .summary-box { background: #fdfdfd; border: 1px solid var(--border-color); padding: 15px; margin-bottom: 20px; border-radius: 5px; }
     .summary-item { display: flex; justify-content: space-between; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed #eee; }
-    .summary-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0;}
+    .summary-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
     .total-price-row { font-size: 1.2rem; font-weight: bold; color: var(--primary-blue); border-top: 2px solid var(--border-color); padding-top: 15px; margin-top: 5px; }
     .member-mode .total-price-row { color: var(--member-gold); }
 
@@ -148,11 +153,134 @@
     .btn-back { background: #fff; border: 1px solid #ccc; color: #333; }
     .btn-next { background: var(--accent-orange); color: #fff; flex-grow: 1; margin-left: 15px; }
     .btn-next:hover { background: #e68a00; }
+
+    /* ▼ 送信中オーバーレイ */
+    #sending-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(26, 42, 64, 0.88);
+        z-index: 9999;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    #sending-overlay.active { display: flex; }
+
+    .sending-card {
+        background: #fff;
+        border-radius: 24px;
+        padding: 44px 32px 36px;
+        text-align: center;
+        width: 82%;
+        max-width: 300px;
+        box-shadow: 0 16px 48px rgba(0,0,0,0.35);
+        animation: cardIn 0.3s ease;
+    }
+    @keyframes cardIn {
+        from { opacity: 0; transform: scale(0.92) translateY(12px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    /* 回転スピナー */
+    .spinner {
+        width: 60px;
+        height: 60px;
+        border: 5px solid #e0f0f0;
+        border-top: 5px solid var(--primary-blue);
+        border-radius: 50%;
+        animation: spin 0.85s linear infinite;
+        margin: 0 auto 22px;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* 完了チェックマーク（SVGアニメーション） */
+    .checkmark-svg {
+        display: none;
+        width: 60px;
+        height: 60px;
+        margin: 0 auto 22px;
+    }
+    .checkmark-circle {
+        stroke-dasharray: 166;
+        stroke-dashoffset: 166;
+        stroke-width: 3;
+        stroke: var(--primary-blue);
+        fill: none;
+        animation: drawCircle 0.5s ease forwards;
+    }
+    .checkmark-path {
+        stroke-dasharray: 48;
+        stroke-dashoffset: 48;
+        stroke-width: 3.5;
+        stroke: var(--primary-blue);
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        animation: drawCheck 0.35s 0.45s ease forwards;
+    }
+    @keyframes drawCircle { 100% { stroke-dashoffset: 0; } }
+    @keyframes drawCheck { 100% { stroke-dashoffset: 0; } }
+
+    .sending-title {
+        font-size: 1.15rem;
+        font-weight: bold;
+        color: #1a2a40;
+        margin-bottom: 6px;
+    }
+    .sending-sub {
+        font-size: 0.85rem;
+        color: #999;
+        line-height: 1.6;
+    }
+
+    /* ドット点滅アニメーション */
+    .dot-flashing {
+        display: inline-flex;
+        gap: 7px;
+        margin-top: 18px;
+        justify-content: center;
+    }
+    .dot-flashing span {
+        width: 9px; height: 9px;
+        background: var(--primary-blue);
+        border-radius: 50%;
+        animation: dotBlink 1.3s infinite ease-in-out;
+    }
+    .dot-flashing span:nth-child(2) { animation-delay: 0.22s; }
+    .dot-flashing span:nth-child(3) { animation-delay: 0.44s; }
+    @keyframes dotBlink {
+        0%, 80%, 100% { opacity: 0.15; transform: scale(0.75); }
+        40% { opacity: 1; transform: scale(1.25); }
+    }
 </style>
 ```
 
 </head>
 <body>
+
+<!-- ▼ 送信中オーバーレイ -->
+
+<div id="sending-overlay">
+    <div class="sending-card">
+        <!-- スピナー（送信中） -->
+        <div class="spinner" id="overlay-spinner"></div>
+        <!-- チェックマーク（完了後） -->
+        <svg class="checkmark-svg" id="overlay-check" viewBox="0 0 52 52">
+            <circle class="checkmark-circle" cx="26" cy="26" r="23"/>
+            <path class="checkmark-path" d="M14 27 l8 8 16-16"/>
+        </svg>
+        <div class="sending-title" id="overlay-title">予約を送信中です</div>
+        <div class="sending-sub" id="overlay-sub">少々お待ちください</div>
+        <div class="dot-flashing" id="overlay-dots">
+            <span></span><span></span><span></span>
+        </div>
+    </div>
+</div>
 
 <div class="container" id="app-container">
     <div id="returning-banner"></div>
@@ -207,7 +335,6 @@
     <p style="font-size: 0.9rem; margin-bottom: 5px;">ご希望の日時の「◎」をタップしてください。</p>
     <p style="font-size: 0.8rem; color: #888; margin-bottom: 10px;">※横にスクロールして日程を確認できます。</p>
     <p style="font-size: 0.8rem; color: #888; margin-bottom: 15px;">※メニューの所要時間（<span id="display-duration"></span>分）を自動で確保します。</p>
-    
     <div class="calendar-wrap">
         <table class="calendar-table">
             <thead id="calendar-head"></thead>
@@ -226,10 +353,11 @@
     </div>
 
     <h2 class="section-title">お客様情報の入力</h2>
+    <!-- ▼ 修正：input-name の value を削除し placeholder のみに -->
     <div class="form-group"><label>お名前<span>(必須)</span></label><input type="text" class="form-control" id="input-name" placeholder="例：山田 太郎"></div>
     <div class="form-group"><label>電話番号<span>(必須)</span></label><input type="tel" class="form-control" id="input-tel" placeholder="例：090-1234-5678"></div>
     <div class="form-group"><label>メールアドレス<span>(必須)</span></label><input type="email" class="form-control" id="input-email" placeholder="例：example@mail.com"></div>
-    
+
     <div class="privacy-policy">
         <strong>【セキュリティと個人情報の取扱いについて】</strong><br>
         ご入力いただいたお名前・電話番号等の個人情報は、予約の管理および当日のご本人様確認・ご相談対応のためにのみ使用し、適切かつ安全に管理いたします。
@@ -259,12 +387,8 @@
     let selected = { id: '', name: '', price: 0, duration: 0, dateRaw: '', time: '' };
     const START_MIN = 570, END_MIN = 1260, INTERVAL = 30;
 
-    // ▼ GASのカレンダー取得エンドポイント（doGetのURL）
-    // ※ 再デプロイ後に発行された新しいURLをここに貼り替えてください
     const CALENDAR_GAS_URL = "https://script.google.com/macros/s/AKfycbyWz8cB5m7Xj9xGpoNZC6hhi5-eVIxsexLDsE1nGpoCyu42akK3iFRVmJIIHJu6M9s/exec";
-
-    // ▼ 予約送信先のGAS URL（doPost）
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbyPjhDiOy66HuhinejsVasjIrXMPF96VxAbZQf-yGZq9usfy43-oH71wbtGjO_-p2o/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyWz8cB5m7Xj9xGpoNZC6hhi5-eVIxsexLDsE1nGpoCyu42akK3iFRVmJIIHJu6M9s/exec";
 
     window.onload = function() {
         const lastBooking = localStorage.getItem('nishidate_last_booking');
@@ -276,7 +400,6 @@
         }
     };
 
-    // ▼ SHA-256ハッシュ生成（Web Crypto API使用）
     async function hashPassword(password) {
         const encoder = new TextEncoder();
         const data = encoder.encode(password);
@@ -285,13 +408,10 @@
         return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
-    // ▼ 正解パスワード「0213」のSHA-256ハッシュ値
-    // emn178.github.io/online-tools/sha256.html で「0213」を入力して取得した値
     const MEMBER_PW_HASH = "f020272c938ba0a213d31613fd5a1a8b053c693d489551f8b24e900db43d6873";
 
     async function tryMemberLogin() {
         if(isMemberMode) return;
-        
         Swal.fire({
             title: "かかりつけ会員ログイン",
             text: "会員カードに記載されている「4桁のパスワード」を入力してください。",
@@ -318,9 +438,10 @@
         isMemberMode = true;
         document.getElementById('app-container').classList.add('member-mode');
         document.getElementById('login-box').innerHTML = '<p style="color:var(--member-gold); font-size:1.1rem; margin:0;"><strong>✓ サブスク会員としてログイン中</strong></p>';
-        document.getElementById('input-name').value = "西舘（会員） 様";
+        // ▼ 修正：自動入力を削除、空欄＋placeholderのみ
+        document.getElementById('input-name').value = "";
+        document.getElementById('input-name').placeholder = "例：山田 太郎";
         document.getElementById('subs-promo-box').style.display = 'none';
-        // 会員価格を表示更新
         const priceDisplays = document.querySelectorAll('.price-display');
         const memberPrices = ['¥2,640', '¥4,400', '¥8,800'];
         priceDisplays.forEach((el, i) => { if(memberPrices[i]) el.innerText = memberPrices[i]; });
@@ -334,7 +455,6 @@
 
     let calendarMatrix = [];
 
-    // ▼ Googleカレンダーと連動したカレンダー生成
     async function generateCalendar() {
         const thead = document.getElementById('calendar-head');
         const tbody = document.getElementById('calendar-body');
@@ -343,17 +463,15 @@
         calendarMatrix = [];
         document.getElementById('display-duration').innerText = selected.duration;
 
-        // Googleカレンダーから埋まり情報を取得
         let busySlots = [];
         try {
             const res = await fetch(CALENDAR_GAS_URL);
             const json = await res.json();
             busySlots = json.busy || [];
         } catch(err) {
-            console.warn("カレンダー取得エラー（オフライン判定で表示）:", err);
+            console.warn("カレンダー取得エラー:", err);
         }
 
-        // 埋まっている時間帯を30分刻みでSetに変換
         const busySet = new Set();
         busySlots.forEach(function(slot) {
             const start = new Date(slot.start);
@@ -364,87 +482,62 @@
             }
         });
 
-        // ヘッダー生成
         thead.innerHTML = '';
         let trH = document.createElement('tr');
         let thT = document.createElement('th');
-        thT.innerText = '時間';
-        thT.className = 'time-slot';
+        thT.innerText = '時間'; thT.className = 'time-slot';
         trH.appendChild(thT);
 
         const days = [];
         const today = new Date();
         const dayNames = ['日','月','火','水','木','金','土'];
-        
         for (let i = 1; i <= 14; i++) {
             let d = new Date(today);
             d.setDate(today.getDate() + i);
             const color = d.getDay() === 0 ? 'red' : (d.getDay() === 6 ? 'blue' : 'black');
-            days.push({
-                raw: d.getFullYear() + "年" + (d.getMonth()+1) + "月" + d.getDate() + "日",
-                dateObj: new Date(d),
-                style: color,
-                display: d.getDate() + "<br>(" + dayNames[d.getDay()] + ")"
-            });
+            days.push({ raw: d.getFullYear() + "年" + (d.getMonth()+1) + "月" + d.getDate() + "日", dateObj: new Date(d), style: color });
             let th = document.createElement('th');
             th.innerHTML = '<span style="color:' + color + '">' + d.getDate() + '<br>(' + dayNames[d.getDay()] + ')</span>';
             trH.appendChild(th);
         }
         thead.appendChild(trH);
 
-        // 時間軸生成
         const totalRows = (END_MIN - START_MIN) / INTERVAL;
         for (let r = 0; r <= totalRows; r++) {
             let tm = START_MIN + (r * INTERVAL);
-            let h = Math.floor(tm / 60);
-            let m = tm % 60;
+            let h = Math.floor(tm / 60), m = tm % 60;
             let tStr = h + ":" + (m === 0 ? '00' : '30');
-
             let tr = document.createElement('tr');
             let tdT = document.createElement('td');
-            tdT.innerText = tStr;
-            tdT.className = 'time-slot';
+            tdT.innerText = tStr; tdT.className = 'time-slot';
             tr.appendChild(tdT);
-
             let rowCells = [];
             for (let c = 0; c < 14; c++) {
                 let td = document.createElement('td');
-                td.dataset.row = r;
-                td.dataset.col = c;
-                td.dataset.time = tStr;
-                td.dataset.dateRaw = days[c].raw;
-
-                // busy判定
+                td.dataset.row = r; td.dataset.col = c; td.dataset.time = tStr; td.dataset.dateRaw = days[c].raw;
                 const d = days[c].dateObj;
                 const busyKey = d.getFullYear() + "/" + (d.getMonth()+1) + "/" + d.getDate() + "_" + tStr;
-                
                 if (busySet.has(busyKey)) {
-                    td.innerHTML = '×';
-                    td.className = 'slot-full';
+                    td.innerHTML = '×'; td.className = 'slot-full';
                 } else {
-                    td.innerHTML = '◎';
-                    td.className = 'slot-available';
+                    td.innerHTML = '◎'; td.className = 'slot-available';
                     td.onclick = function() { handleSlotClick(this); };
                 }
-                tr.appendChild(td);
-                rowCells.push(td);
+                tr.appendChild(td); rowCells.push(td);
             }
-            tbody.appendChild(tr);
-            calendarMatrix.push(rowCells);
+            tbody.appendChild(tr); calendarMatrix.push(rowCells);
         }
     }
 
     function handleSlotClick(clickedTd) {
         const row = parseInt(clickedTd.dataset.row), col = parseInt(clickedTd.dataset.col);
-        const required = Math.ceil((selected.duration + 30) / INTERVAL); 
+        const required = Math.ceil((selected.duration + 30) / INTERVAL);
         let canBook = true; let slotsToBook = [];
-        
         for(let i=0; i<required; i++){
             if(row+i >= calendarMatrix.length || calendarMatrix[row+i][col].classList.contains('slot-full')){ canBook = false; break; }
             slotsToBook.push(calendarMatrix[row+i][col]);
         }
         if(!canBook) return Swal.fire("エラー", "連続した空き枠がありません。別の時間をお選びください。", "error");
-
         document.querySelectorAll('td').forEach(td => {
             if(td.classList.contains('slot-selected') || td.classList.contains('slot-blocked')){
                 td.className = 'slot-available'; td.innerHTML = '◎';
@@ -458,13 +551,33 @@
         document.getElementById('btn-next').innerText = '次へ (内容を確認)';
     }
 
+    // ▼ オーバーレイ制御
+    function showSendingOverlay() {
+        document.getElementById('overlay-spinner').style.display = 'block';
+        document.getElementById('overlay-check').style.display = 'none';
+        document.getElementById('overlay-dots').style.display = 'flex';
+        document.getElementById('overlay-title').innerText = '予約を送信中です';
+        document.getElementById('overlay-sub').innerText = '少々お待ちください';
+        document.getElementById('sending-overlay').classList.add('active');
+    }
+    function updateOverlayToSuccess() {
+        document.getElementById('overlay-spinner').style.display = 'none';
+        document.getElementById('overlay-dots').style.display = 'none';
+        document.getElementById('overlay-check').style.display = 'block';
+        document.getElementById('overlay-title').innerText = '送信完了！';
+        document.getElementById('overlay-sub').innerText = '確認メールをお送りします';
+    }
+    function hideSendingOverlay() {
+        document.getElementById('sending-overlay').classList.remove('active');
+    }
+
     function updateNavAndButtons() {
         document.querySelectorAll('.form-section').forEach((el, i) => el.classList.toggle('active', i+1 === currentStep));
         document.querySelectorAll('.step-item').forEach((el, i) => el.classList.toggle('active', i+1 === currentStep));
         const btnBack = document.getElementById('btn-back'), btnNext = document.getElementById('btn-next');
         if(currentStep === 1){ btnBack.style.display='none'; btnNext.innerText='次へ (日時を指定)'; }
         else if(currentStep === 2){ generateCalendar(); btnBack.style.display='block'; btnNext.innerText=selected.dateRaw ? '次へ (内容を確認)' : '日時を選択してください'; }
-        else { 
+        else {
             btnBack.style.display='block'; btnNext.innerText='この内容で予約を確定する';
             document.getElementById('summary-menu').innerText = selected.name;
             document.getElementById('summary-time').innerText = selected.duration + '分';
@@ -481,7 +594,6 @@
             const tel = document.getElementById('input-tel').value;
             const email = document.getElementById('input-email').value;
             if(!name || !tel || !email) return Swal.fire("エラー", "必須項目（名前・電話・メール）をすべて入力してください", "error");
-            
             Swal.fire({
                 title: "確認",
                 text: "この内容で予約を確定しますか？",
@@ -496,11 +608,14 @@
         }
         currentStep++; window.scrollTo({top:0, behavior:'smooth'}); updateNavAndButtons();
     }
-    
+
     function submitToGAS() {
         const btnNext = document.getElementById('btn-next');
         btnNext.disabled = true;
         btnNext.innerText = '送信中...';
+
+        // ▼ オーバーレイ表示
+        showSendingOverlay();
 
         const data = {
             name: document.getElementById('input-name').value,
@@ -518,14 +633,20 @@
         }));
 
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify(data) })
-        .then(response => {
-            Swal.fire({
-                title: "予約完了！",
-                text: "予約ありがとうございます！\n西舘より確認メールをお送りします。",
-                icon: "success"
-            }).then(() => { location.reload(); });
+        .then(() => {
+            // ▼ 完了アニメーションに切り替え → 1.5秒後にSweetAlert
+            updateOverlayToSuccess();
+            setTimeout(() => {
+                hideSendingOverlay();
+                Swal.fire({
+                    title: "予約完了！",
+                    text: "ご予約ありがとうございます！\n西舘より確認メールをお送りします。",
+                    icon: "success"
+                }).then(() => { location.reload(); });
+            }, 1500);
         })
-        .catch(error => {
+        .catch(() => {
+            hideSendingOverlay();
             Swal.fire("エラー", "送信に失敗しました。もう一度お試しください。", "error");
             btnNext.disabled = false;
             btnNext.innerText = 'この内容で予約を確定する';

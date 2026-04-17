@@ -1,22 +1,24 @@
 <!DOCTYPE html>
+
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>スマホの相談士 - 予約フォーム</title>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<style>
-    :root {
-        --primary-blue: #249496; /* メディカルブルー */
-        --primary-hover: #1b7a7c;
-        --accent-orange: #f39c12; /* アクセントカラー */
-        --bg-beige: #FCFAF5; /* ウォームベージュ */
-        --text-main: #333333;
-        --border-color: #ddd;
-        --step-bg: #f4f4f4;
-        --member-gold: #cba052; /* VIP感を出すゴールド */
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スマホの相談士 - 予約フォーム</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root {
+            --primary-blue: #249496;
+            --primary-hover: #1b7a7c;
+            --accent-orange: #f39c12;
+            --bg-beige: #FCFAF5;
+            --text-main: #333333;
+            --border-color: #ddd;
+            --step-bg: #f4f4f4;
+            --member-gold: #cba052;
+        }
 
+```
     body {
         font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
         background-color: var(--bg-beige);
@@ -34,7 +36,6 @@
         position: relative;
     }
 
-    /* 再訪問時の予約表示バナー */
     #returning-banner {
         display: none;
         background: #fff3e0;
@@ -59,7 +60,6 @@
         letter-spacing: 1px;
     }
 
-    /* ステップナビゲーション */
     .step-nav {
         display: flex;
         background: var(--step-bg);
@@ -88,19 +88,16 @@
 
     .section-title { font-size: 1.2rem; margin-top: 0; margin-bottom: 20px; border-left: 4px solid var(--primary-blue); padding-left: 10px; transition: 0.3s; }
 
-    /* 会員ログインエリア */
     .subscriber-login { background: #e8f5f5; padding: 15px; border-radius: 8px; margin-bottom: 25px; text-align: center; border: 1px solid #bce0e0; transition: 0.3s; }
     .subscriber-login p { margin: 0 0 10px 0; font-size: 0.9rem;}
     .btn-line { background: #06C755; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; }
     .btn-line:hover { background: #05b34c; }
 
-    /* 会員ログイン後のスタイル */
     .member-mode .subscriber-login { background: #fdfaf2; border-color: var(--member-gold); }
     .member-mode .header h1, .member-mode .section-title { color: var(--member-gold); }
     .member-mode .step-item.active { background: var(--member-gold); }
     .member-mode .step-item.active::after { border-left-color: var(--member-gold); }
 
-    /* メニュー選択 */
     .menu-card {
         border: 2px solid var(--border-color); border-radius: 8px; padding: 15px; margin-bottom: 15px; cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between; align-items: center;
     }
@@ -118,7 +115,7 @@
     .price-original { display: none; text-decoration: line-through; color: #999; font-size: 0.8rem; font-weight: normal;}
     .member-mode .price-original { display: block; }
 
-    /* カレンダー (2週間対応・時間軸固定) */
+    /* カレンダー */
     .calendar-wrap { overflow-x: auto; margin-bottom: 20px; border: 1px solid var(--border-color); border-radius: 8px; }
     .calendar-table { width: 100%; border-collapse: collapse; min-width: 1000px; background: #fff; table-layout: fixed; }
     .calendar-table th, .calendar-table td { border: 1px solid var(--border-color); text-align: center; padding: 12px 5px; vertical-align: middle; width: 80px; }
@@ -133,7 +130,6 @@
     .slot-selected { background: var(--accent-orange) !important; color: #fff !important; font-size: 0.9rem !important; font-weight: bold; }
     .slot-blocked { background: #fcdfb6 !important; color: #d35400 !important; font-size: 0.8rem !important; }
 
-    /* 予約内容確認エリア */
     .summary-box { background: #fdfdfd; border: 1px solid var(--border-color); padding: 15px; margin-bottom: 20px; border-radius: 5px; }
     .summary-item { display: flex; justify-content: space-between; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed #eee; }
     .summary-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0;}
@@ -145,7 +141,6 @@
     .form-group label span { color: red; font-size: 0.8rem; margin-left: 5px; }
     .form-control { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 5px; box-sizing: border-box; font-size: 1rem; }
 
-    /* セキュリティ文言用スタイル */
     .privacy-policy { background: #f9f9f9; padding: 15px; border-radius: 5px; border: 1px solid #eee; margin-top: 20px; font-size: 0.8rem; color: #555; line-height: 1.6; }
 
     .bottom-nav { display: flex; justify-content: space-between; padding: 20px; background: #fff; border-top: 1px solid var(--border-color); position: sticky; bottom: 0; }
@@ -154,103 +149,108 @@
     .btn-next { background: var(--accent-orange); color: #fff; flex-grow: 1; margin-left: 15px; }
     .btn-next:hover { background: #e68a00; }
 </style>
+```
+
 </head>
 <body>
 
 <div class="container" id="app-container">
     <div id="returning-banner"></div>
 
-    <div class="header">
-        <h1>MOBILE PLANNING<br>スマホの相談士</h1>
+```
+<div class="header">
+    <h1>MOBILE PLANNING<br>スマホの相談士</h1>
+</div>
+
+<div class="step-nav">
+    <div class="step-item active" id="nav-step1">メニューを選択</div>
+    <div class="step-item" id="nav-step2">日時を指定</div>
+    <div class="step-item" id="nav-step3">情報入力・確認</div>
+</div>
+
+<div id="step1" class="form-section active">
+    <div class="subscriber-login" id="login-box">
+        <p><strong>すでにサブスク会員（かかりつけ登録）の方はこちら</strong><br>ご登録情報と紐づけて、会員限定価格でスムーズに予約が可能です。</p>
+        <button class="btn-line" type="button" onclick="tryMemberLogin()">パスワードを入力してログイン</button>
     </div>
 
-    <div class="step-nav">
-        <div class="step-item active" id="nav-step1">メニューを選択</div>
-        <div class="step-item" id="nav-step2">日時を指定</div>
-        <div class="step-item" id="nav-step3">情報入力・確認</div>
+    <h2 class="section-title">ご希望のメニュー</h2>
+    <label class="menu-card" onclick="selectMenu('menu1', 'スマホ健康診断（まずは無料診断）', 0, 30)">
+        <input type="radio" name="menu" id="menu1">
+        <div class="menu-content"><div class="menu-title">スマホ健康診断（まずは無料診断）</div><div class="menu-desc">料金プランの見直し等、現状のカルテを作成します。</div></div>
+        <div class="menu-price">¥0<br><span style="font-size:0.8rem; font-weight:normal;">(30分)</span></div>
+    </label>
+    <label class="menu-card" onclick="selectMenu('menu2', 'スマホ整理・お悩み相談', 3300, 60)">
+        <input type="radio" name="menu" id="menu2">
+        <div class="menu-content"><div class="menu-title">スマホ整理・お悩み相談</div><div class="menu-desc">写真整理や操作方法の疑問などあらゆるお悩みを解決します。</div><div class="subs-upsell">★サブスク会員様は20%割引！</div></div>
+        <div class="menu-price"><span class="price-original">通常: ¥3,300</span><span class="price-display">¥3,300</span><br><span style="font-size:0.8rem; font-weight:normal;">(60分)</span></div>
+    </label>
+    <label class="menu-card" onclick="selectMenu('menu3', 'プラン見直し・最適化診断', 5500, 60)">
+        <input type="radio" name="menu" id="menu3">
+        <div class="menu-content"><div class="menu-title">プラン見直し・最適化診断</div><div class="menu-desc">各社プランを比較し、最適な通信費削減をご提案します。</div><div class="subs-upsell">★サブスク会員様は20%割引！</div></div>
+        <div class="menu-price"><span class="price-original">通常: ¥5,500</span><span class="price-display">¥5,500</span><br><span style="font-size:0.8rem; font-weight:normal;">(60分)</span></div>
+    </label>
+    <label class="menu-card" onclick="selectMenu('menu4', '完全データ移行パック', 11000, 120)">
+        <input type="radio" name="menu" id="menu4">
+        <div class="menu-content"><div class="menu-title">完全データ移行パック</div><div class="menu-desc">機種変更時のデータ移行、LINE引継ぎ等を全て代行します。</div><div class="subs-upsell">★サブスク会員様は20%割引！</div></div>
+        <div class="menu-price"><span class="price-original">通常: ¥11,000</span><span class="price-display">¥11,000</span><br><span style="font-size:0.8rem; font-weight:normal;">(120分)</span></div>
+    </label>
+    <label class="menu-card" onclick="selectMenu('menu5', '【会員限定】定期点検サポート', 0, 45)">
+        <input type="radio" name="menu" id="menu5">
+        <div class="menu-content"><div class="menu-title">【会員限定】定期点検サポート</div><div class="menu-desc">サブスク会員様向けの定期メンテナンス枠です。</div></div>
+        <div class="menu-price">¥0<br><span style="font-size:0.8rem; font-weight:normal;">(会員限定/45分)</span></div>
+    </label>
+</div>
+
+<div id="step2" class="form-section">
+    <h2 class="section-title">日時の指定</h2>
+    <p style="font-size: 0.9rem; margin-bottom: 5px;">ご希望の日時の「◎」をタップしてください。</p>
+    <p style="font-size: 0.8rem; color: #888; margin-bottom: 10px;">※横にスクロールして日程を確認できます。</p>
+    <p style="font-size: 0.8rem; color: #888; margin-bottom: 15px;">※メニューの所要時間（<span id="display-duration"></span>分）を自動で確保します。</p>
+    
+    <div class="calendar-wrap">
+        <table class="calendar-table">
+            <thead id="calendar-head"></thead>
+            <tbody id="calendar-body"></tbody>
+        </table>
+    </div>
+</div>
+
+<div id="step3" class="form-section">
+    <h2 class="section-title">ご予約内容の確認</h2>
+    <div class="summary-box">
+        <div class="summary-item"><span>メニュー:</span><strong id="summary-menu">-</strong></div>
+        <div class="summary-item"><span>目安時間:</span><strong id="summary-time">-</strong></div>
+        <div class="summary-item"><span>日時:</span><strong id="summary-datetime">-</strong></div>
+        <div class="summary-item total-price-row"><span>お支払い予定額:</span><strong id="summary-price">-</strong></div>
     </div>
 
-    <div id="step1" class="form-section active">
-        <div class="subscriber-login" id="login-box">
-            <p><strong>すでにサブスク会員（かかりつけ登録）の方はこちら</strong><br>ご登録情報と紐づけて、会員限定価格でスムーズに予約が可能です。</p>
-            <button class="btn-line" type="button" onclick="tryMemberLogin()">パスワードを入力してログイン</button>
-        </div>
+    <h2 class="section-title">お客様情報の入力</h2>
+    <div class="form-group"><label>お名前<span>(必須)</span></label><input type="text" class="form-control" id="input-name" placeholder="例：山田 太郎"></div>
+    <div class="form-group"><label>電話番号<span>(必須)</span></label><input type="tel" class="form-control" id="input-tel" placeholder="例：090-1234-5678"></div>
+    <div class="form-group"><label>メールアドレス<span>(必須)</span></label><input type="email" class="form-control" id="input-email" placeholder="例：example@mail.com"></div>
+    
+    <div class="privacy-policy">
+        <strong>【セキュリティと個人情報の取扱いについて】</strong><br>
+        ご入力いただいたお名前・電話番号等の個人情報は、予約の管理および当日のご本人様確認・ご相談対応のためにのみ使用し、適切かつ安全に管理いたします。
+    </div>
 
-        <h2 class="section-title">ご希望のメニュー</h2>
-        <label class="menu-card" onclick="selectMenu('menu1', 'スマホ健康診断（まずは無料診断）', 0, 30)">
-            <input type="radio" name="menu" id="menu1">
-            <div class="menu-content"><div class="menu-title">スマホ健康診断（まずは無料診断）</div><div class="menu-desc">料金プランの見直し等、現状のカルテを作成します。</div></div>
-            <div class="menu-price">¥0<br><span style="font-size:0.8rem; font-weight:normal;">(30分)</span></div>
+    <div class="subscriber-login" id="subs-promo-box" style="background: #fffaf0; border-color: #ffe0b2; margin-top: 20px;">
+        <p style="color: #d35400; font-weight: bold;">💡 サブスク会員（かかりつけ登録）について</p>
+        <p style="text-align: left; font-size: 0.85rem; color: #555;">月額定額でサポートが受けられるお得なプラン。当日加入も可能です。</p>
+        <label style="display: flex; align-items: center; justify-content: center; margin-top: 10px; cursor: pointer;">
+            <input type="checkbox" id="check-promo" style="transform: scale(1.3); margin-right: 10px;">
+            <strong>当日に詳しい説明を聞きたい</strong>
         </label>
-        <label class="menu-card" onclick="selectMenu('menu2', 'スマホ整理・お悩み相談', 3300, 60)">
-            <input type="radio" name="menu" id="menu2">
-            <div class="menu-content"><div class="menu-title">スマホ整理・お悩み相談</div><div class="menu-desc">写真整理や操作方法の疑問などあらゆるお悩みを解決します。</div><div class="subs-upsell">★サブスク会員様は20%割引！</div></div>
-            <div class="menu-price"><span class="price-original">通常: ¥3,300</span><span class="price-display">¥3,300</span><br><span style="font-size:0.8rem; font-weight:normal;">(60分)</span></div>
-        </label>
-        <label class="menu-card" onclick="selectMenu('menu3', 'プラン見直し・最適化診断', 5500, 60)">
-            <input type="radio" name="menu" id="menu3">
-            <div class="menu-content"><div class="menu-title">プラン見直し・最適化診断</div><div class="menu-desc">各社プランを比較し、最適な通信費削減をご提案します。</div><div class="subs-upsell">★サブスク会員様は20%割引！</div></div>
-            <div class="menu-price"><span class="price-original">通常: ¥5,500</span><span class="price-display">¥5,500</span><br><span style="font-size:0.8rem; font-weight:normal;">(60分)</span></div>
-        </label>
-        <label class="menu-card" onclick="selectMenu('menu4', '完全データ移行パック', 11000, 120)">
-            <input type="radio" name="menu" id="menu4">
-            <div class="menu-content"><div class="menu-title">完全データ移行パック</div><div class="menu-desc">機種変更時のデータ移行、LINE引継ぎ等を全て代行します。</div><div class="subs-upsell">★サブスク会員様は20%割引！</div></div>
-            <div class="menu-price"><span class="price-original">通常: ¥11,000</span><span class="price-display">¥11,000</span><br><span style="font-size:0.8rem; font-weight:normal;">(120分)</span></div>
-        </label>
-        <label class="menu-card" onclick="selectMenu('menu5', '【会員限定】定期点検サポート', 0, 45)">
-            <input type="radio" name="menu" id="menu5">
-            <div class="menu-content"><div class="menu-title">【会員限定】定期点検サポート</div><div class="menu-desc">サブスク会員様向けの定期メンテナンス枠です。</div></div>
-            <div class="menu-price">¥0<br><span style="font-size:0.8rem; font-weight:normal;">(会員限定/45分)</span></div>
-        </label>
     </div>
+</div>
 
-    <div id="step2" class="form-section">
-        <h2 class="section-title">日時の指定</h2>
-        <p style="font-size: 0.9rem; margin-bottom: 5px;">ご希望の日時の「◎」をタップしてください。</p>
-        <p style="font-size: 0.8rem; color: #888; margin-bottom: 10px;">※横にスクロールして日程を確認できます。</p>
-        <p style="font-size: 0.8rem; color: #888; margin-bottom: 15px;">※メニューの所要時間（<span id="display-duration"></span>分）を自動で確保します。</p>
-        
-        <div class="calendar-wrap">
-            <table class="calendar-table">
-                <thead id="calendar-head"></thead>
-                <tbody id="calendar-body"></tbody>
-            </table>
-        </div>
-    </div>
+<div class="bottom-nav">
+    <button class="btn btn-back" id="btn-back" style="display: none;" onclick="goBack()">戻る</button>
+    <button class="btn btn-next" id="btn-next" onclick="goNext()">次へ (日時を指定)</button>
+</div>
+```
 
-    <div id="step3" class="form-section">
-        <h2 class="section-title">ご予約内容の確認</h2>
-        <div class="summary-box">
-            <div class="summary-item"><span>メニュー:</span><strong id="summary-menu">-</strong></div>
-            <div class="summary-item"><span>目安時間:</span><strong id="summary-time">-</strong></div>
-            <div class="summary-item"><span>日時:</span><strong id="summary-datetime">-</strong></div>
-            <div class="summary-item total-price-row"><span>お支払い予定額:</span><strong id="summary-price">-</strong></div>
-        </div>
-
-        <h2 class="section-title">お客様情報の入力</h2>
-        <div class="form-group"><label>お名前<span>(必須)</span></label><input type="text" class="form-control" id="input-name" placeholder="例：山田 太郎"></div>
-        <div class="form-group"><label>電話番号<span>(必須)</span></label><input type="tel" class="form-control" id="input-tel" placeholder="例：090-1234-5678"></div>
-        <div class="form-group"><label>メールアドレス<span>(必須)</span></label><input type="email" class="form-control" id="input-email" placeholder="例：example@mail.com"></div>
-        
-        <div class="privacy-policy">
-            <strong>【セキュリティと個人情報の取扱いについて】</strong><br>
-            ご入力いただいたお名前・電話番号等の個人情報は、予約の管理および当日のご本人様確認・ご相談対応のためにのみ使用し、適切かつ安全に管理いたします。万が一の際も、正確な情報をお預かりすることで迅速な対応が可能です。安心してご利用ください。
-        </div>
-
-        <div class="subscriber-login" id="subs-promo-box" style="background: #fffaf0; border-color: #ffe0b2; margin-top: 20px;">
-            <p style="color: #d35400; font-weight: bold;">💡 サブスク会員（かかりつけ登録）について</p>
-            <p style="text-align: left; font-size: 0.85rem; color: #555;">月額定額でサポートが受けられるお得なプラン。当日加入も可能です。</p>
-            <label style="display: flex; align-items: center; justify-content: center; margin-top: 10px; cursor: pointer;">
-                <input type="checkbox" id="check-promo" style="transform: scale(1.3); margin-right: 10px;">
-                <strong>当日に詳しい説明を聞きたい</strong>
-            </label>
-        </div>
-    </div>
-
-    <div class="bottom-nav">
-        <button class="btn btn-back" id="btn-back" style="display: none;" onclick="goBack()">戻る</button>
-        <button class="btn btn-next" id="btn-next" onclick="goNext()">次へ (日時を指定)</button>
-    </div>
 </div>
 
 <script>
@@ -259,7 +259,13 @@
     let selected = { id: '', name: '', price: 0, duration: 0, dateRaw: '', time: '' };
     const START_MIN = 570, END_MIN = 1260, INTERVAL = 30;
 
-    // ページ読み込み時にLocalStorageをチェック
+    // ▼ GASのカレンダー取得エンドポイント（doGetのURL）
+    // ※ 再デプロイ後に発行された新しいURLをここに貼り替えてください
+    const CALENDAR_GAS_URL = "https://script.google.com/macros/s/AKfycbyWz8cB5m7Xj9xGpoNZC6hhi5-eVIxsexLDsE1nGpoCyu42akK3iFRVmJIIHJu6M9s/exec";
+
+    // ▼ 予約送信先のGAS URL（doPost）
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyPjhDiOy66HuhinejsVasjIrXMPF96VxAbZQf-yGZq9usfy43-oH71wbtGjO_-p2o/exec";
+
     window.onload = function() {
         const lastBooking = localStorage.getItem('nishidate_last_booking');
         if(lastBooking) {
@@ -270,33 +276,37 @@
         }
     };
 
-        // ▼修正：本番用のパスワード確認（共通パスワード運用）
-    function tryMemberLogin() {
+    // ▼ SHA-256ハッシュ生成（Web Crypto API使用）
+    async function hashPassword(password) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(password);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    // ▼ 正解パスワード「0213」のSHA-256ハッシュ値
+    // emn178.github.io/online-tools/sha256.html で「0213」を入力して取得した値
+    const MEMBER_PW_HASH = "f020272c938ba0a213d31613fd5a1a8b053c693d489551f8b24e900db43d6873";
+
+    async function tryMemberLogin() {
         if(isMemberMode) return;
         
         Swal.fire({
             title: "かかりつけ会員ログイン",
             text: "会員カードに記載されている「4桁のパスワード」を入力してください。",
             input: "password",
-            inputAttributes: {
-                inputmode: "numeric", // スマホで数字キーボードを開きやすくする
-                pattern: "[0-9]*"
-            },
+            inputAttributes: { inputmode: "numeric", pattern: "[0-9]*" },
             showCancelButton: true,
             confirmButtonText: "認証する",
             cancelButtonText: "キャンセル",
-            confirmButtonColor: "#cba052" // ゴールドで会員の特別感を演出
-        }).then((result) => {
+            confirmButtonColor: "#cba052"
+        }).then(async (result) => {
             if (result.isConfirmed) {
-                // ★ここの「1720」を実際の共通パスワードに変更してください
-                if (result.value === "0213") {
+                const inputHash = await hashPassword(result.value);
+                if (inputHash === MEMBER_PW_HASH) {
                     enableMemberMode();
-                    Swal.fire({
-                        title: "認証成功", 
-                        text: "会員価格が適用されました。", 
-                        icon: "success",
-                        confirmButtonColor: "#249496"
-                    });
+                    Swal.fire({ title: "認証成功", text: "会員価格が適用されました。", icon: "success", confirmButtonColor: "#249496" });
                 } else {
                     Swal.fire("エラー", "パスワードが正しくありません。\n会員カードをご確認ください。", "error");
                 }
@@ -304,16 +314,16 @@
         });
     }
 
-
     function enableMemberMode() {
         isMemberMode = true;
         document.getElementById('app-container').classList.add('member-mode');
         document.getElementById('login-box').innerHTML = '<p style="color:var(--member-gold); font-size:1.1rem; margin:0;"><strong>✓ サブスク会員としてログイン中</strong></p>';
         document.getElementById('input-name').value = "西舘（会員） 様";
         document.getElementById('subs-promo-box').style.display = 'none';
-        document.querySelectorAll('#menu2 ~ .menu-price .price-display')[0].innerText = '¥2,640';
-        document.querySelectorAll('#menu3 ~ .menu-price .price-display')[0].innerText = '¥4,400';
-        document.querySelectorAll('#menu4 ~ .menu-price .price-display')[0].innerText = '¥8,800';
+        // 会員価格を表示更新
+        const priceDisplays = document.querySelectorAll('.price-display');
+        const memberPrices = ['¥2,640', '¥4,400', '¥8,800'];
+        priceDisplays.forEach((el, i) => { if(memberPrices[i]) el.innerText = memberPrices[i]; });
         if(selected.id) selectMenu(selected.id, selected.name, selected.price / (selected.price > 0 ? 0.8 : 1), selected.duration);
     }
 
@@ -324,47 +334,106 @@
 
     let calendarMatrix = [];
 
-    function generateCalendar() {
-        const thead = document.getElementById('calendar-head'), tbody = document.getElementById('calendar-body');
-        thead.innerHTML = ''; tbody.innerHTML = ''; calendarMatrix = [];
+    // ▼ Googleカレンダーと連動したカレンダー生成
+    async function generateCalendar() {
+        const thead = document.getElementById('calendar-head');
+        const tbody = document.getElementById('calendar-body');
+        thead.innerHTML = '<tr><td colspan="15" style="text-align:center; padding:20px; color:#888;">📅 空き状況を読み込み中...</td></tr>';
+        tbody.innerHTML = '';
+        calendarMatrix = [];
         document.getElementById('display-duration').innerText = selected.duration;
 
+        // Googleカレンダーから埋まり情報を取得
+        let busySlots = [];
+        try {
+            const res = await fetch(CALENDAR_GAS_URL);
+            const json = await res.json();
+            busySlots = json.busy || [];
+        } catch(err) {
+            console.warn("カレンダー取得エラー（オフライン判定で表示）:", err);
+        }
+
+        // 埋まっている時間帯を30分刻みでSetに変換
+        const busySet = new Set();
+        busySlots.forEach(function(slot) {
+            const start = new Date(slot.start);
+            const end = new Date(slot.end);
+            for (let t = new Date(start); t < end; t.setMinutes(t.getMinutes() + 30)) {
+                const key = t.getFullYear() + "/" + (t.getMonth()+1) + "/" + t.getDate() + "_" + t.getHours() + ":" + String(t.getMinutes()).padStart(2,'0');
+                busySet.add(key);
+            }
+        });
+
+        // ヘッダー生成
+        thead.innerHTML = '';
         let trH = document.createElement('tr');
-        let thT = document.createElement('th'); thT.innerText = '時間'; thT.className = 'time-slot';
+        let thT = document.createElement('th');
+        thT.innerText = '時間';
+        thT.className = 'time-slot';
         trH.appendChild(thT);
 
-        const days = []; const today = new Date(); const dayNames = ['日','月','火','水','木','金','土'];
-        for(let i=1; i<=14; i++){
-            let d = new Date(today); d.setDate(today.getDate()+i);
-            let color = d.getDay()===0 ? 'red' : (d.getDay()===6 ? 'blue' : 'black');
-            days.push({ raw: `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`, display: `${d.getDate()}<br>(${dayNames[d.getDay()]})`, style: color });
-            let th = document.createElement('th'); th.innerHTML = `<span style="color:${days[i-1].style}">${days[i-1].display}</span>`;
+        const days = [];
+        const today = new Date();
+        const dayNames = ['日','月','火','水','木','金','土'];
+        
+        for (let i = 1; i <= 14; i++) {
+            let d = new Date(today);
+            d.setDate(today.getDate() + i);
+            const color = d.getDay() === 0 ? 'red' : (d.getDay() === 6 ? 'blue' : 'black');
+            days.push({
+                raw: d.getFullYear() + "年" + (d.getMonth()+1) + "月" + d.getDate() + "日",
+                dateObj: new Date(d),
+                style: color,
+                display: d.getDate() + "<br>(" + dayNames[d.getDay()] + ")"
+            });
+            let th = document.createElement('th');
+            th.innerHTML = '<span style="color:' + color + '">' + d.getDate() + '<br>(' + dayNames[d.getDay()] + ')</span>';
             trH.appendChild(th);
         }
         thead.appendChild(trH);
 
+        // 時間軸生成
         const totalRows = (END_MIN - START_MIN) / INTERVAL;
-        for(let r=0; r<=totalRows; r++){
-            let tm = START_MIN + (r*INTERVAL), h = Math.floor(tm/60), m = tm%60, tStr = `${h}:${m===0?'00':'30'}`;
+        for (let r = 0; r <= totalRows; r++) {
+            let tm = START_MIN + (r * INTERVAL);
+            let h = Math.floor(tm / 60);
+            let m = tm % 60;
+            let tStr = h + ":" + (m === 0 ? '00' : '30');
+
             let tr = document.createElement('tr');
-            let tdT = document.createElement('td'); tdT.innerText = tStr; tdT.className = 'time-slot';
+            let tdT = document.createElement('td');
+            tdT.innerText = tStr;
+            tdT.className = 'time-slot';
             tr.appendChild(tdT);
 
             let rowCells = [];
-            for(let c=0; c<14; c++){
+            for (let c = 0; c < 14; c++) {
                 let td = document.createElement('td');
-                td.dataset.row = r; td.dataset.col = c; td.dataset.time = tStr; td.dataset.dateRaw = days[c].raw;
-                if(Math.random() > 0.3){
-                    td.innerHTML = '◎'; td.className = 'slot-available';
+                td.dataset.row = r;
+                td.dataset.col = c;
+                td.dataset.time = tStr;
+                td.dataset.dateRaw = days[c].raw;
+
+                // busy判定
+                const d = days[c].dateObj;
+                const busyKey = d.getFullYear() + "/" + (d.getMonth()+1) + "/" + d.getDate() + "_" + tStr;
+                
+                if (busySet.has(busyKey)) {
+                    td.innerHTML = '×';
+                    td.className = 'slot-full';
+                } else {
+                    td.innerHTML = '◎';
+                    td.className = 'slot-available';
                     td.onclick = function() { handleSlotClick(this); };
-                } else { td.innerHTML = '×'; td.className = 'slot-full'; }
-                tr.appendChild(td); rowCells.push(td);
+                }
+                tr.appendChild(td);
+                rowCells.push(td);
             }
-            tbody.appendChild(tr); calendarMatrix.push(rowCells);
+            tbody.appendChild(tr);
+            calendarMatrix.push(rowCells);
         }
     }
 
-    // ▼修正：カレンダーエラーをSweetAlert2に変更
     function handleSlotClick(clickedTd) {
         const row = parseInt(clickedTd.dataset.row), col = parseInt(clickedTd.dataset.col);
         const required = Math.ceil((selected.duration + 30) / INTERVAL); 
@@ -399,12 +468,11 @@
             btnBack.style.display='block'; btnNext.innerText='この内容で予約を確定する';
             document.getElementById('summary-menu').innerText = selected.name;
             document.getElementById('summary-time').innerText = selected.duration + '分';
-            document.getElementById('summary-datetime').innerText = `${selected.dateRaw} ${selected.time}〜`;
+            document.getElementById('summary-datetime').innerText = selected.dateRaw + " " + selected.time + "〜";
             document.getElementById('summary-price').innerText = selected.price === 0 ? '無料' : '¥' + selected.price.toLocaleString() + ' (税込)';
         }
     }
 
-    // ▼修正：バリデーションと予約確定のポップアップをSweetAlert2に変更
     function goNext() {
         if(currentStep === 1 && !selected.id) return Swal.fire("確認", "メニューを選択してください", "warning");
         if(currentStep === 2 && !selected.dateRaw) return Swal.fire("確認", "日時を選択してください", "warning");
@@ -414,7 +482,6 @@
             const email = document.getElementById('input-email').value;
             if(!name || !tel || !email) return Swal.fire("エラー", "必須項目（名前・電話・メール）をすべて入力してください", "error");
             
-            // 予約確定のポップアップ
             Swal.fire({
                 title: "確認",
                 text: "この内容で予約を確定しますか？",
@@ -423,16 +490,13 @@
                 confirmButtonText: "確定する",
                 cancelButtonText: "キャンセル"
             }).then((result) => {
-                if (result.isConfirmed) {
-                    submitToGAS(); // 確定されたらGASへ送信
-                }
+                if (result.isConfirmed) { submitToGAS(); }
             });
             return;
         }
         currentStep++; window.scrollTo({top:0, behavior:'smooth'}); updateNavAndButtons();
     }
     
-    // ▼修正：GASへデータを送信する本番用処理を追加
     function submitToGAS() {
         const btnNext = document.getElementById('btn-next');
         btnNext.disabled = true;
@@ -449,37 +513,17 @@
             promoInfo: document.getElementById('check-promo').checked ? "説明希望" : "希望なし"
         };
 
-        // LocalStorageに保存（再訪問用）
         localStorage.setItem('nishidate_last_booking', JSON.stringify({
-            menu: data.menu,
-            date: data.date,
-            time: data.time
+            menu: data.menu, date: data.date, time: data.time
         }));
 
-        // ★★★重要★★★
-        // 下記の "URLをここに貼り付け" の部分を、新しくデプロイしたGASのURLに書き換えてください。
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbyPjhDiOy66HuhinejsVasjIrXMPF96VxAbZQf-yGZq9usfy43-oH71wbtGjO_-p2o/exec"; 
-
-        if (GAS_URL === "GASのURLを貼り付けてください") {
-             Swal.fire("注意", "GASのURLが設定されていません。コード内のGAS_URLを書き換えてください。", "warning");
-             btnNext.disabled = false;
-             btnNext.innerText = 'この内容で予約を確定する';
-             return;
-        }
-
-        // GASへデータを送信
-        fetch(GAS_URL, {
-            method: 'POST',
-            body: JSON.stringify(data)
-        })
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify(data) })
         .then(response => {
             Swal.fire({
                 title: "予約完了！",
                 text: "予約ありがとうございます！\n西舘より確認メールをお送りします。",
                 icon: "success"
-            }).then(() => {
-                location.reload(); 
-            });
+            }).then(() => { location.reload(); });
         })
         .catch(error => {
             Swal.fire("エラー", "送信に失敗しました。もう一度お試しください。", "error");
@@ -490,5 +534,6 @@
 
     function goBack() { if(currentStep > 1){ currentStep--; window.scrollTo({top:0, behavior:'smooth'}); updateNavAndButtons(); } }
 </script>
+
 </body>
 </html>

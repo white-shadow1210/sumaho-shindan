@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>スマホの相談士 - 予約フォーム</title>
-    <script src="[https://cdn.jsdelivr.net/npm/sweetalert2@11](https://cdn.jsdelivr.net/npm/sweetalert2@11)"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root {
             --primary-blue: #249496;
@@ -371,9 +371,7 @@
     let selected = { id: '', name: '', price: 0, duration: 0, dateRaw: '', time: '' };
     const START_MIN = 570, END_MIN = 1260, INTERVAL = 30;
 
-    // ★重要：URLを最新のバージョン30に統一修正しました
-    const CALENDAR_GAS_URL = "[https://script.google.com/macros/s/AKfycbyMnBarQsfK7mdMqsZu98hbrzMvotafLsIfzn5V1HEv9l1QFQXOqXIY4EX4J-gyHno/exec](https://script.google.com/macros/s/AKfycbyMnBarQsfK7mdMqsZu98hbrzMvotafLsIfzn5V1HEv9l1QFQXOqXIY4EX4J-gyHno/exec)";
-    const GAS_URL = "[https://script.google.com/macros/s/AKfycbyMnBarQsfK7mdMqsZu98hbrzMvotafLsIfzn5V1HEv9l1QFQXOqXIY4EX4J-gyHno/exec](https://script.google.com/macros/s/AKfycbyMnBarQsfK7mdMqsZu98hbrzMvotafLsIfzn5V1HEv9l1QFQXOqXIY4EX4J-gyHno/exec)";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyMnBarQsfK7mdMqsZu98hbrzMvotafLsIfzn5V1HEv9l1QFQXOqXIY4EX4J-gyHno/exec";
 
     window.onload = function() {
         const lastBooking = localStorage.getItem('nishidate_last_booking');
@@ -385,6 +383,9 @@
         }
     };
 
+    /**
+     * 【復旧】ハッシュ関数 (パスワード照合用)
+     */
     async function hashPassword(password) {
         const encoder = new TextEncoder();
         const data = encoder.encode(password);
@@ -395,6 +396,9 @@
 
     const MEMBER_PW_HASH = "f020272c938ba0a213d31613fd5a1a8b053c693d489551f8b24e900db43d6873";
 
+    /**
+     * 【復旧】会員ログイン・パスワード入力(Swal)
+     */
     async function tryMemberLogin() {
         if(isMemberMode) return;
         Swal.fire({
@@ -419,22 +423,37 @@
         });
     }
 
+    /**
+     * 【復旧】会員モードへの切り替え（価格自動計算含む）
+     */
     function enableMemberMode() {
         isMemberMode = true;
         document.getElementById('app-container').classList.add('member-mode');
         document.getElementById('login-box').innerHTML = '<p style="color:var(--member-gold); font-size:1.1rem; margin:0;"><strong>✓ サブスク会員としてログイン中</strong></p>';
-        document.getElementById('input-name').value = "";
-        document.getElementById('input-name').placeholder = "例：山田 太郎";
         document.getElementById('subs-promo-box').style.display = 'none';
+        
+        // 画面上の通常価格表示を会員価格に書き換え
         const priceDisplays = document.querySelectorAll('.price-display');
         const memberPrices = ['¥2,640', '¥4,400', '¥8,800'];
         priceDisplays.forEach((el, i) => { if(memberPrices[i]) el.innerText = memberPrices[i]; });
-        if(selected.id) selectMenu(selected.id, selected.name, selected.price / (selected.price > 0 ? 0.8 : 1), selected.duration);
+        
+        // 既に選択中のメニューがあれば価格を20%引きで再計算
+        if(selected.id) {
+            const basePrices = { 'menu2': 3300, 'menu3': 5500, 'menu4': 11000 };
+            if(basePrices[selected.id]) {
+                selected.price = basePrices[selected.id] * 0.8;
+            }
+        }
     }
 
     function selectMenu(menuId, name, basePrice, duration) {
         document.getElementById(menuId).checked = true;
-        selected = { id: menuId, name: name, price: (isMemberMode && basePrice > 0) ? basePrice * 0.8 : basePrice, duration: duration };
+        selected = { 
+            id: menuId, 
+            name: name, 
+            price: (isMemberMode && basePrice > 0) ? basePrice * 0.8 : basePrice, 
+            duration: duration 
+        };
     }
 
     let calendarMatrix = [];
@@ -449,7 +468,7 @@
 
         let busySlots = [];
         try {
-            const res = await fetch(CALENDAR_GAS_URL);
+            const res = await fetch(GAS_URL);
             const json = await res.json();
             busySlots = json.busy || [];
         } catch(err) {
@@ -479,7 +498,7 @@
             let d = new Date(today);
             d.setDate(today.getDate() + i);
             const color = d.getDay() === 0 ? 'red' : (d.getDay() === 6 ? 'blue' : 'black');
-            days.push({ raw: d.getFullYear() + "年" + (d.getMonth()+1) + "月" + d.getDate() + "日", dateObj: new Date(d), style: color });
+            days.push({ raw: d.getFullYear() + "年" + (d.getMonth()+1) + "月" + d.getDate() + "日", dateObj: new Date(d) });
             let th = document.createElement('th');
             th.innerHTML = '<span style="color:' + color + '">' + d.getDate() + '<br>(' + dayNames[d.getDay()] + ')</span>';
             trH.appendChild(th);
@@ -596,7 +615,6 @@
         const btnNext = document.getElementById('btn-next');
         btnNext.disabled = true;
         btnNext.innerText = '送信中...';
-
         showSendingOverlay();
 
         const data = {
@@ -636,6 +654,5 @@
 
     function goBack() { if(currentStep > 1){ currentStep--; window.scrollTo({top:0, behavior:'smooth'}); updateNavAndButtons(); } }
 </script>
-
 </body>
 </html>

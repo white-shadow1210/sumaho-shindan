@@ -371,7 +371,7 @@
     let selected = { id: '', name: '', price: 0, duration: 0, dateRaw: '', time: '' };
     const START_MIN = 570, END_MIN = 1260, INTERVAL = 30;
 
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbyYuVXBrdZCi7PfGAO12LdtfgXgWrO06yeNmhihhorwFXejYvL3E46ewJ_KB_kunw0/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwbpuzCrDPLWJFxydKCw_OQZk4F1vlDktwu9ppFiOzMeAgvoLQRkY_S2wxPaR47cA/exec";
 
     window.onload = function() {
         const lastBooking = localStorage.getItem('nishidate_last_booking');
@@ -612,46 +612,63 @@
     }
 
     function submitToGAS() {
-        const btnNext = document.getElementById('btn-next');
-        btnNext.disabled = true;
-        btnNext.innerText = '送信中...';
-        showSendingOverlay();
+    const btnNext = document.getElementById('btn-next');
+    btnNext.disabled = true;
+    btnNext.innerText = '送信中...';
+    showSendingOverlay();
 
-        const data = {
-            name: document.getElementById('input-name').value,
-            tel: document.getElementById('input-tel').value,
-            email: document.getElementById('input-email').value,
-            menu: selected.name,
-            date: selected.dateRaw,
-            time: selected.time,
-            price: selected.price,
-            promoInfo: document.getElementById('check-promo').checked ? "説明希望" : "希望なし"
-        };
+    // ★ 修正: tel・email・date・time を正しいフィールド名で送信
+    // ★ 修正: token を追加（GASのSECRET_TOKENと一致させる）
+    const data = {
+        token: "smaho2026sakurai",
+        name:  document.getElementById('input-name').value.trim(),
+        tel:   document.getElementById('input-tel').value.trim(),
+        email: document.getElementById('input-email').value.trim(),
+        menu:  selected.name,
+        date:  selected.dateRaw,
+        time:  selected.time,
+        price: selected.price,
+        promoInfo: document.getElementById('check-promo').checked ? "説明希望" : "希望なし"
+    };
 
-        localStorage.setItem('nishidate_last_booking', JSON.stringify({
-            menu: data.menu, date: data.date, time: data.time
-        }));
+    console.log("送信データ:", data); // デバッグ用
 
-        fetch(GAS_URL, { method: 'POST', body: JSON.stringify(data) })
-        .then(() => {
+    localStorage.setItem('nishidate_last_booking', JSON.stringify({
+        menu: data.menu, date: data.date, time: data.time
+    }));
+
+    fetch(GAS_URL, {
+        method: 'POST',
+        body: JSON.stringify(data)
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(json) {
+        console.log("GASレスポンス:", json);
+        if (json.status === 'success') {
             updateOverlayToSuccess();
-            setTimeout(() => {
+            setTimeout(function() {
                 hideSendingOverlay();
                 Swal.fire({
                     title: "予約完了！",
-                    text: "ご予約ありがとうございます！\n西舘より確認メールをお送りします。",
+                    text: "ご予約ありがとうございます！\nご登録のメールアドレスに確認メールをお送りしました。",
                     icon: "success"
-                }).then(() => { location.reload(); });
+                }).then(function() { location.reload(); });
             }, 1500);
-        })
-        .catch(() => {
+        } else {
             hideSendingOverlay();
-            Swal.fire("エラー", "送信に失敗しました。もう一度お試しください。", "error");
+            Swal.fire("エラー", "送信に失敗しました: " + (json.message || "不明なエラー"), "error");
             btnNext.disabled = false;
             btnNext.innerText = 'この内容で予約を確定する';
-        });
-    }
-
+        }
+    })
+    .catch(function(err) {
+        console.error("fetch エラー:", err);
+        hideSendingOverlay();
+        Swal.fire("エラー", "送信に失敗しました。もう一度お試しください。", "error");
+        btnNext.disabled = false;
+        btnNext.innerText = 'この内容で予約を確定する';
+    });
+}
     function goBack() { if(currentStep > 1){ currentStep--; window.scrollTo({top:0, behavior:'smooth'}); updateNavAndButtons(); } }
 </script>
 </body>

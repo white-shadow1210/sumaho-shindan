@@ -5,284 +5,83 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>地域安全マップ｜スマホの相談士</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --primary:   #249496;
-      --primary-d: #1b7a7c;
-      --beige:     #FCFAF5;
-      --beige-d:   #f0ece0;
-      --text:      #2d3748;
-      --muted:     #718096;
-      --white:     #ffffff;
-      --shadow:    0 4px 20px rgba(0,0,0,0.12);
-      --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
-      --radius:    14px;
-      --patrol:    #e53e3e;
-      --hazard:    #dd6b20;
-      --aed:       #2b6cb0;
-      --school:    #276749;
+      --primary:#249496;--primary-d:#1b7a7c;--beige:#FCFAF5;--beige-d:#f0ece0;
+      --text:#2d3748;--muted:#718096;--white:#ffffff;
+      --shadow:0 4px 20px rgba(0,0,0,0.12);--shadow-sm:0 2px 8px rgba(0,0,0,0.08);--radius:14px;
     }
-
-```
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-  font-family: 'Noto Sans JP', sans-serif;
-  background: var(--beige);
-  color: var(--text);
-  height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-/* ── ヘッダー ── */
-.header {
-  background: var(--white);
-  border-bottom: 2px solid var(--beige-d);
-  padding: 10px 16px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-  z-index: 100;
-  box-shadow: var(--shadow-sm);
-}
-.header-logo {
-  width: 36px; height: 36px;
-  background: var(--primary);
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.2rem; flex-shrink: 0;
-}
-.header-text h1 {
-  font-size: 0.9rem; font-weight: 700; color: var(--primary); line-height: 1.2;
-}
-.header-text p {
-  font-size: 0.65rem; color: var(--muted);
-}
-.header-update {
-  margin-left: auto;
-  font-size: 0.6rem;
-  color: var(--muted);
-  text-align: right;
-  line-height: 1.4;
-}
-
-/* ── マップコンテナ ── */
-#map {
-  flex: 1;
-  width: 100%;
-}
-
-/* ── フローティングパネル ── */
-.float-panel {
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 200;
-  width: calc(100% - 24px);
-  max-width: 480px;
-}
-
-/* レイヤーコントロールカード */
-.layer-card {
-  background: var(--white);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  overflow: hidden;
-  margin-bottom: 10px;
-  transition: max-height 0.35s ease, opacity 0.25s ease;
-}
-.layer-card.collapsed .layer-body { display: none; }
-
-.layer-header {
-  display: flex;
-  align-items: center;
-  padding: 12px 14px;
-  cursor: pointer;
-  background: var(--white);
-  border-bottom: 1px solid var(--beige-d);
-  user-select: none;
-}
-.layer-header-icon { font-size: 1.1rem; margin-right: 8px; }
-.layer-header-title { font-size: 0.82rem; font-weight: 700; flex: 1; }
-.layer-header-count {
-  font-size: 0.65rem; color: var(--white);
-  background: var(--primary); border-radius: 20px;
-  padding: 2px 8px; margin-right: 8px; font-weight: 700;
-}
-.layer-toggle-arrow {
-  font-size: 0.8rem; color: var(--muted);
-  transition: transform 0.3s;
-}
-.layer-card:not(.collapsed) .layer-toggle-arrow { transform: rotate(180deg); }
-
-.layer-body { padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
-
-.layer-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  border-radius: 10px;
-  background: var(--beige);
-  cursor: pointer;
-  transition: background 0.2s;
-  border: 2px solid transparent;
-}
-.layer-row.active { background: #e6f7f7; border-color: var(--primary); }
-.layer-row-dot {
-  width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;
-}
-.layer-row-label { font-size: 0.78rem; font-weight: 500; flex: 1; }
-.layer-row-badge {
-  font-size: 0.62rem; font-weight: 700; color: var(--white);
-  padding: 2px 7px; border-radius: 20px;
-}
-.toggle-pill {
-  width: 38px; height: 22px; border-radius: 11px;
-  background: #cbd5e0; position: relative;
-  transition: background 0.25s; flex-shrink: 0;
-}
-.toggle-pill::after {
-  content: ''; position: absolute;
-  width: 16px; height: 16px; border-radius: 50%;
-  background: white; top: 3px; left: 3px;
-  transition: left 0.25s; box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-}
-.layer-row.active .toggle-pill { background: var(--primary); }
-.layer-row.active .toggle-pill::after { left: 19px; }
-
-/* 情報ボタン行 */
-.action-row {
-  display: flex;
-  gap: 8px;
-}
-.action-btn {
-  flex: 1;
-  padding: 10px 8px;
-  border: none; border-radius: 10px;
-  font-family: inherit; font-size: 0.75rem; font-weight: 700;
-  cursor: pointer; transition: 0.2s;
-  display: flex; align-items: center; justify-content: center; gap: 5px;
-}
-.action-btn-primary {
-  background: var(--primary); color: white;
-}
-.action-btn-primary:hover { background: var(--primary-d); }
-.action-btn-secondary {
-  background: var(--beige-d); color: var(--text);
-}
-
-/* ── 情報ポップアップ（カスタム） ── */
-.info-popup {
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  background: var(--white);
-  border-radius: var(--radius) var(--radius) 0 0;
-  box-shadow: 0 -4px 30px rgba(0,0,0,0.15);
-  padding: 20px 20px 32px;
-  z-index: 300;
-  transform: translateY(100%);
-  transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
-  max-height: 55vh;
-  overflow-y: auto;
-}
-.info-popup.open { transform: translateY(0); }
-.popup-handle {
-  width: 40px; height: 4px; border-radius: 2px;
-  background: var(--beige-d); margin: 0 auto 16px;
-}
-.popup-badge {
-  display: inline-block; font-size: 0.62rem; font-weight: 700;
-  color: white; padding: 3px 10px; border-radius: 20px; margin-bottom: 10px;
-}
-.popup-title { font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
-.popup-address { font-size: 0.75rem; color: var(--muted); margin-bottom: 12px; }
-.popup-date {
-  font-size: 0.7rem; color: var(--muted);
-  background: var(--beige); padding: 6px 12px; border-radius: 8px;
-  margin-bottom: 12px;
-}
-.popup-close {
-  position: absolute; top: 16px; right: 16px;
-  background: var(--beige-d); border: none;
-  border-radius: 50%; width: 32px; height: 32px;
-  font-size: 1rem; cursor: pointer; color: var(--muted);
-}
-.popup-map-btn {
-  display: block; width: 100%;
-  padding: 12px; border-radius: 10px;
-  background: var(--primary); color: white;
-  text-align: center; font-weight: 700; font-size: 0.85rem;
-  text-decoration: none; border: none; cursor: pointer;
-  font-family: inherit;
-}
-
-/* ── ローディング ── */
-#loading-overlay {
-  position: fixed; inset: 0;
-  background: var(--beige);
-  z-index: 9999;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  gap: 16px;
-  transition: opacity 0.5s;
-}
-#loading-overlay.hidden { opacity: 0; pointer-events: none; }
-.loading-spinner {
-  width: 48px; height: 48px;
-  border: 4px solid var(--beige-d);
-  border-top: 4px solid var(--primary);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-.loading-text { font-size: 0.85rem; color: var(--muted); }
-
-/* ── オーバーレイ背景（ポップアップ用） ── */
-#popup-backdrop {
-  position: fixed; inset: 0; z-index: 299;
-  background: rgba(0,0,0,0.3);
-  display: none;
-}
-#popup-backdrop.open { display: block; }
-```
-
+    *{box-sizing:border-box;margin:0;padding:0;}
+    html,body{font-family:'Noto Sans JP',sans-serif;background:var(--beige);color:var(--text);
+      height:100dvh;display:flex;flex-direction:column;overflow:hidden;}
+    .header{background:var(--white);border-bottom:2px solid var(--beige-d);padding:10px 16px;
+      display:flex;align-items:center;gap:10px;flex-shrink:0;z-index:100;box-shadow:var(--shadow-sm);}
+    .header-logo{width:36px;height:36px;background:var(--primary);border-radius:10px;
+      display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+    .header-text h1{font-size:0.9rem;font-weight:700;color:var(--primary);line-height:1.2;}
+    .header-text p{font-size:0.65rem;color:var(--muted);}
+    .header-update{margin-left:auto;font-size:0.6rem;color:var(--muted);text-align:right;line-height:1.4;}
+    #map{flex:1;width:100%;}
+    .float-panel{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:200;width:calc(100% - 24px);max-width:480px;}
+    .layer-card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:10px;}
+    .layer-card.collapsed .layer-body{display:none;}
+    .layer-header{display:flex;align-items:center;padding:12px 14px;cursor:pointer;background:var(--white);border-bottom:1px solid var(--beige-d);user-select:none;}
+    .layer-header-icon{font-size:1.1rem;margin-right:8px;}
+    .layer-header-title{font-size:0.82rem;font-weight:700;flex:1;}
+    .layer-header-count{font-size:0.65rem;color:var(--white);background:var(--primary);border-radius:20px;padding:2px 8px;margin-right:8px;font-weight:700;}
+    .layer-toggle-arrow{font-size:0.8rem;color:var(--muted);transition:transform 0.3s;}
+    .layer-card:not(.collapsed) .layer-toggle-arrow{transform:rotate(180deg);}
+    .layer-body{padding:10px 12px;display:flex;flex-direction:column;gap:8px;}
+    .layer-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;
+      background:var(--beige);cursor:pointer;transition:background 0.2s;border:2px solid transparent;}
+    .layer-row.active{background:#e6f7f7;border-color:var(--primary);}
+    .layer-row-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+    .layer-row-label{font-size:0.78rem;font-weight:500;flex:1;}
+    .layer-row-badge{font-size:0.62rem;font-weight:700;color:var(--white);padding:2px 7px;border-radius:20px;}
+    .toggle-pill{width:38px;height:22px;border-radius:11px;background:#cbd5e0;position:relative;transition:background 0.25s;flex-shrink:0;}
+    .toggle-pill::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:white;top:3px;left:3px;transition:left 0.25s;box-shadow:0 1px 4px rgba(0,0,0,0.2);}
+    .layer-row.active .toggle-pill{background:var(--primary);}
+    .layer-row.active .toggle-pill::after{left:19px;}
+    .action-row{display:flex;gap:8px;}
+    .action-btn{flex:1;padding:10px 8px;border:none;border-radius:10px;font-family:inherit;font-size:0.75rem;font-weight:700;cursor:pointer;transition:0.2s;display:flex;align-items:center;justify-content:center;gap:5px;}
+    .action-btn-primary{background:var(--primary);color:white;}
+    .action-btn-primary:hover{background:var(--primary-d);}
+    .action-btn-secondary{background:var(--beige-d);color:var(--text);}
+    /* ピン色凡例 */
+    .pin-legend{display:flex;flex-wrap:wrap;gap:5px;padding:7px 10px 4px;border-top:1px solid var(--beige-d);}
+    .pli{display:flex;align-items:center;gap:4px;font-size:0.58rem;color:var(--muted);}
+    .pldot{width:9px;height:9px;border-radius:50%;}
+    /* ポップアップ */
+    .info-popup{position:fixed;bottom:0;left:0;right:0;background:var(--white);border-radius:var(--radius) var(--radius) 0 0;
+      box-shadow:0 -4px 30px rgba(0,0,0,0.15);padding:20px 20px 32px;z-index:300;
+      transform:translateY(100%);transition:transform 0.35s cubic-bezier(0.32,0.72,0,1);max-height:55vh;overflow-y:auto;}
+    .info-popup.open{transform:translateY(0);}
+    .popup-handle{width:40px;height:4px;border-radius:2px;background:var(--beige-d);margin:0 auto 16px;}
+    .popup-badge{display:inline-block;font-size:0.62rem;font-weight:700;color:white;padding:3px 10px;border-radius:20px;margin-bottom:8px;}
+    .popup-days{display:inline-block;font-size:0.62rem;font-weight:700;color:white;padding:3px 10px;border-radius:20px;margin-bottom:8px;margin-left:5px;}
+    .popup-title{font-size:1rem;font-weight:700;margin-bottom:6px;}
+    .popup-address{font-size:0.75rem;color:var(--muted);margin-bottom:12px;}
+    .popup-date{font-size:0.7rem;color:var(--muted);background:var(--beige);padding:6px 12px;border-radius:8px;margin-bottom:12px;}
+    .popup-close{position:absolute;top:16px;right:16px;background:var(--beige-d);border:none;border-radius:50%;width:32px;height:32px;font-size:1rem;cursor:pointer;color:var(--muted);}
+    .popup-map-btn{display:block;width:100%;padding:12px;border-radius:10px;background:var(--primary);color:white;text-align:center;font-weight:700;font-size:0.85rem;text-decoration:none;border:none;cursor:pointer;font-family:inherit;}
+    #loading-overlay{position:fixed;inset:0;background:var(--beige);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity 0.5s;}
+    #loading-overlay.hidden{opacity:0;pointer-events:none;}
+    .loading-spinner{width:48px;height:48px;border:4px solid var(--beige-d);border-top:4px solid var(--primary);border-radius:50%;animation:spin 0.8s linear infinite;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .loading-text{font-size:0.85rem;color:var(--muted);}
+    #popup-backdrop{position:fixed;inset:0;z-index:299;background:rgba(0,0,0,0.3);display:none;}
+    #popup-backdrop.open{display:block;}
   </style>
 </head>
 <body>
-
-<!-- ローディング -->
-
-<div id="loading-overlay">
-  <div class="loading-spinner"></div>
-  <div class="loading-text">地図データを読み込み中...</div>
-</div>
-
-<!-- ヘッダー -->
-
+<div id="loading-overlay"><div class="loading-spinner"></div><div class="loading-text">地図データを読み込み中...</div></div>
 <div class="header">
   <div class="header-logo">🗺️</div>
-  <div class="header-text">
-    <h1>地域安全マップ</h1>
-    <p>スマホの相談士｜吉田町・牧之原市エリア</p>
-  </div>
-  <div class="header-update" id="last-update">
-    最終更新<br>読込中...
-  </div>
+  <div class="header-text"><h1>地域安全マップ</h1><p>スマホの相談士｜吉田町・牧之原市エリア</p></div>
+  <div class="header-update" id="last-update">最終更新<br>読込中...</div>
 </div>
-
-<!-- Google マップ描画エリア -->
-
 <div id="map"></div>
-
-<!-- フローティング操作パネル -->
-
 <div class="float-panel">
   <div class="layer-card" id="layer-card">
     <div class="layer-header" onclick="toggleLayerCard()">
@@ -292,376 +91,179 @@ body {
       <span class="layer-toggle-arrow">▼</span>
     </div>
     <div class="layer-body">
-
-```
-  <!-- 防犯パトロール -->
-  <div class="layer-row active" id="row-patrol" onclick="toggleLayer('patrol')">
-    <div class="layer-row-dot" style="background:var(--patrol)"></div>
-    <div class="layer-row-label">🚨 防犯パトロール記録</div>
-    <div class="layer-row-badge" id="badge-patrol" style="background:var(--patrol)">0件</div>
-    <div class="toggle-pill"></div>
-  </div>
-
-  <!-- ハザードマップ -->
-  <div class="layer-row" id="row-hazard" onclick="toggleLayer('hazard')">
-    <div class="layer-row-dot" style="background:var(--hazard)"></div>
-    <div class="layer-row-label">🌊 ハザードマップ（津波・洪水）</div>
-    <div class="toggle-pill"></div>
-  </div>
-
-  <!-- AED -->
-  <div class="layer-row" id="row-aed" onclick="toggleLayer('aed')">
-    <div class="layer-row-dot" style="background:var(--aed)"></div>
-    <div class="layer-row-label">🏥 AED設置場所</div>
-    <div class="layer-row-badge" id="badge-aed" style="background:var(--aed)">準備中</div>
-    <div class="toggle-pill"></div>
-  </div>
-
-  <!-- 学区 -->
-  <div class="layer-row" id="row-school" onclick="toggleLayer('school')">
-    <div class="layer-row-dot" style="background:var(--school)"></div>
-    <div class="layer-row-label">🏫 学区情報（通学路）</div>
-    <div class="layer-row-badge" id="badge-school" style="background:var(--school)">準備中</div>
-    <div class="toggle-pill"></div>
-  </div>
-
-  <div class="action-row">
-    <button class="action-btn action-btn-primary" onclick="reloadPatrol()">🔄 最新に更新</button>
-    <button class="action-btn action-btn-secondary" onclick="resetView()">📍 初期位置に戻る</button>
-  </div>
-</div>
-```
-
+      <div class="layer-row active" id="row-patrol" onclick="toggleLayer('patrol')">
+        <div class="layer-row-dot" style="background:#e53e3e"></div>
+        <div class="layer-row-label">🚨 防犯パトロール記録</div>
+        <div class="layer-row-badge" id="badge-patrol" style="background:#e53e3e">0件</div>
+        <div class="toggle-pill"></div>
+      </div>
+      <div class="layer-row" id="row-hazard" onclick="toggleLayer('hazard')">
+        <div class="layer-row-dot" style="background:#dd6b20"></div>
+        <div class="layer-row-label">🌊 ハザードマップ（津波・洪水）</div>
+        <div class="toggle-pill"></div>
+      </div>
+      <div class="layer-row" id="row-aed" onclick="toggleLayer('aed')">
+        <div class="layer-row-dot" style="background:#2b6cb0"></div>
+        <div class="layer-row-label">🏥 AED設置場所</div>
+        <div class="layer-row-badge" id="badge-aed" style="background:#2b6cb0">準備中</div>
+        <div class="toggle-pill"></div>
+      </div>
+      <div class="layer-row" id="row-school" onclick="toggleLayer('school')">
+        <div class="layer-row-dot" style="background:#276749"></div>
+        <div class="layer-row-label">🏫 学区情報（通学路）</div>
+        <div class="layer-row-badge" id="badge-school" style="background:#276749">準備中</div>
+        <div class="toggle-pill"></div>
+      </div>
+      <!-- ピン色凡例 -->
+      <div class="pin-legend">
+        <div class="pli"><div class="pldot" style="background:#e53e3e"></div>当日</div>
+        <div class="pli"><div class="pldot" style="background:#D4AC0D"></div>1日後</div>
+        <div class="pli"><div class="pldot" style="background:#27AE60"></div>2日後</div>
+        <div class="pli"><div class="pldot" style="background:#2980B9"></div>3日後</div>
+        <div class="pli"><div class="pldot" style="background:#8E44AD"></div>4日以降</div>
+      </div>
+      <div class="action-row">
+        <button class="action-btn action-btn-primary" onclick="reloadPatrol()">🔄 最新に更新</button>
+        <button class="action-btn action-btn-secondary" onclick="resetView()">📍 初期位置に戻る</button>
+      </div>
+    </div>
   </div>
 </div>
-
-<!-- ポップアップ背景 -->
-
 <div id="popup-backdrop" onclick="closePopup()"></div>
-
-<!-- ピン情報ポップアップ -->
-
 <div class="info-popup" id="info-popup">
   <div class="popup-handle"></div>
   <button class="popup-close" onclick="closePopup()">✕</button>
   <div class="popup-badge" id="popup-badge">防犯記録</div>
-  <div class="popup-title"   id="popup-title">地点名</div>
+  <span class="popup-days" id="popup-days"></span>
+  <div class="popup-title" id="popup-title">地点名</div>
   <div class="popup-address" id="popup-address"></div>
-  <div class="popup-date"    id="popup-date">📅 日時：---</div>
-  <a  class="popup-map-btn"  id="popup-map-btn" href="#" target="_blank">
-    Google マップで開く 📍
-  </a>
+  <div class="popup-date" id="popup-date">📅 日時：---</div>
+  <a class="popup-map-btn" id="popup-map-btn" href="#" target="_blank">Google マップで開く 📍</a>
 </div>
-
 <script>
-// ============================================================
-// 設定値 — ここを環境に合わせて変更する
-// ============================================================
-const CONFIG = {
-  // Google Maps API キー（GCPコンソールで取得）
-  MAPS_API_KEY: 'AIzaSyDeC5HxWHonkgh7p-fUe8k6OzKns8Rienk',
-
-  // GAS ウェブアプリ URL（gas-v3-final のデプロイURL）
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbzsjRFwyV4wmxD_LDeWMyOg3qNc1C4mZuoAPmYY8YZVq__dTOYWS3vMw3Z_o3lzTEo/exec',
-
-  // デフォルト中心座標（吉田町・牧之原市の中間）
-  DEFAULT_CENTER: { lat: 34.768, lng: 138.261 },
-  DEFAULT_ZOOM:   13,
-
-  // ハザードマップ画像の設定
-  // 行政から入手した透過PNG画像をDriveに置いてURLを指定
-  HAZARD_IMAGE_URL: 'YOUR_HAZARD_MAP_IMAGE_URL',
-
-  // GroundOverlay の境界座標（ハザードマップ画像の四隅に合わせる）
-  // ▼ 調整方法は後述のコメントを参照
-  HAZARD_BOUNDS: {
-    north: 34.820,  // 画像の北端（上端）の緯度
-    south: 34.710,  // 画像の南端（下端）の緯度
-    east:  138.330, // 画像の東端（右端）の経度
-    west:  138.190  // 画像の西端（左端）の経度
-  }
+const CONFIG={
+  MAPS_API_KEY:'AIzaSyDeC5HxWHonkgh7p-fUe8k6OzKns8Rienk',
+  GAS_URL:'https://script.google.com/macros/s/AKfycbzsjRFwyV4wmxD_LDeWMyOg3qNc1C4mZuoAPmYY8YZVq__dTOYWS3vMw3Z_o3lzTEo/exec',
+  DEFAULT_CENTER:{lat:34.768,lng:138.261},DEFAULT_ZOOM:13,
+  HAZARD_IMAGE_URL:'YOUR_HAZARD_MAP_IMAGE_URL',
+  HAZARD_BOUNDS:{north:34.820,south:34.710,east:138.330,west:138.190}
 };
-
-// ============================================================
-// グローバル変数
-// ============================================================
-let map            = null;
-let patrolMarkers  = [];
-let hazardOverlay  = null;
-let aedMarkers     = [];
-
-const layerState = {
-  patrol: true,
-  hazard: false,
-  aed:    false,
-  school: false
-};
-
-// ============================================================
-// Google Maps 初期化（APIロード後に自動呼び出し）
-// ============================================================
-function initMap() {
-  map = new google.maps.Map(document.getElementById('map'), {
-    center:            CONFIG.DEFAULT_CENTER,
-    zoom:              CONFIG.DEFAULT_ZOOM,
-    mapTypeId:         'roadmap',
-    // UI の簡略化（シニア対応）
-    zoomControl:       true,
-    mapTypeControl:    false,
-    streetViewControl: false,
-    fullscreenControl: false,
-    gestureHandling:   'greedy', // スマホで1本指でスクロール可能に
-    styles: [
-      // マップを清潔感のある淡い配色に調整
-      { featureType: 'poi', stylers: [{ visibility: 'simplified' }] },
-      { featureType: 'transit', stylers: [{ visibility: 'off' }] },
-      { featureType: 'water', stylers: [{ color: '#b3d4f5' }] }
+// ★ ピン色定義（日数別）— 変更したい場合はここを編集
+const PIN_COLORS=[
+  {maxDays:0,color:'#e53e3e',label:'当日'},
+  {maxDays:1,color:'#D4AC0D',label:'1日後'},
+  {maxDays:2,color:'#27AE60',label:'2日後'},
+  {maxDays:3,color:'#2980B9',label:'3日後'},
+  {maxDays:Infinity,color:'#8E44AD',label:'4日以降'}
+];
+function getPinColor(dateStr){
+  if(!dateStr) return PIN_COLORS[0].color;
+  const d=new Date(dateStr);
+  if(isNaN(d.getTime())) return PIN_COLORS[0].color;
+  const days=Math.floor((new Date()-d)/(1000*60*60*24));
+  for(const p of PIN_COLORS){if(days<=p.maxDays) return p.color;}
+  return PIN_COLORS[PIN_COLORS.length-1].color;
+}
+function getDayLabel(dateStr){
+  if(!dateStr) return '';
+  const d=new Date(dateStr);
+  if(isNaN(d.getTime())) return '';
+  const days=Math.floor((new Date()-d)/(1000*60*60*24));
+  if(days===0) return '📌 今日の投稿';
+  return `📌 ${days}日前`;
+}
+let map=null,patrolMarkers=[],hazardOverlay=null;
+const layerState={patrol:true,hazard:false,aed:false,school:false};
+function initMap(){
+  map=new google.maps.Map(document.getElementById('map'),{
+    center:CONFIG.DEFAULT_CENTER,zoom:CONFIG.DEFAULT_ZOOM,mapTypeId:'roadmap',
+    zoomControl:true,mapTypeControl:false,streetViewControl:false,fullscreenControl:false,
+    gestureHandling:'greedy',
+    styles:[
+      {featureType:'poi',stylers:[{visibility:'simplified'}]},
+      {featureType:'transit',stylers:[{visibility:'off'}]},
+      {featureType:'water',stylers:[{color:'#b3d4f5'}]}
     ]
   });
-
-  // ハザードマップ GroundOverlay を準備（非表示で待機）
-  if (CONFIG.HAZARD_IMAGE_URL !== 'YOUR_HAZARD_MAP_IMAGE_URL') {
-    const bounds = new google.maps.LatLngBounds(
-      new google.maps.LatLng(CONFIG.HAZARD_BOUNDS.south, CONFIG.HAZARD_BOUNDS.west),
-      new google.maps.LatLng(CONFIG.HAZARD_BOUNDS.north, CONFIG.HAZARD_BOUNDS.east)
+  if(CONFIG.HAZARD_IMAGE_URL!=='YOUR_HAZARD_MAP_IMAGE_URL'){
+    const b=new google.maps.LatLngBounds(
+      new google.maps.LatLng(CONFIG.HAZARD_BOUNDS.south,CONFIG.HAZARD_BOUNDS.west),
+      new google.maps.LatLng(CONFIG.HAZARD_BOUNDS.north,CONFIG.HAZARD_BOUNDS.east)
     );
-    hazardOverlay = new google.maps.GroundOverlay(CONFIG.HAZARD_IMAGE_URL, bounds, {
-      opacity: 0.55
-    });
+    hazardOverlay=new google.maps.GroundOverlay(CONFIG.HAZARD_IMAGE_URL,b,{opacity:0.55});
   }
-
-  // 防犯パトロールデータを読み込み
   loadPatrolData();
 }
-
-// ============================================================
-// 防犯パトロールデータ取得
-// ============================================================
-async function loadPatrolData() {
-  try {
-    const res  = await fetch(CONFIG.GAS_URL + '?action=getMapData');
-    const json = await res.json();
-
-    if (json.status !== 'success') throw new Error(json.message);
-
-    const records = json.records || [];
-    renderPatrolMarkers(records);
-
-    // 最終更新表示
-    const now = new Date();
-    document.getElementById('last-update').innerHTML =
-      '最終更新<br>' + now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0');
-
-  } catch (err) {
-    console.error("マップデータ取得エラー:", err);
-    document.getElementById('last-update').innerHTML = '取得エラー<br>再試行してください';
-  } finally {
-    // ローディング非表示
+async function loadPatrolData(){
+  try{
+    const res=await fetch(CONFIG.GAS_URL+'?action=getMapData');
+    const json=await res.json();
+    if(json.status!=='success') throw new Error(json.message);
+    renderPatrolMarkers(json.records||[]);
+    const now=new Date();
+    document.getElementById('last-update').innerHTML='最終更新<br>'+now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
+  }catch(err){
+    console.error("マップデータ取得エラー:",err);
+    document.getElementById('last-update').innerHTML='取得エラー<br>再試行してください';
+  }finally{
     document.getElementById('loading-overlay').classList.add('hidden');
-    setTimeout(function() {
-      document.getElementById('loading-overlay').style.display = 'none';
-    }, 600);
+    setTimeout(function(){document.getElementById('loading-overlay').style.display='none';},600);
   }
 }
-
-// ============================================================
-// 防犯パトロールマーカーを描画
-// ============================================================
-function renderPatrolMarkers(records) {
-  // 既存マーカーをクリア
-  patrolMarkers.forEach(function(m) { m.setMap(null); });
-  patrolMarkers = [];
-
-  records.forEach(function(rec) {
-    const marker = new google.maps.Marker({
-      position: { lat: rec.lat, lng: rec.lng },
-      map:      layerState.patrol ? map : null,
-      title:    rec.title,
-      icon: {
-        path:        google.maps.SymbolPath.CIRCLE,
-        fillColor:   '#e53e3e',
-        fillOpacity: 1,
-        strokeColor: '#ffffff',
-        strokeWeight: 2,
-        scale:        9
-      },
-      // アニメーション（最新5件のみ）
-      animation: records.indexOf(rec) < 5
-                 ? google.maps.Animation.DROP : null
+function renderPatrolMarkers(records){
+  patrolMarkers.forEach(function(m){m.setMap(null);}); patrolMarkers=[];
+  records.forEach(function(rec,idx){
+    const pc=getPinColor(rec.date);
+    const marker=new google.maps.Marker({
+      position:{lat:rec.lat,lng:rec.lng},map:layerState.patrol?map:null,title:rec.title,
+      icon:{path:google.maps.SymbolPath.CIRCLE,fillColor:pc,fillOpacity:1,strokeColor:'#ffffff',strokeWeight:2,scale:9},
+      animation:idx<5?google.maps.Animation.DROP:null
     });
-
-    marker.addListener('click', function() {
-      showPopup({
-        type:    'patrol',
-        title:   rec.title,
-        address: rec.address,
-        date:    rec.date,
-        url:     rec.url,
-        lat:     rec.lat,
-        lng:     rec.lng
-      });
+    marker.addListener('click',function(){
+      showPopup({type:'patrol',title:rec.title,address:rec.address,date:rec.date,url:rec.url,lat:rec.lat,lng:rec.lng,pinColor:pc});
     });
-
     patrolMarkers.push(marker);
   });
-
-  // バッジ更新
-  document.getElementById('badge-patrol').textContent = records.length + '件';
+  document.getElementById('badge-patrol').textContent=records.length+'件';
   updateActiveCount();
 }
-
-// ============================================================
-// レイヤー切り替え
-// ============================================================
-function toggleLayer(type) {
-  layerState[type] = !layerState[type];
-  const row = document.getElementById('row-' + type);
-  row.classList.toggle('active', layerState[type]);
-
-  switch (type) {
-    case 'patrol':
-      patrolMarkers.forEach(function(m) {
-        m.setMap(layerState.patrol ? map : null);
-      });
-      break;
-
+function toggleLayer(type){
+  layerState[type]=!layerState[type];
+  const row=document.getElementById('row-'+type);
+  row.classList.toggle('active',layerState[type]);
+  switch(type){
+    case 'patrol': patrolMarkers.forEach(function(m){m.setMap(layerState.patrol?map:null);}); break;
     case 'hazard':
-      if (hazardOverlay) {
-        hazardOverlay.setMap(layerState.hazard ? map : null);
-      } else if (layerState.hazard) {
-        alert('ハザードマップ画像URLが設定されていません。\nCONFIG.HAZARD_IMAGE_URL を設定してください。');
-        layerState.hazard = false;
-        row.classList.remove('active');
-      }
-      break;
-
-    case 'aed':
-      // AEDデータは今後追加予定
-      if (layerState.aed) {
-        alert('AED設置場所データは準備中です。\n近日公開予定です！');
-        layerState.aed = false;
-        row.classList.remove('active');
-      }
-      break;
-
-    case 'school':
-      if (layerState.school) {
-        alert('学区情報は準備中です。\n近日公開予定です！');
-        layerState.school = false;
-        row.classList.remove('active');
-      }
-      break;
+      if(hazardOverlay){hazardOverlay.setMap(layerState.hazard?map:null);}
+      else if(layerState.hazard){alert('ハザードマップ画像URLが設定されていません。');layerState.hazard=false;row.classList.remove('active');} break;
+    case 'aed': if(layerState.aed){alert('AED設置場所データは準備中です。');layerState.aed=false;row.classList.remove('active');} break;
+    case 'school': if(layerState.school){alert('学区情報は準備中です。');layerState.school=false;row.classList.remove('active');} break;
   }
-
   updateActiveCount();
 }
-
-function updateActiveCount() {
-  const count = Object.values(layerState).filter(Boolean).length;
-  document.getElementById('active-count').textContent = count;
-}
-
-// ============================================================
-// レイヤーカードの開閉
-// ============================================================
-function toggleLayerCard() {
-  document.getElementById('layer-card').classList.toggle('collapsed');
-}
-
-// ============================================================
-// 情報ポップアップ
-// ============================================================
-function showPopup(data) {
-  const typeLabels = { patrol:'🚨 防犯記録', aed:'🏥 AED', school:'🏫 学区' };
-  const typeColors = { patrol:'#e53e3e', aed:'#2b6cb0', school:'#276749' };
-
-  document.getElementById('popup-badge').textContent   = typeLabels[data.type] || '情報';
-  document.getElementById('popup-badge').style.background = typeColors[data.type] || '#249496';
-  document.getElementById('popup-title').textContent   = data.title || '地点名不明';
-  document.getElementById('popup-address').textContent = data.address || '';
-  document.getElementById('popup-date').textContent    = '📅 ' + (data.date ? data.date.replace('T',' ').substring(0,16) : '---');
-
-  const mapUrl = data.url || ('https://www.google.com/maps?q=' + data.lat + ',' + data.lng);
-  document.getElementById('popup-map-btn').href = mapUrl;
-
+function updateActiveCount(){document.getElementById('active-count').textContent=Object.values(layerState).filter(Boolean).length;}
+function toggleLayerCard(){document.getElementById('layer-card').classList.toggle('collapsed');}
+function showPopup(data){
+  const tl={patrol:'🚨 防犯記録',aed:'🏥 AED',school:'🏫 学区'};
+  document.getElementById('popup-badge').textContent=tl[data.type]||'情報';
+  document.getElementById('popup-badge').style.background=data.pinColor||'#e53e3e';
+  document.getElementById('popup-title').textContent=data.title||'地点名不明';
+  document.getElementById('popup-address').textContent=data.address||'';
+  document.getElementById('popup-date').textContent='📅 '+(data.date?data.date.replace('T',' ').substring(0,16):'---');
+  const de=document.getElementById('popup-days');
+  de.textContent=getDayLabel(data.date);
+  de.style.background=data.pinColor||'#e53e3e';
+  de.style.display=data.date?'inline-block':'none';
+  const mu=data.url||('https://www.google.com/maps?q='+data.lat+','+data.lng);
+  document.getElementById('popup-map-btn').href=mu;
   document.getElementById('info-popup').classList.add('open');
   document.getElementById('popup-backdrop').classList.add('open');
-
-  // マップを少し上に移動してポップアップと重ならないように
-  if (map) map.panTo({ lat: data.lat - 0.003, lng: data.lng });
+  if(map) map.panTo({lat:data.lat-0.003,lng:data.lng});
 }
-
-function closePopup() {
-  document.getElementById('info-popup').classList.remove('open');
-  document.getElementById('popup-backdrop').classList.remove('open');
-}
-
-// ============================================================
-// データ再読み込み
-// ============================================================
-function reloadPatrol() {
-  document.getElementById('last-update').innerHTML = '最終更新<br>更新中...';
-  loadPatrolData();
-}
-
-// ============================================================
-// 初期位置に戻る
-// ============================================================
-function resetView() {
-  if (map) {
-    map.panTo(CONFIG.DEFAULT_CENTER);
-    map.setZoom(CONFIG.DEFAULT_ZOOM);
-  }
-}
+function closePopup(){document.getElementById('info-popup').classList.remove('open');document.getElementById('popup-backdrop').classList.remove('open');}
+function reloadPatrol(){document.getElementById('last-update').innerHTML='最終更新<br>更新中...';loadPatrolData();}
+function resetView(){if(map){map.panTo(CONFIG.DEFAULT_CENTER);map.setZoom(CONFIG.DEFAULT_ZOOM);}}
 </script>
-
-<!--
-  Google Maps API の読み込み
-  ★ YOUR_GOOGLE_MAPS_API_KEY を実際のAPIキーに書き換えてください
-  ★ GCPコンソール → Maps JavaScript API を有効化 → 認証情報でAPIキー取得
-  ★ APIキーの制限: HTTPリファラー制限で自分のドメインのみ許可することを推奨
--->
-
-<script
-  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDeC5HxWHonkgh7p-fUe8k6OzKns8Rienk&callback=initMap&language=ja"
-  async defer>
-</script>
-
-<!--
-=================================================================
-【GroundOverlay 座標調整のコツ】
-
-ハザードマップ画像を正確に地図に重ねるには以下の手順で行う。
-
-1. 行政サイトからハザードマップPDFを入手
-2. Googleドライブに透過PNG形式で保存（白背景を透過処理）
-3. 画像のリンクを取得（共有→リンクをコピー、または Google Cloud Storage）
-4. まず大まかな座標を設定してオーバーレイを表示
-5. 地図の「ランドマーク（駅・学校など）」と画像の対応点を比較
-6. HAZARD_BOUNDS の north/south/east/west を微調整して合わせる
-
-参考座標（吉田町・牧之原市）:
-  北端(north): 34.83 前後
-  南端(south): 34.70 前後
-  東端(east) : 138.34 前後
-  西端(west) : 138.18 前後
-
-=================================================================
-【スマホカルテ機能（将来実装予定）】
-
-リッチメニューの「私のカルテ」ボタン設計案:
-  1. ボタンをタップすると LINE Webhook に "カルテ確認" テキストが送信される
-  2. GAS で event.source.userId を取得
-  3. Notion スマホ診断DBを userId で検索
-  4. 最新の診断結果を Flex Message で返信
-
-実装の前提条件:
-  - スマホ診断フォームに LINE ログインを追加し userId を記録する
-  - または相談時に西舘さんが管理画面から userId を手動紐付けする
-
-→ まずは手動紐付け方式から始めると実装が早い
-=================================================================
--->
-
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDeC5HxWHonkgh7p-fUe8k6OzKns8Rienk&callback=initMap&language=ja" async defer></script>
 </body>
 </html>

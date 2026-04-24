@@ -251,68 +251,35 @@ new google.maps.LatLng(CONFIG.HAZARD_BOUNDS.north,CONFIG.HAZARD_BOUNDS.east)
 hazardOverlay=new google.maps.GroundOverlay(CONFIG.HAZARD_IMAGE_URL,b,{opacity:0.55});
 }
 // 津波避難タワーのマーカーを事前に作成（非表示で待機）
-buildTsunamiMarkers();
 loadPatrolData();
+// 津波タワーは地図表示後に遅延構築（初期ロードを軽量化）
+setTimeout(buildTsunamiMarkers, 800);
 }
 
 // ============================================================
 // ★ 津波避難タワーのマーカーを構築
 // ============================================================
 function buildTsunamiMarkers(){
+// 1施設1マーカーに統一（軽量化）
 TSUNAMI_SHELTERS.forEach(function(shelter){
 const isBuilding = shelter.type === ‘building’;
 const marker = new google.maps.Marker({
 position:{lat:shelter.lat,lng:shelter.lng},
-map:null, // 初期は非表示
+map:null,
 title:shelter.name,
+label:{text:shelter.id,color:‘white’,fontSize:‘10px’,fontWeight:‘bold’},
 icon:{
-// タワーは三角形（緊急避難所マーク風）、建物は四角
-path: isBuilding
-? google.maps.SymbolPath.BACKWARD_OPEN_ARROW
-: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-fillColor:’#0066CC’,
-fillOpacity:0.9,
+path:google.maps.SymbolPath.CIRCLE,
+fillColor: isBuilding ? ‘#004499’ : ‘#0066CC’,
+fillOpacity:1,
 strokeColor:’#ffffff’,
 strokeWeight:2,
-scale: isBuilding ? 6 : 7,
-rotation: isBuilding ? 0 : 0
+scale:14
 },
-zIndex: 10
+zIndex:20
 });
-
-```
-// ラベル（A〜S）
-const labelMarker = new google.maps.Marker({
-  position:{lat:shelter.lat,lng:shelter.lng},
-  map:null,
-  title:shelter.name,
-  label:{
-    text: shelter.id,
-    color:'white',
-    fontSize:'10px',
-    fontWeight:'bold'
-  },
-  icon:{
-    path:google.maps.SymbolPath.CIRCLE,
-    fillColor:'#0066CC',
-    fillOpacity:1,
-    strokeColor:'#ffffff',
-    strokeWeight:2,
-    scale:14
-  },
-  zIndex:20
-});
-
-labelMarker.addListener('click',function(){
-  showTsunamiPopup(shelter);
-});
-marker.addListener('click',function(){
-  showTsunamiPopup(shelter);
-});
-
-tsunamiMarkers.push({main:marker, label:labelMarker});
-```
-
+marker.addListener(‘click’,function(){ showTsunamiPopup(shelter); });
+tsunamiMarkers.push(marker);
 });
 document.getElementById(‘badge-tsunami’).textContent = TSUNAMI_SHELTERS.length + ‘施設’;
 }
@@ -405,9 +372,8 @@ switch(type){
 case ‘patrol’:
 patrolMarkers.forEach(function(m){m.setMap(layerState.patrol?map:null);}); break;
 case ‘tsunami’:
-tsunamiMarkers.forEach(function(pair){
-pair.main.setMap(layerState.tsunami?map:null);
-pair.label.setMap(layerState.tsunami?map:null);
+tsunamiMarkers.forEach(function(m){
+m.setMap(layerState.tsunami?map:null);
 }); break;
 case ‘hazard’:
 if(hazardOverlay){hazardOverlay.setMap(layerState.hazard?map:null);}

@@ -192,8 +192,8 @@
 
     <div style="padding: 20px; background-color: #f0f8f8; border-radius: 10px; width: 100%; text-align: left; border: 1px solid #82c4c3;">
       <p style="margin: 0 0 10px 0; font-weight: bold; color: #1a2a40; font-size: 0.95rem;">【最後にお願い】</p>
-      <p style="margin: 0 0 15px 0; font-size: 0.85rem; color: #555; line-height: 1.4;">LINEであなた専用の『スマホカルテ』とご案内をお送りします。<strong>「LINEのアカウント名(お名前)」</strong>を教えてください。</p>
-      <input type="text" id="name" placeholder="例：さくらい、S.Sakurai など" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 6px; font-size: 1rem;">
+      <p style="margin: 0 0 15px 0; font-size: 0.85rem; color: #555; line-height: 1.4;">LINEであなた専用の『スマホカルテ』とご案内をお送りします。<strong>お名前（フルネーム）</strong>を教えてください。</p>
+      <input type="text" id="name" placeholder="例：山田　太郎（フルネームでご入力ください）" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 6px; font-size: 1rem;">
     </div>
 
     <button class="finish-btn" onclick="finish()">カルテを作成して相談に進む</button>
@@ -204,7 +204,7 @@
 
 <script>
   // ▼ GAS URLとSECRET_TOKEN
-  const GAS_URL = "https://script.google.com/macros/s/AKfycbzsjRFwyV4wmxD_LDeWMyOg3qNc1C4mZuoAPmYY8YZVq__dTOYWS3vMw3Z_o3lzTEo/exec";
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbyFEz0Loj32nHhwnSIAKTVbVgrbDBjC1F-HmQ9Gat57eRe0upvlIPjbJZNFwtahTGI/exec";
   const SECRET_TOKEN = "smaho2026sakurai";
 
   // URLパラメータを取得して相談タイプを判別

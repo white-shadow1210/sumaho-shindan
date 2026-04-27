@@ -62,7 +62,7 @@
     }
     .layer-card {
       background: var(--white); border-radius: var(--radius);
-      box-shadow: var(--shadow); overflow: hidden; margin-bottom: 10px;
+      box-shadow: var(--shadow); overflow: hidden; margin-bottom: 0;
     }
     .layer-card.collapsed .layer-body { display: none; }
     .layer-header {
@@ -78,7 +78,7 @@
     }
     .layer-toggle-arrow { font-size: 0.8rem; color: var(--muted); transition: transform 0.3s; }
     .layer-card:not(.collapsed) .layer-toggle-arrow { transform: rotate(180deg); }
-    .layer-body { padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+    .layer-body { padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; overflow: hidden; }
     .layer-row {
       display: flex; align-items: center; gap: 10px; padding: 8px 10px;
       border-radius: 10px; background: var(--beige); cursor: pointer;
@@ -135,6 +135,35 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     .loading-text { font-size: 0.85rem; color: var(--muted); }
     #popup-backdrop { position: fixed; inset: 0; z-index: 299; background: rgba(0,0,0,0.3); display: none; }
+    /* ── 常時表示凡例（右上固定） ── */
+    .pin-legend-fixed {
+      position: fixed;
+      top: 68px;
+      right: 10px;
+      z-index: 150;
+      background: rgba(255,255,255,0.94);
+      border-radius: 10px;
+      padding: 8px 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+      border: 1px solid #e8e0d5;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .pin-legend-fixed .pli { display: flex; align-items: center; gap: 5px; font-size: 0.7rem; color: #555; font-weight: 500; }
+    .pin-legend-fixed .pldot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+    .pin-legend-fixed .legend-title { font-size: 0.6rem; color: #999; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 2px; }
+    /* 開閉ボタン改善 */
+    .layer-toggle-arrow {
+      font-size: 0.72rem !important;
+      color: white !important;
+      background: #94a3b8;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-weight: 700 !important;
+      white-space: nowrap;
+    }
+    .layer-card.collapsed .layer-toggle-arrow { background: var(--primary); }
     #popup-backdrop.open { display: block; }
   </style>
 </head>
@@ -156,13 +185,23 @@
 
 <div id="map"></div>
 
+<!-- 常時表示ピン色凡例（右上固定） -->
+
+<div class="pin-legend-fixed">
+  <div class="legend-title">🔴 ピンの色＝報告日</div>
+  <div class="pli"><div class="pldot" style="background:#e53e3e"></div>当日</div>
+  <div class="pli"><div class="pldot" style="background:#D4AC0D"></div>1日後</div>
+  <div class="pli"><div class="pldot" style="background:#27AE60"></div>2日後</div>
+  <div class="pli"><div class="pldot" style="background:#2980B9"></div>3日後</div>
+</div>
+
 <div class="float-panel">
-  <div class="layer-card" id="layer-card">
+  <div class="layer-card collapsed" id="layer-card">
     <div class="layer-header" onclick="toggleLayerCard()">
       <span class="layer-header-icon">🔍</span>
-      <span class="layer-header-title">表示レイヤーを切り替え</span>
+      <span class="layer-header-title">📋 地図の表示を選ぶ</span>
       <span class="layer-header-count" id="active-count">0</span>
-      <span class="layer-toggle-arrow">▼</span>
+      <span class="layer-toggle-arrow" id="panel-arrow">▼ 開く</span>
     </div>
     <div class="layer-body">
       <div class="layer-row active" id="row-patrol" onclick="toggleLayer('patrol')">
@@ -188,19 +227,18 @@
         <div class="layer-row-badge" id="badge-school" style="background:var(--school)">準備中</div>
         <div class="toggle-pill"></div>
       </div>
-      <!-- ピン色凡例 -->
-      <div class="pin-legend">
-        <div class="pli"><div class="pldot" style="background:#e53e3e"></div>当日</div>
-        <div class="pli"><div class="pldot" style="background:#D4AC0D"></div>1日後</div>
-        <div class="pli"><div class="pldot" style="background:#27AE60"></div>2日後</div>
-        <div class="pli"><div class="pldot" style="background:#2980B9"></div>3日後</div>
-        <div class="pli"><div class="pldot" style="background:#8E44AD"></div>4日以降</div>
-      </div>
-      <div class="action-row">
-        <button class="action-btn action-btn-primary" onclick="reloadPatrol()">🔄 最新に更新</button>
-        <button class="action-btn action-btn-secondary" onclick="resetView()">📍 初期位置に戻る</button>
-      </div>
-    </div>
+
+```
+  <div class="action-row">
+    <button class="action-btn action-btn-primary" onclick="reloadPatrol()">🔄 最新に更新</button>
+    <button class="action-btn action-btn-secondary" onclick="resetView()">📍 初期位置に戻る</button>
+  </div>
+  <div class="action-row" style="margin-top:-2px;">
+    <button id="stats-btn" class="action-btn action-btn-secondary" onclick="toggleStatsMode()" style="background:#e8f0fe;color:#3b5bdb;font-weight:700;">📊 全期間の記録を見る</button>
+  </div>
+</div>
+```
+
   </div>
 </div>
 
@@ -231,18 +269,20 @@ const CONFIG = {
 
 // ★ ピン色定義（日数別）
 const PIN_COLORS = [
-  { maxDays: 0,        color: '#e53e3e', label: '当日' },
-  { maxDays: 1,        color: '#D4AC0D', label: '1日後' },
-  { maxDays: 2,        color: '#27AE60', label: '2日後' },
-  { maxDays: 3,        color: '#2980B9', label: '3日後' },
-  { maxDays: Infinity, color: '#8E44AD', label: '4日以降' }
+  { maxDays: 0, color: '#e53e3e', label: '当日' },
+  { maxDays: 1, color: '#D4AC0D', label: '1日後' },
+  { maxDays: 2, color: '#27AE60', label: '2日後' },
+  { maxDays: 3, color: '#2980B9', label: '3日後' }
+  // 4日以降は非表示（null返却でスキップ）
 ];
+const HIDE_AFTER_DAYS = 4; // これ以上経過したピンは非表示
 
 function getPinColor(dateStr) {
   if (!dateStr) return PIN_COLORS[0].color;
   const d = new Date(dateStr);
   if (isNaN(d.getTime())) return PIN_COLORS[0].color;
   const days = Math.floor((new Date() - d) / (1000 * 60 * 60 * 24));
+  if (days >= HIDE_AFTER_DAYS) return null; // 4日以上は非表示
   for (const p of PIN_COLORS) { if (days <= p.maxDays) return p.color; }
   return PIN_COLORS[PIN_COLORS.length - 1].color;
 }
@@ -304,12 +344,19 @@ async function loadPatrolData() {
   }
 }
 
+// 統計データ（全履歴）
+let allPatrolRecords = [];
+
 function renderPatrolMarkers(records) {
   patrolMarkers.forEach(function(m) { m.setMap(null); });
   patrolMarkers = [];
+  allPatrolRecords = records; // 統計用に全件保持
 
+  let visibleCount = 0;
   records.forEach(function(rec) {
     const pinColor = getPinColor(rec.date);
+    if (!pinColor) return; // ★ 4日以降は非表示でスキップ
+    visibleCount++;
     const marker = new google.maps.Marker({
       position: { lat: rec.lat, lng: rec.lng },
       map:      layerState.patrol ? map : null,
@@ -324,24 +371,52 @@ function renderPatrolMarkers(records) {
       },
       animation: records.indexOf(rec) < 5 ? google.maps.Animation.DROP : null
     });
-
     marker.addListener('click', function() {
-      showPopup({
-        type:     'patrol',
-        title:    rec.title,
-        address:  rec.address,
-        date:     rec.date,
-        url:      rec.url,
-        lat:      rec.lat,
-        lng:      rec.lng,
-        pinColor: pinColor
-      });
+      showPopup({ type:'patrol', title:rec.title, address:rec.address,
+        date:rec.date, url:rec.url, lat:rec.lat, lng:rec.lng, pinColor:pinColor });
     });
     patrolMarkers.push(marker);
   });
 
-  document.getElementById('badge-patrol').textContent = records.length + '件';
+  document.getElementById('badge-patrol').textContent = visibleCount + '件';
   updateActiveCount();
+}
+
+// ★ 統計モード：全期間の全ピンを表示
+let statsMarkers = [], statsMode = false;
+function toggleStatsMode() {
+  statsMode = !statsMode;
+  const btn = document.getElementById('stats-btn');
+  if (statsMode) {
+    // 通常ピンを非表示
+    patrolMarkers.forEach(function(m) { m.setMap(null); });
+    // 全件を薄い色で表示
+    statsMarkers.forEach(function(m) { m.setMap(null); });
+    statsMarkers = [];
+    allPatrolRecords.forEach(function(rec) {
+      const days = rec.date ? Math.floor((new Date() - new Date(rec.date)) / (1000*60*60*24)) : 999;
+      const color = days < 4 ? '#e53e3e' : '#cccccc'; // 最近は赤、古いは灰色
+      const m = new google.maps.Marker({
+        position: { lat: rec.lat, lng: rec.lng },
+        map: map,
+        icon: { path: google.maps.SymbolPath.CIRCLE, fillColor: color, fillOpacity: days < 4 ? 1 : 0.45,
+                strokeColor: '#ffffff', strokeWeight: 1.5, scale: days < 4 ? 9 : 7 }
+      });
+      m.addListener('click', function() {
+        showPopup({ type:'patrol', title:rec.title, address:rec.address,
+          date:rec.date, url:rec.url, lat:rec.lat, lng:rec.lng, pinColor:color });
+      });
+      statsMarkers.push(m);
+    });
+    btn.textContent = '📊 通常表示に戻す';
+    btn.style.background = '#8E44AD';
+  } else {
+    statsMarkers.forEach(function(m) { m.setMap(null); });
+    statsMarkers = [];
+    patrolMarkers.forEach(function(m) { m.setMap(layerState.patrol ? map : null); });
+    btn.textContent = '📊 全期間の記録を見る';
+    btn.style.background = '';
+  }
 }
 
 function toggleLayer(type) {
@@ -369,7 +444,16 @@ function toggleLayer(type) {
 function updateActiveCount() {
   document.getElementById('active-count').textContent = Object.values(layerState).filter(Boolean).length;
 }
-function toggleLayerCard() { document.getElementById('layer-card').classList.toggle('collapsed'); }
+function toggleLayerCard() {
+  const card = document.getElementById('layer-card');
+  card.classList.toggle('collapsed');
+  const arrow = document.getElementById('panel-arrow');
+  if (card.classList.contains('collapsed')) {
+    arrow.textContent = '▼ 開く';
+  } else {
+    arrow.textContent = '▲ 閉じる';
+  }
+}
 
 function showPopup(data) {
   document.getElementById('popup-badge').textContent        = '🚨 防犯記録';

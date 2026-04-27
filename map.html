@@ -75,6 +75,7 @@
     .layer-header-count {
       font-size: 0.65rem; color: var(--white); background: var(--primary);
       border-radius: 20px; padding: 2px 8px; margin-right: 8px; font-weight: 700;
+      min-width: 28px; text-align: center;
     }
     .layer-toggle-arrow { font-size: 0.8rem; color: var(--muted); transition: transform 0.3s; }
     .layer-card:not(.collapsed) .layer-toggle-arrow { transform: rotate(180deg); }
@@ -133,6 +134,12 @@
     #loading-overlay.hidden { opacity: 0; pointer-events: none; }
     .loading-spinner { width: 48px; height: 48px; border: 4px solid var(--beige-d); border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes fadeInOut {
+      0%   { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+      15%  { opacity: 1; transform: translateX(-50%) translateY(0); }
+      75%  { opacity: 1; }
+      100% { opacity: 0; pointer-events: none; }
+    }
     .loading-text { font-size: 0.85rem; color: var(--muted); }
     #popup-backdrop { position: fixed; inset: 0; z-index: 299; background: rgba(0,0,0,0.3); display: none; }
     /* ── 常時表示凡例（右上固定） ── */
@@ -185,6 +192,25 @@
 
 <div id="map"></div>
 
+<!-- レイヤー案内バナー（3秒後に自動非表示） -->
+
+<div id="layer-hint" style="
+  position:fixed; top:58px; left:50%; transform:translateX(-50%);
+  z-index:190; background:#1a2a40; color:white;
+  padding:10px 18px; border-radius:25px;
+  font-size:0.75rem; font-weight:700;
+  box-shadow:0 4px 15px rgba(0,0,0,0.25);
+  display:flex; align-items:center; gap:8px;
+  white-space:nowrap;
+  animation: fadeInOut 5s ease forwards;
+">
+  <span style="font-size:1rem;">👇</span>
+  下のパネルで表示する情報を切り替えられます
+  <button onclick="document.getElementById('layer-hint').style.display='none'"
+    style="background:rgba(255,255,255,0.2);border:none;color:white;border-radius:50%;
+    width:20px;height:20px;cursor:pointer;font-size:0.7rem;padding:0;flex-shrink:0;">✕</button>
+</div>
+
 <!-- 常時表示ピン色凡例（右上固定） -->
 
 <div class="pin-legend-fixed">
@@ -199,7 +225,7 @@
   <div class="layer-card collapsed" id="layer-card">
     <div class="layer-header" onclick="toggleLayerCard()">
       <span class="layer-header-icon">🔍</span>
-      <span class="layer-header-title">📋 地図の表示を選ぶ</span>
+      <span class="layer-header-title">🗂️ 地図の表示を切り替える</span>
       <span class="layer-header-count" id="active-count">0</span>
       <span class="layer-toggle-arrow" id="panel-arrow">▼ 開く</span>
     </div>
@@ -341,6 +367,11 @@ async function loadPatrolData() {
     setTimeout(function() {
       document.getElementById('loading-overlay').style.display = 'none';
     }, 600);
+    // レイヤー案内バナーを5秒後に自動非表示
+    setTimeout(function() {
+      const hint = document.getElementById('layer-hint');
+      if (hint) hint.style.display = 'none';
+    }, 5000);
   }
 }
 

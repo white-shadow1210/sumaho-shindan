@@ -255,6 +255,33 @@
       </div>
 
 ```
+  <!-- ★ 地域発見レイヤー -->
+  <div style="font-size:0.65rem;color:#999;font-weight:700;letter-spacing:0.05em;padding:6px 2px 2px;">📍 地域発見マップ</div>
+  <div class="layer-row" id="row-chiiki-discovery" onclick="toggleChiikiLayer('発見・景色','#27AE60','row-chiiki-discovery')">
+    <div class="layer-row-dot" style="background:#27AE60"></div>
+    <div class="layer-row-label">🌸 発見・景色</div>
+    <div class="layer-row-badge" id="badge-chiiki-discovery" style="background:#27AE60">0件</div>
+    <div class="toggle-pill"></div>
+  </div>
+  <div class="layer-row" id="row-chiiki-gourmet" onclick="toggleChiikiLayer('グルメ','#e8850a','row-chiiki-gourmet')">
+    <div class="layer-row-dot" style="background:#e8850a"></div>
+    <div class="layer-row-label">🍜 グルメ・お店</div>
+    <div class="layer-row-badge" id="badge-chiiki-gourmet" style="background:#e8850a">0件</div>
+    <div class="toggle-pill"></div>
+  </div>
+  <div class="layer-row" id="row-chiiki-trouble" onclick="toggleChiikiLayer('困りごと','#E74C3C','row-chiiki-trouble')">
+    <div class="layer-row-dot" style="background:#E74C3C"></div>
+    <div class="layer-row-label">⚠️ 困りごと報告</div>
+    <div class="layer-row-badge" id="badge-chiiki-trouble" style="background:#E74C3C">0件</div>
+    <div class="toggle-pill"></div>
+  </div>
+  <div class="layer-row" id="row-chiiki-event" onclick="toggleChiikiLayer('イベント','#9B59B6','row-chiiki-event')">
+    <div class="layer-row-dot" style="background:#9B59B6"></div>
+    <div class="layer-row-label">🎉 イベント情報</div>
+    <div class="layer-row-badge" id="badge-chiiki-event" style="background:#9B59B6">0件</div>
+    <div class="toggle-pill"></div>
+  </div>
+
   <div class="action-row">
     <button class="action-btn action-btn-primary" onclick="reloadPatrol()">🔄 最新に更新</button>
     <button class="action-btn action-btn-secondary" onclick="resetView()">📍 初期位置に戻る</button>
@@ -286,7 +313,7 @@ const CONFIG = {
   MAPS_API_KEY:    'AIzaSyDeC5HxWHonkgh7p-fUe8k6OzKns8Rienk',
   // ★ map専用GASのデプロイURLが取れたらここを差し替える。
   //   それまでは既存v5 URLのまま動作する。
-  GAS_URL:         'https://script.google.com/macros/s/AKfycbwM5xhq0TfsY5ZhvMVmdKfFDuVU5rMYfYLqqd7j5sj6kiHneGbqUx0C4bolZK3S93o/exec',
+  GAS_URL:         'https://script.google.com/macros/s/AKfycbxZf0h0EmWayCN_nZ4XMEk4XXrJzFKEGKZqon25tdokndZnloaIHWKWrIUt41tyGQQ/exec',
   DEFAULT_CENTER:  { lat: 34.768, lng: 138.261 },
   DEFAULT_ZOOM:    13,
   HAZARD_IMAGE_URL:'YOUR_HAZARD_MAP_IMAGE_URL',
@@ -323,6 +350,17 @@ function getDayLabel(dateStr) {
 }
 
 let map = null, patrolMarkers = [], hazardOverlay = null;
+// 地域発見マーカー管理
+let chiikiRecords = [];
+const chiikiMarkers = {}; // カテゴリ別 { '発見・景色': [...], 'グルメ': [...], ... }
+const chiikiLayerState = {}; // カテゴリ別ON/OFF状態
+const CHIIKI_CATEGORIES = [
+  { key: '発見・景色', color: '#27AE60', icon: '🌸', rowId: 'row-chiiki-discovery', badgeId: 'badge-chiiki-discovery' },
+  { key: 'グルメ',     color: '#e8850a', icon: '🍜', rowId: 'row-chiiki-gourmet',   badgeId: 'badge-chiiki-gourmet' },
+  { key: '困りごと',   color: '#E74C3C', icon: '⚠️', rowId: 'row-chiiki-trouble',   badgeId: 'badge-chiiki-trouble' },
+  { key: 'イベント',   color: '#9B59B6', icon: '🎉', rowId: 'row-chiiki-event',     badgeId: 'badge-chiiki-event' }
+];
+CHIIKI_CATEGORIES.forEach(function(c){ chiikiLayerState[c.key] = false; });
 const layerState = { patrol: true, hazard: false, aed: false, school: false };
 
 function initMap() {
@@ -347,6 +385,8 @@ function initMap() {
   }
 
   loadPatrolData();
+  // 地域発見データも読み込み
+  setTimeout(loadChiikiData, 1000);
 }
 
 async function loadPatrolData() {
@@ -411,6 +451,80 @@ function renderPatrolMarkers(records) {
 
   document.getElementById('badge-patrol').textContent = visibleCount + '件';
   updateActiveCount();
+}
+
+// ==========================================
+// ★ 地域発見投稿マーカー
+// ==========================================
+async function loadChiikiData() {
+  try {
+    const res = await fetch(CONFIG.GAS_URL + '?action=getChiikiData');
+    const json = await res.json();
+    if (json.status !== 'success') return;
+    chiikiRecords = json.records || [];
+    renderChiikiMarkers();
+  } catch(err) {
+    console.warn("地域発見データ取得エラー:", err);
+  }
+}
+
+function renderChiikiMarkers() {
+  // 既存マーカーをクリア
+  CHIIKI_CATEGORIES.forEach(function(cat) {
+    if (chiikiMarkers[cat.key]) {
+      chiikiMarkers[cat.key].forEach(function(m){ m.setMap(null); });
+    }
+    chiikiMarkers[cat.key] = [];
+  });
+
+  chiikiRecords.forEach(function(rec) {
+    const catInfo = CHIIKI_CATEGORIES.find(function(c){ return rec.category === c.key; });
+    if (!catInfo) return;
+    const marker = new google.maps.Marker({
+      position: { lat: rec.lat, lng: rec.lng },
+      map: chiikiLayerState[catInfo.key] ? map : null,
+      title: rec.title,
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        fillColor:    catInfo.color,
+        fillOpacity:  1,
+        strokeColor:  '#ffffff',
+        strokeWeight: 2.5,
+        scale:        12  // ★ 防犯ピン(9)より大きく目立たせる
+      }
+    });
+    marker.addListener('click', function() {
+      showPopup({
+        type:     'chiiki',
+        title:    catInfo.icon + ' ' + (rec.title || rec.category),
+        address:  rec.address,
+        date:     rec.date,
+        url:      'https://www.google.com/maps?q=' + rec.lat + ',' + rec.lng,
+        lat:      rec.lat,
+        lng:      rec.lng,
+        pinColor: catInfo.color
+      });
+    });
+    chiikiMarkers[catInfo.key].push(marker);
+  });
+
+  // バッジ件数更新
+  CHIIKI_CATEGORIES.forEach(function(cat) {
+    const count = (chiikiMarkers[cat.key] || []).length;
+    const badge = document.getElementById(cat.badgeId);
+    if (badge) badge.textContent = count + '件';
+  });
+}
+
+function toggleChiikiLayer(categoryKey, color, rowId) {
+  chiikiLayerState[categoryKey] = !chiikiLayerState[categoryKey];
+  const row = document.getElementById(rowId);
+  if (row) row.classList.toggle('active', chiikiLayerState[categoryKey]);
+  if (chiikiMarkers[categoryKey]) {
+    chiikiMarkers[categoryKey].forEach(function(m){
+      m.setMap(chiikiLayerState[categoryKey] ? map : null);
+    });
+  }
 }
 
 // ★ 統計モード：全期間の全ピンを表示

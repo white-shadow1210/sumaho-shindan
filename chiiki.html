@@ -248,12 +248,38 @@ transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
 padding-bottom: env(safe-area-inset-bottom, 16px);
 }
 .detail-overlay.open .detail-sheet { transform: translateY(0); }
+
+/* ── 詳細ヘッダー（戻るボタン付き）── */
+.detail-header {
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding: 14px 16px 0;
+}
+.detail-back-btn {
+display: flex;
+align-items: center;
+gap: 5px;
+background: var(–beige-d);
+border: none;
+border-radius: 20px;
+padding: 7px 14px 7px 10px;
+font-family: inherit;
+font-size: 0.78rem;
+font-weight: 700;
+color: var(–text);
+cursor: pointer;
+transition: 0.18s;
+}
+.detail-back-btn:active { transform: scale(0.95); background: var(–border); }
+.detail-back-btn svg { width: 16px; height: 16px; }
 .detail-handle {
 width: 36px; height: 4px;
 background: var(–beige-d);
 border-radius: 2px;
-margin: 12px auto 0;
+margin: 0 auto;
 }
+
 .detail-img {
 width: 100%;
 max-height: 52vw;
@@ -323,6 +349,8 @@ color: var(–text);
 }
 .like-btn.liked { background: #fde8e8; color: #e74c3c; }
 .like-btn:active { transform: scale(0.95); }
+
+/* 「地図で見る」ボタン：button要素に変更（内部マップに遷移） */
 .map-link-btn {
 flex: 1;
 display: flex;
@@ -336,7 +364,8 @@ color: white;
 font-family: inherit;
 font-size: 0.85rem;
 font-weight: 700;
-text-decoration: none;
+border: none;
+cursor: pointer;
 transition: 0.2s;
 }
 .map-link-btn:active { background: var(–primary-d); transform: scale(0.95); }
@@ -360,6 +389,8 @@ text-align: center;
 }
 .post-cta h3 { font-size: 0.9rem; font-weight: 700; margin-bottom: 4px; }
 .post-cta p  { font-size: 0.72rem; opacity: 0.85; margin-bottom: 12px; }
+
+/* LINEで投稿するボタン：buttonに変更 */
 .post-cta-btn {
 display: inline-block;
 background: white;
@@ -370,6 +401,8 @@ padding: 9px 22px;
 border-radius: 20px;
 text-decoration: none;
 font-family: inherit;
+border: none;
+cursor: pointer;
 }
 
 /* ── スライドイン アニメーション ── */
@@ -379,6 +412,88 @@ animation: cellIn 0.4s ease both;
 @keyframes cellIn {
 from { opacity: 0; transform: scale(0.92); }
 to   { opacity: 1; transform: scale(1); }
+}
+
+/* ── 投稿モーダル ── */
+.post-modal-overlay {
+position: fixed; inset: 0; z-index: 600;
+background: rgba(0,0,0,0.6);
+display: flex; align-items: flex-end;
+opacity: 0; pointer-events: none;
+transition: opacity 0.3s;
+}
+.post-modal-overlay.open { opacity: 1; pointer-events: all; }
+.post-modal-sheet {
+background: var(–white);
+border-radius: 20px 20px 0 0;
+width: 100%;
+padding: 20px 20px calc(env(safe-area-inset-bottom, 16px) + 16px);
+transform: translateY(100%);
+transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
+}
+.post-modal-overlay.open .post-modal-sheet { transform: translateY(0); }
+.post-modal-handle {
+width: 36px; height: 4px;
+background: var(–beige-d);
+border-radius: 2px;
+margin: 0 auto 16px;
+}
+.post-modal-title {
+font-size: 1rem;
+font-weight: 700;
+text-align: center;
+margin-bottom: 6px;
+}
+.post-modal-sub {
+font-size: 0.72rem;
+color: var(–muted);
+text-align: center;
+margin-bottom: 20px;
+line-height: 1.5;
+}
+.post-modal-actions {
+display: flex;
+flex-direction: column;
+gap: 10px;
+}
+.post-action-btn {
+display: flex;
+align-items: center;
+gap: 12px;
+padding: 14px 16px;
+border-radius: 14px;
+border: 1.5px solid var(–border);
+background: var(–beige);
+font-family: inherit;
+font-size: 0.88rem;
+font-weight: 700;
+color: var(–text);
+cursor: pointer;
+transition: 0.18s;
+text-decoration: none;
+}
+.post-action-btn:active { transform: scale(0.97); background: var(–beige-d); }
+.post-action-icon {
+width: 40px; height: 40px;
+border-radius: 12px;
+display: flex; align-items: center; justify-content: center;
+font-size: 1.4rem;
+flex-shrink: 0;
+}
+.post-action-text { display: flex; flex-direction: column; gap: 2px; }
+.post-action-label { font-size: 0.88rem; font-weight: 700; }
+.post-action-desc  { font-size: 0.68rem; color: var(–muted); font-weight: 400; }
+.post-modal-cancel {
+margin-top: 6px;
+width: 100%;
+padding: 12px;
+border-radius: 12px;
+border: none;
+background: transparent;
+font-family: inherit;
+font-size: 0.82rem;
+color: var(–muted);
+cursor: pointer;
 }
 </style>
 
@@ -417,7 +532,7 @@ to   { opacity: 1; transform: scale(1); }
 <!-- カテゴリフィルター -->
 
 <div class="cat-filter" id="cat-filter">
-  <div class="cat-pill active" data-cat="all"     onclick="filterCat('all')">🗺️ すべて</div>
+  <div class="cat-pill active" data-cat="all"      onclick="filterCat('all')">🗺️ すべて</div>
   <div class="cat-pill"        data-cat="発見・景色" onclick="filterCat('発見・景色')">🌸 発見・景色</div>
   <div class="cat-pill"        data-cat="グルメ"     onclick="filterCat('グルメ')">🍜 グルメ</div>
   <div class="cat-pill"        data-cat="困りごと"   onclick="filterCat('困りごと')">⚠️ 困りごと</div>
@@ -427,9 +542,7 @@ to   { opacity: 1; transform: scale(1); }
 <!-- メインコンテンツ -->
 
 <div class="main-content">
-
   <!-- フィードビュー -->
-
   <div id="feed-view">
     <div id="feed-grid-wrap">
       <div class="feed-loading">
@@ -444,14 +557,23 @@ to   { opacity: 1; transform: scale(1); }
   <div id="map-view">
     <div id="chiiki-map"></div>
   </div>
-
 </div>
 
 <!-- 詳細ポップアップ -->
 
-<div class="detail-overlay" id="detail-overlay" onclick="closeDetail(event)">
+<div class="detail-overlay" id="detail-overlay" onclick="closeDetailOnBg(event)">
   <div class="detail-sheet" id="detail-sheet">
-    <div class="detail-handle"></div>
+    <!-- 戻るボタン付きヘッダー -->
+    <div class="detail-header">
+      <button class="detail-back-btn" onclick="closeDetail()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M19 12H5M12 5l-7 7 7 7"/>
+        </svg>
+        一覧に戻る
+      </button>
+      <div class="detail-handle"></div>
+      <div style="width:80px"></div><!-- バランス用スペーサー -->
+    </div>
     <div id="detail-img-wrap"></div>
     <div class="detail-body">
       <div id="detail-cat-badge" class="detail-cat-badge"></div>
@@ -462,11 +584,49 @@ to   { opacity: 1; transform: scale(1); }
         <button class="like-btn" id="like-btn" onclick="toggleLike()">
           ❤️ <span id="like-count">0</span> いいね
         </button>
-        <a class="map-link-btn" id="detail-map-link" href="#" target="_blank">
+        <!-- 「地図で見る」: 内部マップタブへ遷移 -->
+        <button class="map-link-btn" id="detail-map-btn" onclick="openInternalMap()">
           📍 地図で見る
-        </a>
+        </button>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- 投稿モーダル（LINEで投稿する） -->
+
+<div class="post-modal-overlay" id="post-modal" onclick="closePostModalOnBg(event)">
+  <div class="post-modal-sheet">
+    <div class="post-modal-handle"></div>
+    <div class="post-modal-title">📸 地域発見を投稿する</div>
+    <div class="post-modal-sub">LINEから写真・位置情報を送って<br>まちなか発見マップに掲載しましょう！</div>
+    <div class="post-modal-actions">
+      <!-- 写真を撮って送る -->
+      <a class="post-action-btn" href="https://line.me/R/nv/camera" onclick="closePostModal()">
+        <div class="post-action-icon" style="background:#e8f8f0;">📷</div>
+        <div class="post-action-text">
+          <span class="post-action-label">写真を撮って投稿</span>
+          <span class="post-action-desc">カメラを起動してそのまま送信できます</span>
+        </div>
+      </a>
+      <!-- 位置情報を送る -->
+      <a class="post-action-btn" href="https://line.me/R/nv/location" onclick="closePostModal()">
+        <div class="post-action-icon" style="background:#e8f4ff;">📍</div>
+        <div class="post-action-text">
+          <span class="post-action-label">位置情報を投稿</span>
+          <span class="post-action-desc">現在地またはマップで場所を選んで送信</span>
+        </div>
+      </a>
+      <!-- トーク画面を開く（テキストで投稿） -->
+      <a class="post-action-btn" href="https://line.me/R/oaMessage/@281jfkpu/?地域発見：" onclick="closePostModal()">
+        <div class="post-action-icon" style="background:#fff3e0;">💬</div>
+        <div class="post-action-text">
+          <span class="post-action-label">トークで投稿内容を送る</span>
+          <span class="post-action-desc">カテゴリを選んでテキストで詳細を送信</span>
+        </div>
+      </a>
+    </div>
+    <button class="post-modal-cancel" onclick="closePostModal()">キャンセル</button>
   </div>
 </div>
 
@@ -487,15 +647,17 @@ const CAT_CONFIG = {
 // ==========================================
 // 状態管理
 // ==========================================
-let allRecords    = [];
+let allRecords      = [];
 let filteredRecords = [];
-let currentCat    = 'all';
-let currentView   = 'feed';
-let currentRecord = null;
-let likedIds      = JSON.parse(localStorage.getItem('chiiki_likes') || '{}');
-let chiikiMap     = null;
-let mapMarkers    = [];
-let mapInitialized = false;
+let currentCat      = 'all';
+let currentView     = 'feed';
+let currentRecord   = null;
+let likedIds        = JSON.parse(localStorage.getItem('chiiki_likes') || '{}');
+let chiikiMap       = null;
+let mapMarkers      = [];
+let mapInitialized  = false;
+let focusedLat      = null; // 詳細→マップ遷移時のフォーカス位置
+let focusedLng      = null;
 
 // ==========================================
 // データ取得
@@ -505,7 +667,7 @@ async function loadData() {
     const res  = await fetch(GAS_URL + '?action=getChiikiData');
     const json = await res.json();
     if (json.status !== 'success') throw new Error(json.message);
-    allRecords = (json.records || []).reverse(); // 新しい順
+    allRecords = (json.records || []).reverse();
     document.getElementById('total-count').textContent = allRecords.length;
     filterCat(currentCat);
   } catch(e) {
@@ -526,11 +688,7 @@ function filterCat(cat) {
   currentCat = cat;
   document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
   document.querySelector(`.cat-pill[data-cat="${cat}"]`).classList.add('active');
-
-  filteredRecords = cat === 'all'
-    ? allRecords
-    : allRecords.filter(r => r.category === cat);
-
+  filteredRecords = cat === 'all' ? allRecords : allRecords.filter(r => r.category === cat);
   renderFeed();
   if (currentView === 'map' && mapInitialized) renderMapMarkers();
 }
@@ -551,7 +709,7 @@ function renderFeed() {
       <div class="post-cta">
         <h3>📸 あなたも投稿しよう！</h3>
         <p>吉田町の素敵な場所・美味しいお店・地域の情報をシェアしてください</p>
-        <a href="https://line.me/R/ti/p/@281jfkpu" class="post-cta-btn">LINEで投稿する →</a>
+        <button class="post-cta-btn" onclick="openPostModal()">LINEで投稿する →</button>
       </div>`;
     return;
   }
@@ -559,12 +717,12 @@ function renderFeed() {
   const cells = filteredRecords.map((rec, i) => {
     const cat   = CAT_CONFIG[rec.category] || { color: '#249496', icon: '📍' };
     const likes = rec.likes || 0;
-    const rid   = rec.date + '_' + i;
     const delay = Math.min(i * 0.04, 0.5);
 
     let inner = '';
     if (rec.imageUrl) {
-      inner = `<img src="${rec.imageUrl}" alt="${rec.title}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      inner = `<img src="${rec.imageUrl}" alt="${rec.title}" loading="lazy"
+                    onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
                <div class="cat-bg" style="background:${cat.color};display:none;">
                  <div class="cat-icon">${cat.icon}</div>
                  <div class="cat-text">${rec.title || rec.category}</div>
@@ -576,8 +734,7 @@ function renderFeed() {
                </div>`;
     }
 
-    return `<div class="feed-cell" style="animation-delay:${delay}s"
-              onclick="openDetail(${i})">
+    return `<div class="feed-cell" style="animation-delay:${delay}s" onclick="openDetail(${i})">
               ${inner}
               ${likes > 0 ? `<div class="like-badge">❤️ ${likes}</div>` : ''}
             </div>`;
@@ -587,7 +744,7 @@ function renderFeed() {
     <div class="post-cta">
       <h3>📸 あなたも投稿しよう！</h3>
       <p>吉田町の素敵な場所・美味しいお店・地域の情報をシェアしてください</p>
-      <a href="https://line.me/R/ti/p/@281jfkpu" class="post-cta-btn">LINEで投稿する →</a>
+      <button class="post-cta-btn" onclick="openPostModal()">LINEで投稿する →</button>
     </div>`;
 }
 
@@ -602,7 +759,6 @@ function openDetail(index) {
   const cat   = CAT_CONFIG[rec.category] || { color: '#249496', icon: '📍' };
   const liked = !!likedIds[rec.date + rec.lat];
 
-  // 画像
   const imgWrap = document.getElementById('detail-img-wrap');
   if (rec.imageUrl) {
     imgWrap.innerHTML = `<img class="detail-img" src="${rec.imageUrl}" alt="${rec.title}"
@@ -614,21 +770,32 @@ function openDetail(index) {
 
   document.getElementById('detail-cat-badge').textContent = cat.icon + ' ' + rec.category;
   document.getElementById('detail-cat-badge').style.background = cat.color;
-  document.getElementById('detail-title').textContent   = rec.title || rec.category;
-  document.getElementById('detail-address').innerHTML   = `<span>📍</span>${rec.address || '住所不明'}`;
-  document.getElementById('detail-date').textContent    = '📅 ' + (rec.date ? rec.date.substring(0,10) : '---');
-  document.getElementById('like-count').textContent     = rec.likes || 0;
-  document.getElementById('like-btn').className        = 'like-btn' + (liked ? ' liked' : '');
-  document.getElementById('detail-map-link').href      =
-    rec.url || ('https://www.google.com/maps?q=' + rec.lat + ',' + rec.lng);
+  document.getElementById('detail-title').textContent  = rec.title || rec.category;
+  document.getElementById('detail-address').innerHTML  = `<span>📍</span>${rec.address || '住所不明'}`;
+  document.getElementById('detail-date').textContent   = '📅 ' + (rec.date ? rec.date.substring(0,10) : '---');
+  document.getElementById('like-count').textContent    = rec.likes || 0;
+  document.getElementById('like-btn').className       = 'like-btn' + (liked ? ' liked' : '');
 
   document.getElementById('detail-overlay').classList.add('open');
 }
 
-function closeDetail(e) {
-  if (e.target === document.getElementById('detail-overlay')) {
-    document.getElementById('detail-overlay').classList.remove('open');
-  }
+function closeDetail() {
+  document.getElementById('detail-overlay').classList.remove('open');
+}
+
+function closeDetailOnBg(e) {
+  if (e.target === document.getElementById('detail-overlay')) closeDetail();
+}
+
+// ==========================================
+// 「地図で見る」→ 内部マップタブへ遷移
+// ==========================================
+function openInternalMap() {
+  if (!currentRecord) return;
+  focusedLat = currentRecord.lat;
+  focusedLng = currentRecord.lng;
+  closeDetail();
+  switchView('map');
 }
 
 // ==========================================
@@ -642,12 +809,10 @@ async function toggleLike() {
   const cnt   = document.getElementById('like-count');
 
   if (liked) {
-    // いいね解除
     delete likedIds[key];
     currentRecord.likes = Math.max(0, (currentRecord.likes || 1) - 1);
     btn.className = 'like-btn';
   } else {
-    // いいね追加
     likedIds[key] = true;
     currentRecord.likes = (currentRecord.likes || 0) + 1;
     btn.className = 'like-btn liked';
@@ -658,13 +823,12 @@ async function toggleLike() {
   cnt.textContent = currentRecord.likes;
   localStorage.setItem('chiiki_likes', JSON.stringify(likedIds));
 
-  // GASにいいね数を送信
   try {
     await fetch(GAS_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        formType:  'chiiki_like',
+        formType:   'chiiki_like',
         recordDate: currentRecord.date,
         lat:        currentRecord.lat,
         liked:      !liked
@@ -672,7 +836,6 @@ async function toggleLike() {
     });
   } catch(e) { console.warn('いいね送信エラー:', e); }
 
-  // フィードのバッジも更新
   renderFeed();
 }
 
@@ -690,6 +853,13 @@ function switchView(view) {
     initChiikiMap();
   } else if (view === 'map') {
     renderMapMarkers();
+    // 詳細→マップ遷移時はそのピンにフォーカス
+    if (focusedLat && focusedLng && chiikiMap) {
+      chiikiMap.setCenter({ lat: focusedLat, lng: focusedLng });
+      chiikiMap.setZoom(16);
+      focusedLat = null;
+      focusedLng = null;
+    }
   }
 }
 
@@ -698,14 +868,14 @@ function switchView(view) {
 // ==========================================
 function initChiikiMap() {
   chiikiMap = new google.maps.Map(document.getElementById('chiiki-map'), {
-    center:          { lat: 34.768, lng: 138.261 },
-    zoom:            13,
-    mapTypeId:       'roadmap',
-    zoomControl:     true,
-    mapTypeControl:  false,
+    center:            { lat: 34.768, lng: 138.261 },
+    zoom:              13,
+    mapTypeId:         'roadmap',
+    zoomControl:       true,
+    mapTypeControl:    false,
     streetViewControl: false,
     fullscreenControl: false,
-    gestureHandling: 'greedy',
+    gestureHandling:   'greedy',
     styles: [
       { featureType: 'poi',     stylers: [{ visibility: 'simplified' }] },
       { featureType: 'transit', stylers: [{ visibility: 'off' }] },
@@ -714,6 +884,14 @@ function initChiikiMap() {
   });
   mapInitialized = true;
   renderMapMarkers();
+
+  // 詳細→マップ遷移時はそのピンにフォーカス
+  if (focusedLat && focusedLng) {
+    chiikiMap.setCenter({ lat: focusedLat, lng: focusedLng });
+    chiikiMap.setZoom(16);
+    focusedLat = null;
+    focusedLng = null;
+  }
 }
 
 function renderMapMarkers() {
@@ -724,9 +902,9 @@ function renderMapMarkers() {
     if (!rec.lat || !rec.lng) return;
     const cat = CAT_CONFIG[rec.category] || { color: '#249496', icon: '📍' };
     const marker = new google.maps.Marker({
-      position: { lat: rec.lat, lng: rec.lng },
-      map:      chiikiMap,
-      title:    rec.title,
+      position:  { lat: rec.lat, lng: rec.lng },
+      map:       chiikiMap,
+      title:     rec.title,
       icon: {
         path:        google.maps.SymbolPath.CIRCLE,
         fillColor:    cat.color,
@@ -745,8 +923,19 @@ function renderMapMarkers() {
 // ==========================================
 // Google Maps 読み込み
 // ==========================================
-function onMapsReady() {
-  // マップは必要になったときに初期化
+function onMapsReady() {}
+
+// ==========================================
+// 投稿モーダル
+// ==========================================
+function openPostModal() {
+  document.getElementById('post-modal').classList.add('open');
+}
+function closePostModal() {
+  document.getElementById('post-modal').classList.remove('open');
+}
+function closePostModalOnBg(e) {
+  if (e.target === document.getElementById('post-modal')) closePostModal();
 }
 
 // ==========================================

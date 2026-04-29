@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>地域発見 | 吉田町まちなかLINE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary:   #249496;
+  --primary-d: #1b7a7c;
+  --navy:      #0f1f2e;
+  --beige:     #FCFAF5;
+  --beige-d:   #f0ece0;
+  --white:     #ffffff;
+  --text:      #1a1a1a;
+  --muted:     #8a8a8a;
+  --border:    rgba(0,0,0,0.08);
+  --shadow:    0 2px 20px rgba(0,0,0,0.10);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,0.18);
+  --r:         16px;
+  --cat-discovery: #27AE60;
+  --cat-gourmet:   #e8850a;
+  --cat-trouble:   #E74C3C;
+  --cat-event:     #9B59B6;
+}
+
+- { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+font-family: ‘Noto Sans JP’, sans-serif;
+background: var(–beige);
+color: var(–text);
+height: 100dvh;
+display: flex;
+flex-direction: column;
+overflow: hidden;
+}
+
+/* ── ヘッダー ── */
+.app-header {
+background: var(–white);
+border-bottom: 1px solid var(–border);
+padding: 0 16px;
+height: 56px;
+display: flex;
+align-items: center;
+justify-content: space-between;
+flex-shrink: 0;
+position: relative;
+z-index: 100;
+}
+.app-logo {
+font-family: ‘DM Sans’, sans-serif;
+font-weight: 700;
+font-size: 1.05rem;
+color: var(–primary);
+letter-spacing: -0.03em;
+}
+.app-logo span { color: var(–navy); }
+.header-subtitle {
+font-size: 0.58rem;
+color: var(–muted);
+position: absolute;
+left: 50%;
+transform: translateX(-50%);
+white-space: nowrap;
+}
+
+/* ── タブナビ ── */
+.view-tabs {
+display: flex;
+background: var(–white);
+border-bottom: 1px solid var(–border);
+flex-shrink: 0;
+}
+.view-tab {
+flex: 1;
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 5px;
+padding: 10px 0;
+font-size: 0.78rem;
+font-weight: 700;
+color: var(–muted);
+cursor: pointer;
+border-bottom: 2.5px solid transparent;
+transition: 0.2s;
+user-select: none;
+}
+.view-tab.active {
+color: var(–primary);
+border-bottom-color: var(–primary);
+}
+.view-tab svg { width: 16px; height: 16px; }
+
+/* ── カテゴリフィルター ── */
+.cat-filter {
+display: flex;
+gap: 7px;
+padding: 10px 14px;
+overflow-x: auto;
+background: var(–white);
+border-bottom: 1px solid var(–border);
+flex-shrink: 0;
+scrollbar-width: none;
+}
+.cat-filter::-webkit-scrollbar { display: none; }
+.cat-pill {
+flex-shrink: 0;
+display: flex;
+align-items: center;
+gap: 4px;
+padding: 5px 12px;
+border-radius: 20px;
+font-size: 0.72rem;
+font-weight: 700;
+cursor: pointer;
+border: 1.5px solid var(–border);
+background: var(–beige);
+color: var(–muted);
+transition: 0.18s;
+white-space: nowrap;
+}
+.cat-pill.active { color: white; border-color: transparent; }
+.cat-pill[data-cat=“all”].active         { background: var(–navy); }
+.cat-pill[data-cat=“発見・景色”].active  { background: var(–cat-discovery); }
+.cat-pill[data-cat=“グルメ”].active      { background: var(–cat-gourmet); }
+.cat-pill[data-cat=“困りごと”].active    { background: var(–cat-trouble); }
+.cat-pill[data-cat=“イベント”].active    { background: var(–cat-event); }
+
+/* ── メインコンテンツ ── */
+.main-content {
+flex: 1;
+overflow: hidden;
+position: relative;
+}
+
+/* ── フィードビュー ── */
+#feed-view {
+height: 100%;
+overflow-y: auto;
+-webkit-overflow-scrolling: touch;
+}
+.feed-grid {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 2px;
+padding: 2px;
+}
+
+/* グリッドセル */
+.feed-cell {
+aspect-ratio: 1;
+position: relative;
+overflow: hidden;
+cursor: pointer;
+background: var(–beige-d);
+}
+.feed-cell img {
+width: 100%; height: 100%;
+object-fit: cover;
+transition: transform 0.3s;
+}
+.feed-cell:active img { transform: scale(0.96); }
+.feed-cell .cat-bg {
+width: 100%; height: 100%;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+gap: 6px;
+color: white;
+padding: 8px;
+text-align: center;
+}
+.feed-cell .cat-icon { font-size: 1.6rem; }
+.feed-cell .cat-text { font-size: 0.65rem; font-weight: 700; line-height: 1.3; }
+.feed-cell .like-badge {
+position: absolute;
+bottom: 5px; right: 5px;
+background: rgba(0,0,0,0.5);
+color: white;
+font-size: 0.6rem;
+font-weight: 700;
+padding: 2px 6px;
+border-radius: 10px;
+display: flex;
+align-items: center;
+gap: 2px;
+backdrop-filter: blur(4px);
+}
+
+/* ローディング・エンプティ */
+.feed-loading {
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+padding: 60px 20px;
+gap: 12px;
+color: var(–muted);
+font-size: 0.82rem;
+}
+.spinner {
+width: 32px; height: 32px;
+border: 3px solid var(–beige-d);
+border-top-color: var(–primary);
+border-radius: 50%;
+animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.feed-empty {
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+padding: 60px 20px;
+gap: 10px;
+color: var(–muted);
+text-align: center;
+}
+.feed-empty-icon { font-size: 2.5rem; }
+.feed-empty h3 { font-size: 0.9rem; color: var(–text); }
+.feed-empty p  { font-size: 0.75rem; }
+
+/* ── 詳細ポップアップ ── */
+.detail-overlay {
+position: fixed; inset: 0; z-index: 500;
+background: rgba(0,0,0,0.75);
+display: flex; align-items: flex-end;
+opacity: 0; pointer-events: none;
+transition: opacity 0.3s;
+}
+.detail-overlay.open { opacity: 1; pointer-events: all; }
+.detail-sheet {
+background: var(–white);
+border-radius: 20px 20px 0 0;
+width: 100%;
+max-height: 82vh;
+overflow-y: auto;
+transform: translateY(100%);
+transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
+padding-bottom: env(safe-area-inset-bottom, 16px);
+}
+.detail-overlay.open .detail-sheet { transform: translateY(0); }
+.detail-handle {
+width: 36px; height: 4px;
+background: var(–beige-d);
+border-radius: 2px;
+margin: 12px auto 0;
+}
+.detail-img {
+width: 100%;
+max-height: 52vw;
+object-fit: cover;
+margin-top: 8px;
+}
+.detail-img-placeholder {
+width: 100%;
+height: 52vw;
+margin-top: 8px;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 3rem;
+}
+.detail-body { padding: 16px 18px 20px; }
+.detail-cat-badge {
+display: inline-flex;
+align-items: center;
+gap: 4px;
+font-size: 0.7rem;
+font-weight: 700;
+color: white;
+padding: 3px 10px;
+border-radius: 20px;
+margin-bottom: 10px;
+}
+.detail-title {
+font-size: 1.05rem;
+font-weight: 700;
+margin-bottom: 4px;
+line-height: 1.4;
+}
+.detail-address {
+font-size: 0.75rem;
+color: var(–muted);
+display: flex;
+align-items: center;
+gap: 4px;
+margin-bottom: 12px;
+}
+.detail-date {
+font-size: 0.68rem;
+color: var(–muted);
+margin-bottom: 16px;
+}
+.detail-actions {
+display: flex;
+gap: 10px;
+}
+.like-btn {
+flex: 1;
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 6px;
+padding: 12px;
+border-radius: 12px;
+border: none;
+font-family: inherit;
+font-size: 0.85rem;
+font-weight: 700;
+cursor: pointer;
+transition: 0.2s;
+background: var(–beige-d);
+color: var(–text);
+}
+.like-btn.liked { background: #fde8e8; color: #e74c3c; }
+.like-btn:active { transform: scale(0.95); }
+.map-link-btn {
+flex: 1;
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 6px;
+padding: 12px;
+border-radius: 12px;
+background: var(–primary);
+color: white;
+font-family: inherit;
+font-size: 0.85rem;
+font-weight: 700;
+text-decoration: none;
+transition: 0.2s;
+}
+.map-link-btn:active { background: var(–primary-d); transform: scale(0.95); }
+
+/* ── マップビュー ── */
+#map-view {
+height: 100%;
+display: none;
+}
+#map-view.active { display: block; }
+#chiiki-map { width: 100%; height: 100%; }
+
+/* ── 投稿促進バナー（フィード下部） ── */
+.post-cta {
+margin: 16px 14px;
+background: linear-gradient(135deg, var(–primary) 0%, var(–primary-d) 100%);
+border-radius: var(–r);
+padding: 18px 16px;
+color: white;
+text-align: center;
+}
+.post-cta h3 { font-size: 0.9rem; font-weight: 700; margin-bottom: 4px; }
+.post-cta p  { font-size: 0.72rem; opacity: 0.85; margin-bottom: 12px; }
+.post-cta-btn {
+display: inline-block;
+background: white;
+color: var(–primary);
+font-weight: 700;
+font-size: 0.8rem;
+padding: 9px 22px;
+border-radius: 20px;
+text-decoration: none;
+font-family: inherit;
+}
+
+/* ── スライドイン アニメーション ── */
+.feed-cell {
+animation: cellIn 0.4s ease both;
+}
+@keyframes cellIn {
+from { opacity: 0; transform: scale(0.92); }
+to   { opacity: 1; transform: scale(1); }
+}
+</style>
+
+</head>
+<body>
+
+<!-- ヘッダー -->
+
+<header class="app-header">
+  <div class="app-logo">まちなか<span>発見</span></div>
+  <div class="header-subtitle">吉田町・牧之原市エリア</div>
+  <div style="font-size:0.65rem;color:var(--muted);text-align:right;">
+    <span id="total-count">--</span>件
+  </div>
+</header>
+
+<!-- タブ -->
+
+<div class="view-tabs">
+  <div class="view-tab active" id="tab-feed" onclick="switchView('feed')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+      <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+    </svg>
+    フィード
+  </div>
+  <div class="view-tab" id="tab-map" onclick="switchView('map')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+      <circle cx="12" cy="9" r="2.5"/>
+    </svg>
+    マップ
+  </div>
+</div>
+
+<!-- カテゴリフィルター -->
+
+<div class="cat-filter" id="cat-filter">
+  <div class="cat-pill active" data-cat="all"     onclick="filterCat('all')">🗺️ すべて</div>
+  <div class="cat-pill"        data-cat="発見・景色" onclick="filterCat('発見・景色')">🌸 発見・景色</div>
+  <div class="cat-pill"        data-cat="グルメ"     onclick="filterCat('グルメ')">🍜 グルメ</div>
+  <div class="cat-pill"        data-cat="困りごと"   onclick="filterCat('困りごと')">⚠️ 困りごと</div>
+  <div class="cat-pill"        data-cat="イベント"   onclick="filterCat('イベント')">🎉 イベント</div>
+</div>
+
+<!-- メインコンテンツ -->
+
+<div class="main-content">
+
+  <!-- フィードビュー -->
+
+  <div id="feed-view">
+    <div id="feed-grid-wrap">
+      <div class="feed-loading">
+        <div class="spinner"></div>
+        <div>読み込み中...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- マップビュー -->
+
+  <div id="map-view">
+    <div id="chiiki-map"></div>
+  </div>
+
+</div>
+
+<!-- 詳細ポップアップ -->
+
+<div class="detail-overlay" id="detail-overlay" onclick="closeDetail(event)">
+  <div class="detail-sheet" id="detail-sheet">
+    <div class="detail-handle"></div>
+    <div id="detail-img-wrap"></div>
+    <div class="detail-body">
+      <div id="detail-cat-badge" class="detail-cat-badge"></div>
+      <div id="detail-title" class="detail-title"></div>
+      <div id="detail-address" class="detail-address"></div>
+      <div id="detail-date" class="detail-date"></div>
+      <div class="detail-actions">
+        <button class="like-btn" id="like-btn" onclick="toggleLike()">
+          ❤️ <span id="like-count">0</span> いいね
+        </button>
+        <a class="map-link-btn" id="detail-map-link" href="#" target="_blank">
+          📍 地図で見る
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==========================================
+// 設定
+// ==========================================
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyFEz0Loj32nHhwnSIAKTVbVgrbDBjC1F-HmQ9Gat57eRe0upvlIPjbJZNFwtahTGI/exec';
+const MAPS_API_KEY = 'AIzaSyDeC5HxWHonkgh7p-fUe8k6OzKns8Rienk';
+
+const CAT_CONFIG = {
+  '発見・景色': { color: '#27AE60', icon: '🌸' },
+  'グルメ':     { color: '#e8850a', icon: '🍜' },
+  '困りごと':   { color: '#E74C3C', icon: '⚠️' },
+  'イベント':   { color: '#9B59B6', icon: '🎉' }
+};
+
+// ==========================================
+// 状態管理
+// ==========================================
+let allRecords    = [];
+let filteredRecords = [];
+let currentCat    = 'all';
+let currentView   = 'feed';
+let currentRecord = null;
+let likedIds      = JSON.parse(localStorage.getItem('chiiki_likes') || '{}');
+let chiikiMap     = null;
+let mapMarkers    = [];
+let mapInitialized = false;
+
+// ==========================================
+// データ取得
+// ==========================================
+async function loadData() {
+  try {
+    const res  = await fetch(GAS_URL + '?action=getChiikiData');
+    const json = await res.json();
+    if (json.status !== 'success') throw new Error(json.message);
+    allRecords = (json.records || []).reverse(); // 新しい順
+    document.getElementById('total-count').textContent = allRecords.length;
+    filterCat(currentCat);
+  } catch(e) {
+    console.error('データ取得エラー:', e);
+    document.getElementById('feed-grid-wrap').innerHTML = `
+      <div class="feed-empty">
+        <div class="feed-empty-icon">📡</div>
+        <h3>データを取得できませんでした</h3>
+        <p>しばらく経ってから再度お試しください</p>
+      </div>`;
+  }
+}
+
+// ==========================================
+// カテゴリフィルター
+// ==========================================
+function filterCat(cat) {
+  currentCat = cat;
+  document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+  document.querySelector(`.cat-pill[data-cat="${cat}"]`).classList.add('active');
+
+  filteredRecords = cat === 'all'
+    ? allRecords
+    : allRecords.filter(r => r.category === cat);
+
+  renderFeed();
+  if (currentView === 'map' && mapInitialized) renderMapMarkers();
+}
+
+// ==========================================
+// フィードレンダリング
+// ==========================================
+function renderFeed() {
+  const wrap = document.getElementById('feed-grid-wrap');
+
+  if (filteredRecords.length === 0) {
+    wrap.innerHTML = `
+      <div class="feed-empty">
+        <div class="feed-empty-icon">🔍</div>
+        <h3>まだ投稿がありません</h3>
+        <p>LINEから地域発見を投稿してみましょう！</p>
+      </div>
+      <div class="post-cta">
+        <h3>📸 あなたも投稿しよう！</h3>
+        <p>吉田町の素敵な場所・美味しいお店・地域の情報をシェアしてください</p>
+        <a href="https://line.me/R/ti/p/@281jfkpu" class="post-cta-btn">LINEで投稿する →</a>
+      </div>`;
+    return;
+  }
+
+  const cells = filteredRecords.map((rec, i) => {
+    const cat   = CAT_CONFIG[rec.category] || { color: '#249496', icon: '📍' };
+    const likes = rec.likes || 0;
+    const rid   = rec.date + '_' + i;
+    const delay = Math.min(i * 0.04, 0.5);
+
+    let inner = '';
+    if (rec.imageUrl) {
+      inner = `<img src="${rec.imageUrl}" alt="${rec.title}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+               <div class="cat-bg" style="background:${cat.color};display:none;">
+                 <div class="cat-icon">${cat.icon}</div>
+                 <div class="cat-text">${rec.title || rec.category}</div>
+               </div>`;
+    } else {
+      inner = `<div class="cat-bg" style="background:${cat.color};">
+                 <div class="cat-icon">${cat.icon}</div>
+                 <div class="cat-text">${rec.title || rec.category}</div>
+               </div>`;
+    }
+
+    return `<div class="feed-cell" style="animation-delay:${delay}s"
+              onclick="openDetail(${i})">
+              ${inner}
+              ${likes > 0 ? `<div class="like-badge">❤️ ${likes}</div>` : ''}
+            </div>`;
+  }).join('');
+
+  wrap.innerHTML = `<div class="feed-grid">${cells}</div>
+    <div class="post-cta">
+      <h3>📸 あなたも投稿しよう！</h3>
+      <p>吉田町の素敵な場所・美味しいお店・地域の情報をシェアしてください</p>
+      <a href="https://line.me/R/ti/p/@281jfkpu" class="post-cta-btn">LINEで投稿する →</a>
+    </div>`;
+}
+
+// ==========================================
+// 詳細ポップアップ
+// ==========================================
+function openDetail(index) {
+  const rec = filteredRecords[index];
+  if (!rec) return;
+  currentRecord = { ...rec, index };
+
+  const cat   = CAT_CONFIG[rec.category] || { color: '#249496', icon: '📍' };
+  const liked = !!likedIds[rec.date + rec.lat];
+
+  // 画像
+  const imgWrap = document.getElementById('detail-img-wrap');
+  if (rec.imageUrl) {
+    imgWrap.innerHTML = `<img class="detail-img" src="${rec.imageUrl}" alt="${rec.title}"
+      onerror="this.style.display='none'">`;
+  } else {
+    imgWrap.innerHTML = `<div class="detail-img-placeholder" style="background:${cat.color}20;">
+      <span style="font-size:4rem">${cat.icon}</span></div>`;
+  }
+
+  document.getElementById('detail-cat-badge').textContent = cat.icon + ' ' + rec.category;
+  document.getElementById('detail-cat-badge').style.background = cat.color;
+  document.getElementById('detail-title').textContent   = rec.title || rec.category;
+  document.getElementById('detail-address').innerHTML   = `<span>📍</span>${rec.address || '住所不明'}`;
+  document.getElementById('detail-date').textContent    = '📅 ' + (rec.date ? rec.date.substring(0,10) : '---');
+  document.getElementById('like-count').textContent     = rec.likes || 0;
+  document.getElementById('like-btn').className        = 'like-btn' + (liked ? ' liked' : '');
+  document.getElementById('detail-map-link').href      =
+    rec.url || ('https://www.google.com/maps?q=' + rec.lat + ',' + rec.lng);
+
+  document.getElementById('detail-overlay').classList.add('open');
+}
+
+function closeDetail(e) {
+  if (e.target === document.getElementById('detail-overlay')) {
+    document.getElementById('detail-overlay').classList.remove('open');
+  }
+}
+
+// ==========================================
+// いいね機能
+// ==========================================
+async function toggleLike() {
+  if (!currentRecord) return;
+  const key   = currentRecord.date + currentRecord.lat;
+  const liked = !!likedIds[key];
+  const btn   = document.getElementById('like-btn');
+  const cnt   = document.getElementById('like-count');
+
+  if (liked) {
+    // いいね解除
+    delete likedIds[key];
+    currentRecord.likes = Math.max(0, (currentRecord.likes || 1) - 1);
+    btn.className = 'like-btn';
+  } else {
+    // いいね追加
+    likedIds[key] = true;
+    currentRecord.likes = (currentRecord.likes || 0) + 1;
+    btn.className = 'like-btn liked';
+    btn.style.transform = 'scale(1.15)';
+    setTimeout(() => btn.style.transform = '', 200);
+  }
+
+  cnt.textContent = currentRecord.likes;
+  localStorage.setItem('chiiki_likes', JSON.stringify(likedIds));
+
+  // GASにいいね数を送信
+  try {
+    await fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        formType:  'chiiki_like',
+        recordDate: currentRecord.date,
+        lat:        currentRecord.lat,
+        liked:      !liked
+      })
+    });
+  } catch(e) { console.warn('いいね送信エラー:', e); }
+
+  // フィードのバッジも更新
+  renderFeed();
+}
+
+// ==========================================
+// ビュー切り替え（フィード⇔マップ）
+// ==========================================
+function switchView(view) {
+  currentView = view;
+  document.getElementById('tab-feed').classList.toggle('active', view === 'feed');
+  document.getElementById('tab-map').classList.toggle('active', view === 'map');
+  document.getElementById('feed-view').style.display = view === 'feed' ? 'block' : 'none';
+  document.getElementById('map-view').style.display  = view === 'map'  ? 'block' : 'none';
+
+  if (view === 'map' && !mapInitialized) {
+    initChiikiMap();
+  } else if (view === 'map') {
+    renderMapMarkers();
+  }
+}
+
+// ==========================================
+// マップ初期化
+// ==========================================
+function initChiikiMap() {
+  chiikiMap = new google.maps.Map(document.getElementById('chiiki-map'), {
+    center:          { lat: 34.768, lng: 138.261 },
+    zoom:            13,
+    mapTypeId:       'roadmap',
+    zoomControl:     true,
+    mapTypeControl:  false,
+    streetViewControl: false,
+    fullscreenControl: false,
+    gestureHandling: 'greedy',
+    styles: [
+      { featureType: 'poi',     stylers: [{ visibility: 'simplified' }] },
+      { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+      { featureType: 'water',   stylers: [{ color: '#b3d4f5' }] }
+    ]
+  });
+  mapInitialized = true;
+  renderMapMarkers();
+}
+
+function renderMapMarkers() {
+  mapMarkers.forEach(m => m.setMap(null));
+  mapMarkers = [];
+
+  filteredRecords.forEach(function(rec, i) {
+    if (!rec.lat || !rec.lng) return;
+    const cat = CAT_CONFIG[rec.category] || { color: '#249496', icon: '📍' };
+    const marker = new google.maps.Marker({
+      position: { lat: rec.lat, lng: rec.lng },
+      map:      chiikiMap,
+      title:    rec.title,
+      icon: {
+        path:        google.maps.SymbolPath.CIRCLE,
+        fillColor:    cat.color,
+        fillOpacity:  1,
+        strokeColor:  '#ffffff',
+        strokeWeight: 2.5,
+        scale:        13
+      },
+      animation: google.maps.Animation.DROP
+    });
+    marker.addListener('click', function() { openDetail(i); });
+    mapMarkers.push(marker);
+  });
+}
+
+// ==========================================
+// Google Maps 読み込み
+// ==========================================
+function onMapsReady() {
+  // マップは必要になったときに初期化
+}
+
+// ==========================================
+// 起動
+// ==========================================
+document.addEventListener('DOMContentLoaded', function() {
+  switchView('feed');
+  loadData();
+});
+</script>
+
+<script
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDeC5HxWHonkgh7p-fUe8k6OzKns8Rienk&callback=onMapsReady&language=ja"
+  async defer>
+</script>
+
+</body>
+</html>

@@ -260,20 +260,20 @@ padding: 14px 16px 0;
 display: flex;
 align-items: center;
 gap: 6px;
-background: var(–primary);
-border: none;
+background: #ffffff;
+border: 2px solid var(–primary);
 border-radius: 20px;
 padding: 8px 16px 8px 12px;
 font-family: inherit;
-font-size: 0.8rem;
+font-size: 0.82rem;
 font-weight: 700;
-color: #ffffff;
+color: var(–primary);
 cursor: pointer;
 transition: 0.18s;
-box-shadow: 0 2px 8px rgba(36,148,150,0.35);
+box-shadow: 0 2px 12px rgba(0,0,0,0.18);
 }
-.detail-back-btn:active { transform: scale(0.95); background: var(–primary-d); }
-.detail-back-btn svg { width: 16px; height: 16px; stroke: #ffffff; }
+.detail-back-btn:active { transform: scale(0.95); background: #e8f7f7; }
+.detail-back-btn svg { width: 16px; height: 16px; stroke: var(–primary); }
 .detail-handle {
 width: 40px; height: 5px;
 background: #e0ddd6;
@@ -339,7 +339,7 @@ justify-content: center;
 gap: 6px;
 padding: 12px;
 border-radius: 12px;
-border: none;
+border: 2px solid #e8e4d8;
 font-family: inherit;
 font-size: 0.85rem;
 font-weight: 700;
@@ -348,7 +348,7 @@ transition: 0.2s;
 background: var(–beige-d);
 color: var(–text);
 }
-.like-btn.liked { background: #fde8e8; color: #e74c3c; }
+.like-btn.liked { background: #fde8e8; color: #e74c3c; border-color: #f5c0c0; }
 .like-btn:active { transform: scale(0.95); }
 
 /* 「地図で見る」ボタン：button要素に変更（内部マップに遷移） */
@@ -365,9 +365,10 @@ color: white;
 font-family: inherit;
 font-size: 0.85rem;
 font-weight: 700;
-border: none;
+border: 2px solid var(–primary-d);
 cursor: pointer;
 transition: 0.2s;
+box-shadow: 0 2px 8px rgba(36,148,150,0.3);
 }
 .map-link-btn:active { background: var(–primary-d); transform: scale(0.95); }
 
@@ -467,7 +468,7 @@ align-items: center;
 gap: 14px;
 padding: 14px 16px;
 border-radius: 16px;
-border: none;
+border: 1.5px solid #e0dbd0;
 background: #f7f5f0;
 font-family: inherit;
 font-size: 0.88rem;
@@ -610,28 +611,28 @@ transition: 0.18s;
     <div class="post-modal-title">📸 地域発見を投稿する</div>
     <div class="post-modal-sub">LINEから写真・位置情報を送って<br>まちなか発見マップに掲載しましょう！</div>
     <div class="post-modal-actions">
-      <!-- 写真を撮って送る -->
-      <a class="post-action-btn" href="https://line.me/R/nv/camera" onclick="closePostModal()">
+      <!-- 写真を撮って送る：トーク画面を開いてカメラ送信を促す -->
+      <a class="post-action-btn" href="https://line.me/R/oaMessage/@281jfkpu/" onclick="closePostModal()">
         <div class="post-action-icon" style="background:#e8f8f0;">📷</div>
         <div class="post-action-text">
           <span class="post-action-label">写真を撮って投稿</span>
-          <span class="post-action-desc">カメラを起動してそのまま送信できます</span>
+          <span class="post-action-desc">トーク画面でカメラ📷から写真を送ってください</span>
         </div>
       </a>
-      <!-- 位置情報を送る -->
-      <a class="post-action-btn" href="https://line.me/R/nv/location" onclick="closePostModal()">
+      <!-- 位置情報を送る：トーク画面を開いて位置情報送信を促す -->
+      <a class="post-action-btn" href="https://line.me/R/oaMessage/@281jfkpu/" onclick="closePostModal()">
         <div class="post-action-icon" style="background:#e8f4ff;">📍</div>
         <div class="post-action-text">
           <span class="post-action-label">位置情報を投稿</span>
-          <span class="post-action-desc">現在地またはマップで場所を選んで送信</span>
+          <span class="post-action-desc">トーク画面で「＋」→「位置情報」から送ってください</span>
         </div>
       </a>
-      <!-- トーク画面を開く（テキストで投稿） -->
-      <a class="post-action-btn" href="https://line.me/R/oaMessage/@281jfkpu/?地域発見：" onclick="closePostModal()">
+      <!-- カテゴリ選択して投稿 -->
+      <a class="post-action-btn" href="https://line.me/R/oaMessage/@281jfkpu/" onclick="closePostModal()">
         <div class="post-action-icon" style="background:#fff3e0;">💬</div>
         <div class="post-action-text">
-          <span class="post-action-label">トークで投稿内容を送る</span>
-          <span class="post-action-desc">カテゴリを選んでテキストで詳細を送信</span>
+          <span class="post-action-label">カテゴリを選んで投稿</span>
+          <span class="post-action-desc">トーク画面でカテゴリ選択→詳細を送信</span>
         </div>
       </a>
     </div>

@@ -505,6 +505,67 @@ cursor: pointer;
 transition: 0.18s;
 }
 .post-modal-cancel:active { background: #e5e0d4; }
+
+/* ── STEP2スタイル ── */
+.post-step2-cat {
+text-align: center;
+font-size: 2rem;
+margin-bottom: 6px;
+padding: 10px;
+background: var(–beige-d);
+border-radius: 14px;
+margin-bottom: 14px;
+font-weight: 700;
+color: var(–text);
+}
+.post-step2-guide {
+display: flex;
+flex-direction: column;
+gap: 10px;
+margin-bottom: 20px;
+background: var(–beige);
+border-radius: 14px;
+padding: 14px 16px;
+}
+.post-step2-step {
+display: flex;
+align-items: center;
+gap: 12px;
+}
+.post-step2-num {
+width: 26px; height: 26px;
+border-radius: 50%;
+background: var(–primary);
+color: white;
+font-size: 0.78rem;
+font-weight: 900;
+display: flex; align-items: center; justify-content: center;
+flex-shrink: 0;
+}
+.post-step2-text {
+font-size: 0.82rem;
+font-weight: 700;
+color: var(–text);
+}
+.post-line-btn {
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 8px;
+width: 100%;
+padding: 15px;
+border-radius: 14px;
+background: #06C755;
+color: white;
+font-family: inherit;
+font-size: 0.95rem;
+font-weight: 900;
+text-decoration: none;
+margin-bottom: 10px;
+box-shadow: 0 3px 12px rgba(6,199,85,0.35);
+transition: 0.18s;
+}
+.post-line-btn:active { background: #05b04c; transform: scale(0.98); }
 </style>
 
 </head>
@@ -603,40 +664,79 @@ transition: 0.18s;
   </div>
 </div>
 
-<!-- 投稿モーダル（LINEで投稿する） -->
+<!-- 投稿モーダル：2ステップ（カテゴリ選択 → LINE誘導） -->
 
 <div class="post-modal-overlay" id="post-modal" onclick="closePostModalOnBg(event)">
   <div class="post-modal-sheet">
     <div class="post-modal-handle"></div>
-    <div class="post-modal-title">📸 地域発見を投稿する</div>
-    <div class="post-modal-sub">LINEから写真・位置情報を送って<br>まちなか発見マップに掲載しましょう！</div>
-    <div class="post-modal-actions">
-      <!-- 写真を撮って送る：トーク画面を開く -->
-      <a class="post-action-btn" href="https://line.me/R/oaMessage/@281jfkpu/" onclick="closePostModal()">
-        <div class="post-action-icon" style="background:#e8f8f0;">📷</div>
-        <div class="post-action-text">
-          <span class="post-action-label">写真を撮って投稿</span>
-          <span class="post-action-desc">トーク画面でカメラ📷から写真を送ってください</span>
-        </div>
-      </a>
-      <!-- 位置情報を送る：「地域発見投稿」メッセージを自動送信してフローを起動 -->
-      <a class="post-action-btn" href="https://line.me/R/oaMessage/@281jfkpu/?%E5%9C%B0%E5%9F%9F%E7%99%BA%E8%A6%8B%E6%8A%95%E7%A8%BF" onclick="closePostModal()">
-        <div class="post-action-icon" style="background:#e8f4ff;">📍</div>
-        <div class="post-action-text">
-          <span class="post-action-label">位置情報を投稿</span>
-          <span class="post-action-desc">カテゴリ選択→位置情報の流れで投稿できます</span>
-        </div>
-      </a>
-      <!-- カテゴリ選択して投稿：同じく地域発見投稿フローを起動 -->
-      <a class="post-action-btn" href="https://line.me/R/oaMessage/@281jfkpu/?%E5%9C%B0%E5%9F%9F%E7%99%BA%E8%A6%8B%E6%8A%95%E7%A8%BF" onclick="closePostModal()">
-        <div class="post-action-icon" style="background:#fff3e0;">💬</div>
-        <div class="post-action-text">
-          <span class="post-action-label">カテゴリを選んで投稿</span>
-          <span class="post-action-desc">カテゴリ選択→位置情報の流れで投稿できます</span>
-        </div>
-      </a>
+
+```
+<!-- STEP 1: カテゴリ選択 -->
+<div id="post-step1">
+  <div class="post-modal-title">📍 カテゴリを選んでください</div>
+  <div class="post-modal-sub">投稿する内容に合ったカテゴリを選ぶと<br>GASが案内メッセージを返信します</div>
+  <div class="post-modal-actions">
+    <button class="post-action-btn" onclick="selectPostCategory('発見・景色')">
+      <div class="post-action-icon" style="background:#e8f8ee;">🌸</div>
+      <div class="post-action-text">
+        <span class="post-action-label">発見・景色</span>
+        <span class="post-action-desc">きれいな場所・風景・おすすめスポット</span>
+      </div>
+    </button>
+    <button class="post-action-btn" onclick="selectPostCategory('グルメ')">
+      <div class="post-action-icon" style="background:#fff3e0;">🍜</div>
+      <div class="post-action-text">
+        <span class="post-action-label">グルメ</span>
+        <span class="post-action-desc">美味しいお店・おすすめ飲食情報</span>
+      </div>
+    </button>
+    <button class="post-action-btn" onclick="selectPostCategory('困りごと')">
+      <div class="post-action-icon" style="background:#ffeaea;">⚠️</div>
+      <div class="post-action-text">
+        <span class="post-action-label">困りごと</span>
+        <span class="post-action-desc">道路の問題・危険箇所・地域の課題</span>
+      </div>
+    </button>
+    <button class="post-action-btn" onclick="selectPostCategory('イベント')">
+      <div class="post-action-icon" style="background:#f3eaff;">🎉</div>
+      <div class="post-action-text">
+        <span class="post-action-label">イベント</span>
+        <span class="post-action-desc">地域のイベント・お祭り・行事情報</span>
+      </div>
+    </button>
+  </div>
+  <button class="post-modal-cancel" onclick="closePostModal()">キャンセル</button>
+</div>
+
+<!-- STEP 2: LINE誘導（カテゴリ選択後） -->
+<div id="post-step2" style="display:none;">
+  <div class="post-step2-cat" id="post-step2-cat"></div>
+  <div class="post-modal-title" style="margin-bottom:8px;">次のステップ</div>
+  <div class="post-modal-sub" style="margin-bottom:20px;">
+    LINEトーク画面で「送信」ボタンを押すと<br>自動返信でご案内します📍
+  </div>
+  <div class="post-step2-guide">
+    <div class="post-step2-step">
+      <div class="post-step2-num">1</div>
+      <div class="post-step2-text">「LINEで送信する」をタップ</div>
     </div>
-    <button class="post-modal-cancel" onclick="closePostModal()">キャンセル</button>
+    <div class="post-step2-step">
+      <div class="post-step2-num">2</div>
+      <div class="post-step2-text">トーク画面で送信ボタンを押す</div>
+    </div>
+    <div class="post-step2-step">
+      <div class="post-step2-num">3</div>
+      <div class="post-step2-text">返信に従って位置情報・写真を送る</div>
+    </div>
+  </div>
+  <a class="post-line-btn" id="post-line-link" href="#">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="white"><path d="M12 2C6.48 2 2 5.92 2 10.72c0 3.2 1.88 6.01 4.72 7.7L6 22l4.44-2.32c.51.09 1.03.14 1.56.14 5.52 0 10-3.92 10-8.72C22 5.92 17.52 2 12 2z"/></svg>
+    LINEで送信する
+  </a>
+  <button class="post-modal-cancel" onclick="backToStep1()">← カテゴリを選び直す</button>
+</div>
+```
+
   </div>
 </div>
 
@@ -936,9 +1036,10 @@ function renderMapMarkers() {
 function onMapsReady() {}
 
 // ==========================================
-// 投稿モーダル
+// 投稿モーダル（2ステップ）
 // ==========================================
 function openPostModal() {
+  backToStep1(); // 常にSTEP1から開始
   document.getElementById('post-modal').classList.add('open');
 }
 function closePostModal() {
@@ -946,6 +1047,34 @@ function closePostModal() {
 }
 function closePostModalOnBg(e) {
   if (e.target === document.getElementById('post-modal')) closePostModal();
+}
+
+function selectPostCategory(cat) {
+  const catConfig = {
+    '発見・景色': { icon: '🌸', color: '#27AE60' },
+    'グルメ':     { icon: '🍜', color: '#e8850a' },
+    '困りごと':   { icon: '⚠️', color: '#E74C3C' },
+    'イベント':   { icon: '🎉', color: '#9B59B6' }
+  };
+  const cfg = catConfig[cat];
+
+  // STEP2のカテゴリ表示を更新
+  const catEl = document.getElementById('post-step2-cat');
+  catEl.innerHTML = `${cfg.icon} <span style="color:${cfg.color}">${cat}</span> を選択しました`;
+
+  // LINEリンクのURLを生成（「地域発見：〇〇」をURLエンコード）
+  const msg = encodeURIComponent('地域発見：' + cat);
+  document.getElementById('post-line-link').href =
+    'https://line.me/R/oaMessage/@281jfkpu/?' + msg;
+
+  // STEP1→STEP2へ切り替え
+  document.getElementById('post-step1').style.display = 'none';
+  document.getElementById('post-step2').style.display = 'block';
+}
+
+function backToStep1() {
+  document.getElementById('post-step1').style.display = 'block';
+  document.getElementById('post-step2').style.display = 'none';
 }
 
 // ==========================================

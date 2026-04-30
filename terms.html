@@ -27,7 +27,6 @@ body {
   font-size: 0.95rem;
 }
 
-/* ── ヘッダー ── */
 .header {
 background: var(–navy);
 color: white;
@@ -51,13 +50,13 @@ color: rgba(255,255,255,0.6);
 margin-top: 8px;
 }
 
-/* ── 目次 ── */
 .toc {
 background: var(–white);
 border: 1px solid var(–border);
 border-radius: 10px;
 padding: 16px 20px;
-margin: 20px 16px;
+margin: 20px auto;
+max-width: 720px;
 }
 .toc-title {
 font-size: 0.78rem;
@@ -75,16 +74,13 @@ padding: 4px 0;
 border-bottom: 1px dashed var(–border);
 }
 .toc a:last-child { border-bottom: none; }
-.toc a:hover { color: var(–primary-d); }
 
-/* ── メインコンテンツ ── */
 .content {
 max-width: 720px;
 margin: 0 auto;
 padding: 0 16px 60px;
 }
 
-/* セクション */
 .section {
 background: var(–white);
 border-radius: 12px;
@@ -116,7 +112,6 @@ flex-shrink: 0;
 p { margin-bottom: 10px; }
 p:last-child { margin-bottom: 0; }
 
-/* 重要ボックス */
 .important-box {
 background: #fff8f0;
 border: 1px solid #ffcc80;
@@ -133,7 +128,23 @@ margin-bottom: 4px;
 font-size: 0.9rem;
 }
 
-/* 収集データ表 */
+/* 新規追加：情報ボックス（青系） */
+.info-box {
+background: #f0f8ff;
+border: 1px solid #90caf9;
+border-left: 4px solid #1976d2;
+border-radius: 8px;
+padding: 14px 16px;
+margin: 12px 0;
+font-size: 0.88rem;
+}
+.info-box strong {
+display: block;
+color: #1565c0;
+margin-bottom: 4px;
+font-size: 0.9rem;
+}
+
 .data-table {
 width: 100%;
 border-collapse: collapse;
@@ -156,7 +167,6 @@ vertical-align: top;
 background: var(–beige);
 }
 
-/* チェックリスト */
 .check-list {
 list-style: none;
 padding: 0;
@@ -176,7 +186,6 @@ color: var(–primary);
 font-weight: 700;
 }
 
-/* お問い合わせ */
 .contact-box {
 background: linear-gradient(135deg, var(–navy) 0%, #243a56 100%);
 color: white;
@@ -204,11 +213,8 @@ border-radius: 25px;
 font-weight: 700;
 font-size: 0.9rem;
 text-decoration: none;
-transition: 0.2s;
 }
-.contact-line-btn:hover { background: #05b34c; }
 
-/* 更新履歴 */
 .history {
 font-size: 0.75rem;
 color: var(–muted);
@@ -218,7 +224,6 @@ border-top: 1px solid var(–border);
 margin-top: 8px;
 }
 
-/* ナビゲーション */
 .back-nav {
 text-align: center;
 padding: 20px;
@@ -240,22 +245,31 @@ cursor: pointer;
 border: none;
 font-family: inherit;
 }
+
+/* 新規追加：バッジ */
+.new-badge {
+display: inline-block;
+background: #e53e3e;
+color: white;
+font-size: 0.6rem;
+font-weight: 700;
+padding: 1px 6px;
+border-radius: 4px;
+margin-left: 6px;
+vertical-align: middle;
+}
 </style>
 
 </head>
 <body>
 
-<!-- ヘッダー -->
-
 <div class="header">
   <div class="header-logo">SUMAHO NO SODAN-SHI</div>
   <h1>利用規約・プライバシーポリシー</h1>
-  <div class="header-date">最終更新日：2026年4月27日</div>
+  <div class="header-date">最終更新日：2026年4月30日</div>
 </div>
 
-<!-- 目次 -->
-
-<div class="toc" style="max-width:720px; margin:20px auto;">
+<div class="toc" style="max-width:720px; margin:20px auto; padding: 16px 20px;">
   <div class="toc-title">📋 目次</div>
   <a href="#s1">1. サービスの概要と運営者情報</a>
   <a href="#s2">2. 収集する個人情報と利用目的</a>
@@ -264,9 +278,11 @@ font-family: inherit;
   <a href="#s5">5. 第三者への提供について</a>
   <a href="#s6">6. Cookieおよびアクセス解析について</a>
   <a href="#s7">7. 地域安全マップ（防犯パトロール機能）について</a>
-  <a href="#s8">8. 免責事項</a>
-  <a href="#s9">9. 利用規約の変更について</a>
-  <a href="#s10">10. お問い合わせ・情報開示請求</a>
+  <a href="#s7b">8. まちなか発見機能（地域発見投稿）について <span class="new-badge">NEW</span></a>
+  <a href="#s7c">9. LIFFアプリ（LINE連携ウェブ機能）について <span class="new-badge">NEW</span></a>
+  <a href="#s8">10. 免責事項</a>
+  <a href="#s9">11. 利用規約の変更について</a>
+  <a href="#s10">12. お問い合わせ・情報開示請求</a>
 </div>
 
 <div class="content">
@@ -275,7 +291,7 @@ font-family: inherit;
 
   <div class="section" id="s1">
     <div class="section-title"><span class="section-num">1</span>サービスの概要と運営者情報</div>
-    <p>「スマホの相談士」（以下「本サービス」）は、吉田町・牧之原市エリアを中心に、スマートフォンの利用相談、料金プランの見直し、機種変更サポート、防犯パトロール活動支援を提供する個人サービスです。</p>
+    <p>「スマホの相談士」（以下「本サービス」）は、吉田町・牧之原市エリアを中心に、スマートフォンの利用相談、料金プランの見直し、機種変更サポート、防犯パトロール活動支援、地域発見情報の共有を提供する個人サービスです。</p>
     <table class="data-table">
       <tr><th>項目</th><th>内容</th></tr>
       <tr><td>運営者名</td><td>西舘 龍之介（櫻井）</td></tr>
@@ -324,24 +340,25 @@ font-family: inherit;
         </tr>
         <tr>
           <td>LINEユーザーID・表示名</td>
-          <td>LINE公式アカウントとのやり取り</td>
-          <td>防犯パトロール記録への紐付け・顧客管理</td>
+          <td>LINE公式アカウントとのやり取り・LIFFアプリ</td>
+          <td>防犯パトロール記録への紐付け・顧客管理・まちなか発見投稿の紐付け</td>
         </tr>
         <tr>
-          <td>位置情報</td>
-          <td>LINE公式アカウントのリッチメニューからの送信</td>
-          <td>地域防犯パトロール記録・地域安全マップへの反映</td>
+          <td>位置情報（GPS）</td>
+          <td>LINE公式アカウントからの送信・まちなか発見機能</td>
+          <td>地域防犯パトロール記録・地域安全マップ・まちなか発見マップへの反映</td>
+        </tr>
+        <tr>
+          <td>投稿画像</td>
+          <td>まちなか発見機能（LIFFアプリ経由）</td>
+          <td>まちなか発見フィードへの表示・地域情報の共有</td>
         </tr>
       </tbody>
     </table>
-
-```
-<div class="important-box">
-  <strong>⚠️ 機密情報は絶対に入力しないでください</strong>
-  スマホのロック解除PIN、各種サービスのパスワード、クレジットカード番号などの機密情報は、いかなるフォームにも入力しないでください。本サービスがこれらの情報をお尋ねすることはありません。
-</div>
-```
-
+    <div class="important-box">
+      <strong>⚠️ 機密情報は絶対に入力しないでください</strong>
+      スマホのロック解除PIN、各種サービスのパスワード、クレジットカード番号などの機密情報は、いかなるフォームにも入力しないでください。本サービスがこれらの情報をお尋ねすることはありません。
+    </div>
   </div>
 
   <!-- Section 3 -->
@@ -349,21 +366,16 @@ font-family: inherit;
   <div class="section" id="s3">
     <div class="section-title"><span class="section-num">3</span>LINE公式アカウントにおける情報収集について</div>
     <p>本サービスのLINE公式アカウント（@281jfkpu）をご利用いただく際、以下の情報を自動的に取得する場合があります。</p>
-
-```
-<ul class="check-list">
-  <li><strong>LINEユーザーID：</strong>友達追加時・メッセージ送信時に自動取得します。これはLINEが付与する匿名のIDであり、LINEの本名・電話番号・メールアドレスとは異なります。</li>
-  <li><strong>LINE表示名（ニックネーム）：</strong>位置情報送信時・メッセージ送信時に取得します。</li>
-  <li><strong>位置情報：</strong>リッチメニューの「防犯パトロール」機能から送信いただいた場合のみ取得します。取得した位置情報は地域安全マップに匿名で表示されます。</li>
-  <li><strong>送信画像：</strong>防犯活動目的で送信いただいた画像は、Googleドライブに安全に保管します。</li>
-</ul>
-
-<div class="important-box">
-  <strong>📍 位置情報の取り扱いについて</strong>
-  送信いただいた位置情報は、地域の防犯活動を目的として地域安全マップに表示します。氏名・LINEアカウント名は公開されず、日時・場所のみが表示されます。個人を特定できる形での公開は行いません。
-</div>
-```
-
+    <ul class="check-list">
+      <li><strong>LINEユーザーID：</strong>友達追加時・メッセージ送信時に自動取得します。これはLINEが付与する匿名のIDであり、LINEの本名・電話番号・メールアドレスとは異なります。</li>
+      <li><strong>LINE表示名（ニックネーム）：</strong>位置情報送信時・メッセージ送信時に取得します。</li>
+      <li><strong>位置情報：</strong>リッチメニューの「防犯パトロール」機能または「まちなか発見」機能から送信いただいた場合のみ取得します。</li>
+      <li><strong>送信画像：</strong>防犯活動目的またはまちなか発見投稿目的で送信いただいた画像は、安全に保管します。</li>
+    </ul>
+    <div class="important-box">
+      <strong>📍 位置情報の取り扱いについて</strong>
+      送信いただいた位置情報は、地域の防犯活動またはまちなか発見マップへの表示を目的として使用します。氏名・LINEアカウント名は公開されず、日時・場所のみが表示されます。個人を特定できる形での公開は行いません。
+    </div>
   </div>
 
   <!-- Section 4 -->
@@ -376,16 +388,13 @@ font-family: inherit;
       <li>フォームからの送信データはGoogle Apps Scriptを経由し、HTTPS通信により暗号化された状態で送信されます。</li>
       <li>予約情報はGoogleカレンダーおよびGoogleスプレッドシートで管理します。</li>
       <li>防犯パトロール活動で送信いただいた画像はGoogleドライブに保管し、運営者本人のみがアクセスできます。</li>
+      <li>まちなか発見機能で投稿いただいた画像は画像ホスティングサービス（Imgur）を経由して保管します。</li>
       <li>本サービスの運営に必要なシステムにはアクセス制限を設け、不正アクセスの防止に努めます。</li>
     </ul>
-
-```
-<div class="important-box">
-  <strong>🗑️ 情報の削除について</strong>
-  ご登録情報の削除をご希望の場合は、LINE公式アカウントまたはお電話にてお申し付けください。速やかに対応いたします。
-</div>
-```
-
+    <div class="important-box">
+      <strong>🗑️ 情報の削除について</strong>
+      ご登録情報の削除をご希望の場合は、LINE公式アカウントまたはお電話にてお申し付けください。速やかに対応いたします。
+    </div>
   </div>
 
   <!-- Section 5 -->
@@ -398,14 +407,14 @@ font-family: inherit;
       <li>法令に基づき開示を求められた場合</li>
       <li>人の生命・身体・財産の保護のために必要で、本人の同意を得ることが困難な場合</li>
     </ul>
-    <p style="margin-top:12px; font-size:0.85rem; color: var(--muted);">※ 本サービスが利用するシステム（Google Workspace、Notion、LINE Messaging API）のデータ処理については、各プロバイダーのプライバシーポリシーが適用されます。</p>
+    <p style="margin-top:12px; font-size:0.85rem; color: var(--muted);">※ 本サービスが利用するシステム（Google Workspace、Notion、LINE Messaging API、Imgur）のデータ処理については、各プロバイダーのプライバシーポリシーが適用されます。</p>
   </div>
 
   <!-- Section 6 -->
 
   <div class="section" id="s6">
     <div class="section-title"><span class="section-num">6</span>Cookieおよびアクセス解析について</div>
-    <p>本サービスのウェブサイトは、GitHub Pagesにてホスティングされており、現時点では独自のアクセス解析ツールは使用していません。予約フォームにはローカルストレージ（ブラウザ内の一時保存機能）を使用し、直前の予約履歴をご本人の端末内にのみ保存します。この情報は外部に送信されません。</p>
+    <p>本サービスのウェブサイトはGitHub Pagesにてホスティングされており、現時点では独自のアクセス解析ツールは使用していません。予約フォームおよびまちなか発見機能にはローカルストレージ（ブラウザ内の一時保存機能）を使用し、直前の操作履歴やいいね情報をご本人の端末内にのみ保存します。この情報は外部に送信されません。</p>
   </div>
 
   <!-- Section 7 -->
@@ -420,57 +429,90 @@ font-family: inherit;
       <li>誤情報・不適切な内容と判断した投稿は、運営者の判断で削除する場合があります。</li>
     </ul>
     <p>この機能をご利用いただくことで、本規約に同意いただいたものとみなします。</p>
-
-```
-<div class="important-box">
-  <strong>📸 送信画像に関する禁止事項と対応について</strong>
-  以下に該当する画像の送信は固く禁止します。違反が確認された場合、当該画像を即座に削除し、悪質と判断した場合は警察等の関係機関への情報提供を含む、しかるべき対応を取ることがあります。また、当該ユーザーのLINE公式アカウントへのアクセスを制限する場合があります。
-  <ul class="check-list" style="margin-top:10px;">
-    <li>他人のプライバシーを侵害する画像（無断撮影・盗撮など）</li>
-    <li>特定の個人・施設を誹謗中傷する目的の画像</li>
-    <li>公序良俗に反するわいせつ・センシティブな画像</li>
-    <li>著作権・肖像権を侵害する画像</li>
-    <li>虚偽の情報を含む加工・捏造された画像</li>
-  </ul>
-</div>
-```
-
+    <div class="important-box">
+      <strong>📸 送信画像に関する禁止事項と対応について</strong>
+      以下に該当する画像の送信は固く禁止します。違反が確認された場合、当該画像を即座に削除し、悪質と判断した場合は警察等の関係機関への情報提供を含む、しかるべき対応を取ることがあります。
+      <ul class="check-list" style="margin-top:10px;">
+        <li>他人のプライバシーを侵害する画像（無断撮影・盗撮など）</li>
+        <li>特定の個人・施設を誹謗中傷する目的の画像</li>
+        <li>公序良俗に反するわいせつ・センシティブな画像</li>
+        <li>著作権・肖像権を侵害する画像</li>
+        <li>虚偽の情報を含む加工・捏造された画像</li>
+      </ul>
+    </div>
   </div>
 
-  <!-- Section 8 -->
+  <!-- Section 7b：まちなか発見（NEW） -->
+
+  <div class="section" id="s7b">
+    <div class="section-title"><span class="section-num">8</span>まちなか発見機能（地域発見投稿）について <span class="new-badge">NEW</span></div>
+    <p>「まちなか発見」機能は、地域の素敵な場所・グルメ・困りごと・イベント情報を投稿・閲覧できる地域情報共有機能です。</p>
+    <ul class="check-list">
+      <li>投稿された位置情報（緯度・経度）・カテゴリ・日時・地点名はまちなか発見マップに表示されます。</li>
+      <li>投稿者のLINEユーザーID・表示名は一般公開されません。</li>
+      <li>投稿いただいた画像は画像ホスティングサービス（Imgur、imgu.com）を経由して保管・表示されます。Imgurのプライバシーポリシーが適用されます。</li>
+      <li>不適切な投稿・画像は運営者の判断で削除する場合があります。</li>
+      <li>投稿内容の著作権は投稿者に帰属しますが、本サービスの運営・宣伝目的での使用（SNS等への転載を含む）に同意いただいたものとみなします。</li>
+    </ul>
+    <div class="info-box">
+      <strong>📍 ブラウザの位置情報（GPS）の取得について</strong>
+      まちなか発見機能では、投稿時にお使いの端末のGPS機能を使って現在地を取得する場合があります。位置情報の取得は必ずブラウザの許可確認ダイアログが表示されてから行われます。許可しない場合でも他の機能はご利用いただけます。取得した位置情報はまちなか発見マップへの表示のみに使用し、それ以外の目的には使用しません。
+    </div>
+    <div class="important-box">
+      <strong>📸 投稿画像に関する禁止事項</strong>
+      地域安全マップと同様に、他人のプライバシーを侵害する画像・誹謗中傷・わいせつ画像・著作権侵害画像・虚偽情報を含む画像の投稿は禁止します。違反が確認された場合は即座に削除し、悪質な場合は関係機関への情報提供を行う場合があります。
+    </div>
+  </div>
+
+  <!-- Section 7c：LIFF（NEW） -->
+
+  <div class="section" id="s7c">
+    <div class="section-title"><span class="section-num">9</span>LIFFアプリ（LINE連携ウェブ機能）について <span class="new-badge">NEW</span></div>
+    <p>本サービスの一部機能は、LINE Front-end Framework（LIFF）を使用しています。LIFFはLINE株式会社が提供するウェブアプリ基盤です。</p>
+    <ul class="check-list">
+      <li>LIFFアプリを開くと、LINEアカウントのユーザーID・表示名・プロフィール画像URLが自動的に取得されます。これはLINEへのログイン状態を利用するためです。</li>
+      <li>取得した情報は本サービスの顧客管理（スマホカルテ・まちなか発見投稿の紐付け）のみに使用します。</li>
+      <li>LIFFアプリの利用にはLINEへのログインが必要です。LINEアカウントをお持ちでない方はご利用いただけません。</li>
+      <li>LINEの認証に関するデータ処理についてはLINE株式会社のプライバシーポリシーが適用されます。</li>
+    </ul>
+    <div class="info-box">
+      <strong>🔒 LIFFで取得する情報の範囲</strong>
+      取得するのはLINEの公開プロフィール情報（ユーザーID・表示名）のみです。LINEのトーク履歴・友達リスト・電話番号・メールアドレスは一切取得しません。
+    </div>
+  </div>
+
+  <!-- Section 8（旧8→10） -->
 
   <div class="section" id="s8">
-    <div class="section-title"><span class="section-num">8</span>免責事項</div>
+    <div class="section-title"><span class="section-num">10</span>免責事項</div>
     <ul class="check-list">
       <li>本サービスの情報は、スマートフォン・通信プランに関する一般的な相談・サポートを目的とするものであり、特定の商品・サービスの購入を強制するものではありません。</li>
       <li>料金比較シミュレーターの結果は参考値であり、実際の料金と異なる場合があります。</li>
-      <li>地域安全マップに表示される情報の正確性・最新性について、運営者は保証しません。</li>
+      <li>地域安全マップおよびまちなか発見マップに表示される情報の正確性・最新性について、運営者は保証しません。</li>
       <li>天災・システム障害等、運営者の責に帰さない事由によるサービス停止については、責任を負いかねます。</li>
-      <li>本サービスはGoogle・LINE・Notionなどの外部サービスを利用しており、これらのサービス変更・障害による影響については責任を負いかねます。</li>
+      <li>本サービスはGoogle・LINE・Notion・Imgurなどの外部サービスを利用しており、これらのサービス変更・障害による影響については責任を負いかねます。</li>
+      <li>まちなか発見機能への投稿内容は、投稿者本人の責任に帰属します。投稿内容によって生じた損害について、運営者は責任を負いかねます。</li>
     </ul>
   </div>
 
-  <!-- Section 9 -->
+  <!-- Section 9（旧9→11） -->
 
   <div class="section" id="s9">
-    <div class="section-title"><span class="section-num">9</span>利用規約の変更について</div>
+    <div class="section-title"><span class="section-num">11</span>利用規約の変更について</div>
     <p>本規約は、法令の変更・サービス内容の変更等に応じて予告なく改定する場合があります。改定後は本ページに最新版を掲載し、重要な変更の場合はLINE公式アカウントにてお知らせします。</p>
     <p>改定後に本サービスをご利用いただいた場合、改定後の規約に同意いただいたものとみなします。</p>
-
-```
-<div class="history">
-  📋 更新履歴<br>
-  2026年4月24日 — 初版制定
-  2026年4月27日 — 第7章に写真送信禁止事項を追記（顧客マスターDB・地域安全マップ・アプリチェック機能に伴う情報収集の明示）
-</div>
-```
-
+    <div class="history">
+      📋 更新履歴<br>
+      2026年4月24日 — 初版制定<br>
+      2026年4月27日 — 第7章に写真送信禁止事項を追記<br>
+      2026年4月30日 — まちなか発見機能（第8章）・LIFFアプリ（第9章）・ブラウザGPS位置情報取得・Imgur画像保管・免責事項追記
+    </div>
   </div>
 
-  <!-- Section 10 -->
+  <!-- Section 10（旧10→12） -->
 
   <div class="section" id="s10">
-    <div class="section-title"><span class="section-num">10</span>お問い合わせ・情報開示請求</div>
+    <div class="section-title"><span class="section-num">12</span>お問い合わせ・情報開示請求</div>
     <p>個人情報の開示・訂正・削除のご請求、または本規約に関するお問い合わせは、以下の方法にてお受けしています。</p>
     <table class="data-table">
       <tr><th>連絡方法</th><th>詳細</th></tr>
@@ -479,18 +521,14 @@ font-family: inherit;
       <tr><td>対応時間</td><td>平日・土日 9:00〜21:00（年末年始を除く）</td></tr>
     </table>
     <p style="margin-top:12px; font-size:0.85rem;">ご請求いただいてから原則7日以内に対応いたします。本人確認が必要な場合は別途ご案内します。</p>
-
-```
-<div class="contact-box">
-  <h3>📩 LINEでお気軽にご相談ください</h3>
-  <p>プライバシーに関するご不明点や<br>情報削除のご依頼はLINEが最も早く対応できます。</p>
-  <a href="https://line.me/R/ti/p/@281jfkpu" class="contact-line-btn">LINEで問い合わせる</a>
-</div>
-```
-
+    <div class="contact-box">
+      <h3>📩 LINEでお気軽にご相談ください</h3>
+      <p>プライバシーに関するご不明点や<br>情報削除のご依頼はLINEが最も早く対応できます。</p>
+      <a href="https://line.me/R/ti/p/@281jfkpu" class="contact-line-btn">LINEで問い合わせる</a>
+    </div>
   </div>
 
-</div><!-- /content -->
+</div>
 
 <div class="back-nav">
   <button class="back-btn" onclick="history.back()">← 前のページに戻る</button>

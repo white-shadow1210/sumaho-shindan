@@ -829,7 +829,7 @@ transition: 0.18s;
 // ==========================================
 // 設定
 // ==========================================
-const GAS_URL   = 'https://script.google.com/macros/s/AKfycbyD01IV-lg0fa_xfu0yeBHW4sokvkRiGXpjN7XjCaVqZAmkEHFpCAAnxNfPDbVD720/exec';
+const GAS_URL   = 'https://script.google.com/macros/s/AKfycbw0jIMP4NlW3NmALzMZIOomXcWwY511pmUN16jj2BD7lJGk6JXsYsQUD-JelvFnKO8/exec';
 const LIFF_ID   = '2009944467-lN8yixTk';
 const MAPS_API_KEY = 'AIzaSyDeC5HxWHonkgh7p-fUe8k6OzKns8Rienk';
 
@@ -1281,39 +1281,40 @@ async function submitChiikiPost() {
 
   statusEl.textContent = '📤 投稿中...';
 
-  // GASに送信（no-corsモードでCORSを回避）
+  // GASに送信（GETリクエストでCORS回避）
+  // iOSのLINEアプリ内ブラウザはPOSTをブロックするためGETを使用
   try {
-    await fetch(GAS_URL, {
-      method:  'POST',
-      mode:    'no-cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({
-        formType:    'chiiki_post',
-        category:    category,
-        title:       titleVal || category,
-        lat:         lat,
-        lng:         lng,
-        address:     address,
-        userId:      liffUserId,
-        displayName: liffDisplayName,
-        imageBase64: imageBase64,
-        imageMime:   imageMime
-      })
+    const params = new URLSearchParams({
+      action:      'chiikiPost',
+      category:    category,
+      title:       titleVal || category,
+      lat:         lat,
+      lng:         lng,
+      address:     address,
+      userId:      liffUserId,
+      displayName: liffDisplayName,
+      imageBase64: imageBase64,
+      imageMime:   imageMime
     });
-    // no-corsモードではレスポンスが読めないため成功とみなす
-    statusEl.textContent = '✅ 投稿完了！フィードに反映されます😊';
-    statusEl.style.color = '#27AE60';
-    // フォームリセット
-    document.getElementById('submit-title').value = '';
-    document.getElementById('submit-image').value = '';
-    document.getElementById('submit-preview').style.display = 'none';
-    document.getElementById('submit-category').value = '';
-    document.querySelectorAll('.submit-cat-btn').forEach(b => b.classList.remove('selected'));
-    // 3秒後にモーダルを閉じてフィードを再読み込み
-    setTimeout(async () => {
-      closePostModal();
-      await loadData();
-    }, 2500);
+
+    const res  = await fetch(GAS_URL + '?' + params.toString());
+    const json = await res.json();
+
+    if (json.status === 'success') {
+      statusEl.textContent = '✅ 投稿完了！フィードに反映されます😊';
+      statusEl.style.color = '#27AE60';
+      document.getElementById('submit-title').value = '';
+      document.getElementById('submit-image').value = '';
+      document.getElementById('submit-preview').style.display = 'none';
+      document.getElementById('submit-category').value = '';
+      document.querySelectorAll('.submit-cat-btn').forEach(b => b.classList.remove('selected'));
+      setTimeout(async () => {
+        closePostModal();
+        await loadData();
+      }, 2500);
+    } else {
+      throw new Error(json.message || '送信エラー');
+    }
   } catch(e) {
     statusEl.textContent = '❌ エラー: ' + e.message;
     statusEl.style.color = '#e74c3c';

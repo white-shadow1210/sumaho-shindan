@@ -506,6 +506,101 @@ transition: 0.18s;
 }
 .post-modal-cancel:active { background: #e5e0d4; }
 
+/* ── 投稿フォームスタイル ── */
+.submit-label {
+font-size: 0.8rem;
+font-weight: 700;
+color: var(–text);
+margin-bottom: 6px;
+}
+.submit-required {
+color: #e74c3c;
+font-size: 0.68rem;
+margin-left: 4px;
+}
+.submit-cat-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 8px;
+margin-bottom: 4px;
+}
+.submit-cat-btn {
+padding: 10px 6px;
+border-radius: 12px;
+border: 2px solid var(–border);
+background: var(–beige);
+font-family: inherit;
+font-size: 0.82rem;
+font-weight: 700;
+color: var(–text);
+cursor: pointer;
+transition: 0.18s;
+}
+.submit-cat-btn.selected {
+border-color: var(–primary);
+background: #e8f7f7;
+color: var(–primary);
+}
+.submit-cat-btn:active { transform: scale(0.96); }
+.submit-input {
+width: 100%;
+padding: 10px 14px;
+border-radius: 12px;
+border: 1.5px solid var(–border);
+background: var(–beige);
+font-family: inherit;
+font-size: 0.88rem;
+color: var(–text);
+outline: none;
+}
+.submit-input:focus { border-color: var(–primary); }
+.submit-img-label { display: block; cursor: pointer; }
+.submit-img-btn {
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 8px;
+padding: 11px;
+border-radius: 12px;
+border: 2px dashed var(–border);
+background: var(–beige);
+font-size: 0.85rem;
+font-weight: 700;
+color: var(–muted);
+transition: 0.18s;
+}
+.submit-img-btn:active { background: var(–beige-d); }
+.submit-location-note {
+font-size: 0.72rem;
+color: var(–muted);
+text-align: center;
+margin: 10px 0 4px;
+padding: 8px;
+background: var(–beige);
+border-radius: 10px;
+}
+.submit-post-btn {
+width: 100%;
+padding: 15px;
+border-radius: 14px;
+border: none;
+background: var(–primary);
+color: white;
+font-family: inherit;
+font-size: 1rem;
+font-weight: 900;
+cursor: pointer;
+transition: 0.18s;
+margin-bottom: 10px;
+box-shadow: 0 3px 12px rgba(36,148,150,0.35);
+}
+.submit-post-btn:disabled {
+background: var(–muted);
+box-shadow: none;
+cursor: not-allowed;
+}
+.submit-post-btn:not(:disabled):active { background: var(–primary-d); transform: scale(0.98); }
+
 /* ── STEP2スタイル ── */
 .post-step2-cat {
 text-align: center;
@@ -671,80 +766,66 @@ transition: 0.18s;
     <div class="post-modal-handle"></div>
 
 ```
-<!-- STEP 1: カテゴリ選択 -->
+<!-- STEP 1: カテゴリ＋投稿フォーム -->
 <div id="post-step1">
-  <div class="post-modal-title">📍 カテゴリを選んでください</div>
-  <div class="post-modal-sub">投稿する内容に合ったカテゴリを選ぶと<br>GASが案内メッセージを返信します</div>
-  <div class="post-modal-actions">
-    <button class="post-action-btn" onclick="selectPostCategory('発見・景色')">
-      <div class="post-action-icon" style="background:#e8f8ee;">🌸</div>
-      <div class="post-action-text">
-        <span class="post-action-label">発見・景色</span>
-        <span class="post-action-desc">きれいな場所・風景・おすすめスポット</span>
-      </div>
-    </button>
-    <button class="post-action-btn" onclick="selectPostCategory('グルメ')">
-      <div class="post-action-icon" style="background:#fff3e0;">🍜</div>
-      <div class="post-action-text">
-        <span class="post-action-label">グルメ</span>
-        <span class="post-action-desc">美味しいお店・おすすめ飲食情報</span>
-      </div>
-    </button>
-    <button class="post-action-btn" onclick="selectPostCategory('困りごと')">
-      <div class="post-action-icon" style="background:#ffeaea;">⚠️</div>
-      <div class="post-action-text">
-        <span class="post-action-label">困りごと</span>
-        <span class="post-action-desc">道路の問題・危険箇所・地域の課題</span>
-      </div>
-    </button>
-    <button class="post-action-btn" onclick="selectPostCategory('イベント')">
-      <div class="post-action-icon" style="background:#f3eaff;">🎉</div>
-      <div class="post-action-text">
-        <span class="post-action-label">イベント</span>
-        <span class="post-action-desc">地域のイベント・お祭り・行事情報</span>
-      </div>
-    </button>
+  <div class="post-modal-title">📍 地域発見を投稿する</div>
+  <div class="post-modal-sub">写真と現在地を添えて投稿しましょう</div>
+
+  <!-- カテゴリ選択 -->
+  <div class="submit-label">カテゴリ <span class="submit-required">必須</span></div>
+  <div class="submit-cat-grid">
+    <button class="submit-cat-btn" data-cat="発見・景色" onclick="selectSubmitCat(this)">🌸 発見・景色</button>
+    <button class="submit-cat-btn" data-cat="グルメ"     onclick="selectSubmitCat(this)">🍜 グルメ</button>
+    <button class="submit-cat-btn" data-cat="困りごと"   onclick="selectSubmitCat(this)">⚠️ 困りごと</button>
+    <button class="submit-cat-btn" data-cat="イベント"   onclick="selectSubmitCat(this)">🎉 イベント</button>
   </div>
+  <input type="hidden" id="submit-category" value="">
+
+  <!-- タイトル（任意） -->
+  <div class="submit-label" style="margin-top:14px;">タイトル <span style="color:var(--muted);font-size:0.7rem;">任意</span></div>
+  <input type="text" id="submit-title" class="submit-input"
+    placeholder="例：牧之原の絶景スポット" maxlength="40">
+
+  <!-- 写真（任意） -->
+  <div class="submit-label" style="margin-top:14px;">写真 <span style="color:var(--muted);font-size:0.7rem;">任意</span></div>
+  <label class="submit-img-label">
+    <input type="file" id="submit-image" accept="image/*" capture="environment"
+      onchange="onImageSelected(this)" style="display:none">
+    <span class="submit-img-btn">📷 写真を選ぶ / 撮影する</span>
+  </label>
+  <img id="submit-preview" src="" alt="プレビュー"
+    style="display:none;width:100%;border-radius:12px;margin-top:8px;max-height:200px;object-fit:cover;">
+
+  <!-- 位置情報の説明 -->
+  <div class="submit-location-note">
+    📍 投稿ボタンを押すと現在地を自動取得します
+  </div>
+
+  <!-- ステータス表示 -->
+  <div id="submit-status" style="font-size:0.8rem;min-height:1.2em;margin:8px 0;text-align:center;"></div>
+
+  <!-- 送信ボタン -->
+  <button id="submit-btn" class="submit-post-btn" onclick="submitChiikiPost()">
+    📮 投稿する
+  </button>
   <button class="post-modal-cancel" onclick="closePostModal()">キャンセル</button>
 </div>
 
-<!-- STEP 2: LINE誘導（カテゴリ選択後） -->
-<div id="post-step2" style="display:none;">
-  <div class="post-step2-cat" id="post-step2-cat"></div>
-  <div class="post-modal-title" style="margin-bottom:8px;">次のステップ</div>
-  <div class="post-modal-sub" style="margin-bottom:20px;">
-    LINEトーク画面で「送信」ボタンを押すと<br>自動返信でご案内します📍
-  </div>
-  <div class="post-step2-guide">
-    <div class="post-step2-step">
-      <div class="post-step2-num">1</div>
-      <div class="post-step2-text">「LINEで送信する」をタップ</div>
-    </div>
-    <div class="post-step2-step">
-      <div class="post-step2-num">2</div>
-      <div class="post-step2-text">トーク画面で送信ボタンを押す</div>
-    </div>
-    <div class="post-step2-step">
-      <div class="post-step2-num">3</div>
-      <div class="post-step2-text">返信に従って位置情報・写真を送る</div>
-    </div>
-  </div>
-  <a class="post-line-btn" id="post-line-link" href="#">
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="white"><path d="M12 2C6.48 2 2 5.92 2 10.72c0 3.2 1.88 6.01 4.72 7.7L6 22l4.44-2.32c.51.09 1.03.14 1.56.14 5.52 0 10-3.92 10-8.72C22 5.92 17.52 2 12 2z"/></svg>
-    LINEで送信する
-  </a>
-  <button class="post-modal-cancel" onclick="backToStep1()">← カテゴリを選び直す</button>
-</div>
+<!-- STEP2は削除（LIFFで直接投稿するため不要） -->
+<div id="post-step2" style="display:none;"></div>
 ```
 
   </div>
 </div>
 
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
 <script>
 // ==========================================
 // 設定
 // ==========================================
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbz3CsxRGLTs5HzPI9zw0q9sXPTTOIQhI2zV-48snqVNiw16TNi8zmTDYveK6jkZjeM/exec';
+const GAS_URL   = 'https://script.google.com/macros/s/AKfycbz3CsxRGLTs5HzPI9zw0q9sXPTTOIQhI2zV-48snqVNiw16TNi8zmTDYveK6jkZjeM/exec';
+const LIFF_ID   = '2009944467-lN8yixTk';
 const MAPS_API_KEY = 'AIzaSyDeC5HxWHonkgh7p-fUe8k6OzKns8Rienk';
 
 const CAT_CONFIG = {
@@ -766,8 +847,13 @@ let likedIds        = JSON.parse(localStorage.getItem('chiiki_likes') || '{}');
 let chiikiMap       = null;
 let mapMarkers      = [];
 let mapInitialized  = false;
-let focusedLat      = null; // 詳細→マップ遷移時のフォーカス位置
+let focusedLat      = null;
 let focusedLng      = null;
+
+// ── LIFF ユーザー情報
+let liffUserId      = '';
+let liffDisplayName = '';
+let liffReady       = false;
 
 // ==========================================
 // データ取得
@@ -1036,10 +1122,17 @@ function renderMapMarkers() {
 function onMapsReady() {}
 
 // ==========================================
-// 投稿モーダル（2ステップ）
+// 投稿モーダル（LIFFフォーム版）
 // ==========================================
 function openPostModal() {
-  backToStep1(); // 常にSTEP1から開始
+  // フォームリセット
+  document.getElementById('submit-category').value = '';
+  document.getElementById('submit-title').value    = '';
+  document.getElementById('submit-image').value    = '';
+  document.getElementById('submit-preview').style.display = 'none';
+  document.getElementById('submit-status').textContent    = '';
+  document.querySelectorAll('.submit-cat-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('submit-btn').disabled = false;
   document.getElementById('post-modal').classList.add('open');
 }
 function closePostModal() {
@@ -1049,41 +1142,195 @@ function closePostModalOnBg(e) {
   if (e.target === document.getElementById('post-modal')) closePostModal();
 }
 
-function selectPostCategory(cat) {
-  const catConfig = {
-    '発見・景色': { icon: '🌸', color: '#27AE60' },
-    'グルメ':     { icon: '🍜', color: '#e8850a' },
-    '困りごと':   { icon: '⚠️', color: '#E74C3C' },
-    'イベント':   { icon: '🎉', color: '#9B59B6' }
-  };
-  const cfg = catConfig[cat];
-
-  // STEP2のカテゴリ表示を更新
-  const catEl = document.getElementById('post-step2-cat');
-  catEl.innerHTML = `${cfg.icon} <span style="color:${cfg.color}">${cat}</span> を選択しました`;
-
-  // LINEリンクのURLを生成（「地域発見：〇〇」をURLエンコード）
-  const msg = encodeURIComponent('地域発見：' + cat);
-  document.getElementById('post-line-link').href =
-    'https://line.me/R/oaMessage/@281jfkpu/?' + msg;
-
-  // STEP1→STEP2へ切り替え
-  document.getElementById('post-step1').style.display = 'none';
-  document.getElementById('post-step2').style.display = 'block';
+function selectSubmitCat(btn) {
+  document.querySelectorAll('.submit-cat-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('submit-category').value = btn.dataset.cat;
 }
 
-function backToStep1() {
-  document.getElementById('post-step1').style.display = 'block';
-  document.getElementById('post-step2').style.display = 'none';
-}
+// 旧関数（後方互換のため残す）
+function selectPostCategory(cat) {}
+function backToStep1() {}
 
 // ==========================================
-// 起動
+// 起動 + LIFF初期化
 // ==========================================
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
   switchView('feed');
   loadData();
+
+  // LIFF初期化
+  try {
+    await liff.init({ liffId: LIFF_ID });
+    if (liff.isLoggedIn()) {
+      const profile   = await liff.getProfile();
+      liffUserId      = profile.userId;
+      liffDisplayName = profile.displayName;
+      liffReady       = true;
+      console.log('LIFF初期化完了: ' + liffDisplayName);
+    } else {
+      // LINEアプリ外（ブラウザ）でアクセスした場合はログイン
+      if (!liff.isInClient()) {
+        liff.login();
+      }
+    }
+  } catch(e) {
+    console.warn('LIFF初期化エラー（ブラウザアクセスの可能性）: ' + e);
+    liffReady = false;
+  }
 });
+
+// ==========================================
+// 投稿フォーム送信処理（LIFF）
+// ==========================================
+async function submitChiikiPost() {
+  const category    = document.getElementById('submit-category').value;
+  const titleVal    = document.getElementById('submit-title').value.trim();
+  const imageFile   = document.getElementById('submit-image').files[0];
+  const submitBtn   = document.getElementById('submit-btn');
+  const statusEl    = document.getElementById('submit-status');
+
+  if (!category) {
+    statusEl.textContent = '⚠️ カテゴリを選択してください';
+    statusEl.style.color = '#e74c3c';
+    return;
+  }
+
+  submitBtn.disabled   = true;
+  statusEl.textContent = '📍 位置情報を取得中...';
+  statusEl.style.color = '#249496';
+
+  // 位置情報取得
+  let lat = 0, lng = 0, address = '';
+  try {
+    const pos = await new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: true, timeout: 10000
+      });
+    });
+    lat = pos.coords.latitude;
+    lng = pos.coords.longitude;
+
+    // 逆ジオコーディング（住所取得）
+    try {
+      const geoRes  = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&language=ja&key=${MAPS_API_KEY}`
+      );
+      const geoJson = await geoRes.json();
+      if (geoJson.results && geoJson.results[0]) {
+        address = geoJson.results[0].formatted_address;
+      }
+    } catch(ge) { console.warn('逆ジオコーディング失敗:', ge); }
+
+  } catch(e) {
+    statusEl.textContent = '⚠️ 位置情報の取得に失敗しました。設定で位置情報を許可してください。';
+    statusEl.style.color = '#e74c3c';
+    submitBtn.disabled   = false;
+    return;
+  }
+
+  // 画像処理（選択された場合のみ）
+  let imageBase64 = '';
+  let imageMime   = '';
+  if (imageFile) {
+    statusEl.textContent = '🖼️ 画像を圧縮中...';
+    try {
+      const result  = await compressImage(imageFile, 1200, 0.75);
+      imageBase64   = result.base64;
+      imageMime     = result.mime;
+    } catch(e) {
+      console.warn('画像圧縮エラー:', e);
+    }
+  }
+
+  statusEl.textContent = '📤 投稿中...';
+
+  // GASに送信
+  try {
+    const res = await fetch(GAS_URL, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        formType:    'chiiki_post',
+        category:    category,
+        title:       titleVal || category,
+        lat:         lat,
+        lng:         lng,
+        address:     address,
+        userId:      liffUserId,
+        displayName: liffDisplayName,
+        imageBase64: imageBase64,
+        imageMime:   imageMime
+      })
+    });
+    const json = await res.json();
+
+    if (json.status === 'success') {
+      statusEl.textContent = '✅ 投稿完了！フィードに反映されます😊';
+      statusEl.style.color = '#27AE60';
+      // フォームリセット
+      document.getElementById('submit-title').value = '';
+      document.getElementById('submit-image').value = '';
+      document.getElementById('submit-preview').style.display = 'none';
+      document.getElementById('submit-category').value = '';
+      // 3秒後にモーダルを閉じてフィードを再読み込み
+      setTimeout(async () => {
+        closePostModal();
+        await loadData();
+      }, 2500);
+    } else {
+      throw new Error(json.message || '送信エラー');
+    }
+  } catch(e) {
+    statusEl.textContent = '❌ 投稿に失敗しました。もう一度お試しください。';
+    statusEl.style.color = '#e74c3c';
+    console.error('投稿エラー:', e);
+  }
+
+  submitBtn.disabled = false;
+}
+
+// ==========================================
+// 画像圧縮（Canvas使用）
+// ==========================================
+function compressImage(file, maxWidth, quality) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        let w = img.width, h = img.height;
+        if (w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
+        canvas.width  = w;
+        canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        const dataUrl  = canvas.toDataURL('image/jpeg', quality);
+        const base64   = dataUrl.split(',')[1];
+        resolve({ base64: base64, mime: 'image/jpeg' });
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// 画像プレビュー
+function onImageSelected(input) {
+  const preview = document.getElementById('submit-preview');
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      preview.src          = e.target.result;
+      preview.style.display = 'block';
+    };
+    reader.readAsDataURL(input.files[0]);
+  } else {
+    preview.style.display = 'none';
+  }
+}
 </script>
 
 <script

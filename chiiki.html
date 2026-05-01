@@ -1202,6 +1202,36 @@ async function submitChiikiPost() {
   }
 
   submitBtn.disabled   = true;
+  // ★ デバッグ：LIFF状態を表示
+  statusEl.textContent = '🔍 LIFF確認中... userId=' + (liffUserId || '未取得');
+  statusEl.style.color = '#249496';
+
+  // ★ LIFFが未初期化の場合は再試行
+  if (!liffReady || !liffUserId) {
+    try {
+      statusEl.textContent = '🔄 LIFF再初期化中...';
+      await liff.init({ liffId: LIFF_ID });
+      if (liff.isLoggedIn()) {
+        const profile   = await liff.getProfile();
+        liffUserId      = profile.userId;
+        liffDisplayName = profile.displayName;
+        liffReady       = true;
+        statusEl.textContent = '✅ LIFF初期化完了: ' + liffDisplayName;
+      } else {
+        statusEl.textContent = '⚠️ LINEログインが必要です';
+        statusEl.style.color = '#e74c3c';
+        submitBtn.disabled   = false;
+        liff.login();
+        return;
+      }
+    } catch(liffErr) {
+      statusEl.textContent = '⚠️ LIFF初期化失敗: ' + liffErr.message;
+      statusEl.style.color = '#e74c3c';
+      submitBtn.disabled   = false;
+      return;
+    }
+  }
+
   statusEl.textContent = '📍 位置情報を取得中...';
   statusEl.style.color = '#249496';
 
@@ -1287,7 +1317,7 @@ async function submitChiikiPost() {
       throw new Error(json.message || '送信エラー');
     }
   } catch(e) {
-    statusEl.textContent = '❌ 投稿に失敗しました。もう一度お試しください。';
+    statusEl.textContent = '❌ エラー: ' + e.message;
     statusEl.style.color = '#e74c3c';
     console.error('投稿エラー:', e);
   }

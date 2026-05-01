@@ -1026,8 +1026,9 @@ async function toggleLike() {
 
   try {
     await fetch(GAS_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method:  'POST',
+      mode:    'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({
         formType:   'chiiki_like',
         recordDate: currentRecord.date,
@@ -1280,11 +1281,12 @@ async function submitChiikiPost() {
 
   statusEl.textContent = '📤 投稿中...';
 
-  // GASに送信
+  // GASに送信（no-corsモードでCORSを回避）
   try {
-    const res = await fetch(GAS_URL, {
+    await fetch(GAS_URL, {
       method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
+      mode:    'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({
         formType:    'chiiki_post',
         category:    category,
@@ -1298,24 +1300,20 @@ async function submitChiikiPost() {
         imageMime:   imageMime
       })
     });
-    const json = await res.json();
-
-    if (json.status === 'success') {
-      statusEl.textContent = '✅ 投稿完了！フィードに反映されます😊';
-      statusEl.style.color = '#27AE60';
-      // フォームリセット
-      document.getElementById('submit-title').value = '';
-      document.getElementById('submit-image').value = '';
-      document.getElementById('submit-preview').style.display = 'none';
-      document.getElementById('submit-category').value = '';
-      // 3秒後にモーダルを閉じてフィードを再読み込み
-      setTimeout(async () => {
-        closePostModal();
-        await loadData();
-      }, 2500);
-    } else {
-      throw new Error(json.message || '送信エラー');
-    }
+    // no-corsモードではレスポンスが読めないため成功とみなす
+    statusEl.textContent = '✅ 投稿完了！フィードに反映されます😊';
+    statusEl.style.color = '#27AE60';
+    // フォームリセット
+    document.getElementById('submit-title').value = '';
+    document.getElementById('submit-image').value = '';
+    document.getElementById('submit-preview').style.display = 'none';
+    document.getElementById('submit-category').value = '';
+    document.querySelectorAll('.submit-cat-btn').forEach(b => b.classList.remove('selected'));
+    // 3秒後にモーダルを閉じてフィードを再読み込み
+    setTimeout(async () => {
+      closePostModal();
+      await loadData();
+    }, 2500);
   } catch(e) {
     statusEl.textContent = '❌ エラー: ' + e.message;
     statusEl.style.color = '#e74c3c';

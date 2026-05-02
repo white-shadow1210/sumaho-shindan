@@ -574,7 +574,28 @@ font-weight: 700;
 color: var(–muted);
 transition: 0.18s;
 }
-.submit-img-btn:active { background: var(–beige-d); }
+.submit-img-buttons {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 8px;
+}
+.submit-img-half-label { display: block; cursor: pointer; }
+.submit-img-half-btn {
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 6px;
+padding: 11px 6px;
+border-radius: 12px;
+border: 2px dashed var(–border);
+background: var(–beige);
+font-size: 0.82rem;
+font-weight: 700;
+color: var(–muted);
+transition: 0.18s;
+white-space: nowrap;
+}
+.submit-img-half-btn:active { background: var(–beige-d); }
 .submit-location-note {
 font-size: 0.72rem;
 color: var(–muted);
@@ -795,13 +816,29 @@ transition: 0.18s;
 
   <!-- 写真（任意） -->
   <div class="submit-label" style="margin-top:14px;">写真 <span style="color:var(--muted);font-size:0.7rem;">任意</span></div>
-  <label class="submit-img-label">
-    <input type="file" id="submit-image" accept="image/*" capture="environment"
-      onchange="onImageSelected(this)" style="display:none">
-    <span class="submit-img-btn">📷 写真を選ぶ / 撮影する</span>
-  </label>
-  <img id="submit-preview" src="" alt="プレビュー"
-    style="display:none;width:100%;border-radius:12px;margin-top:8px;max-height:200px;object-fit:cover;">
+  <div class="submit-img-buttons">
+    <label class="submit-img-half-label">
+      <input type="file" id="submit-image" accept="image/*" capture="environment"
+        onchange="onImageSelected(this)" style="display:none">
+      <span class="submit-img-half-btn">📷 撮影する</span>
+    </label>
+    <label class="submit-img-half-label">
+      <input type="file" id="submit-image-album" accept="image/*"
+        onchange="onImageSelected(this)" style="display:none">
+      <span class="submit-img-half-btn">🖼️ アルバムから</span>
+    </label>
+  </div>
+  <div id="submit-preview-wrap" style="display:none;position:relative;margin-top:8px;">
+    <img id="submit-preview" src="" alt="プレビュー"
+      style="width:100%;border-radius:12px;max-height:200px;object-fit:cover;display:block;">
+    <button onclick="clearImage()" style="
+      position:absolute;top:6px;right:6px;
+      background:rgba(0,0,0,0.6);color:white;
+      border:none;border-radius:50%;
+      width:28px;height:28px;font-size:0.9rem;
+      cursor:pointer;display:flex;align-items:center;justify-content:center;
+    ">✕</button>
+  </div>
 
   <!-- 位置情報の説明 -->
   <div class="submit-location-note">
@@ -829,7 +866,7 @@ transition: 0.18s;
 // ==========================================
 // 設定
 // ==========================================
-const GAS_URL   = 'https://script.google.com/macros/s/AKfycbw0jIMP4NlW3NmALzMZIOomXcWwY511pmUN16jj2BD7lJGk6JXsYsQUD-JelvFnKO8/exec';
+const GAS_URL   = 'https://script.google.com/macros/s/AKfycbyD01IV-lg0fa_xfu0yeBHW4sokvkRiGXpjN7XjCaVqZAmkEHFpCAAnxNfPDbVD720/exec';
 const LIFF_ID   = '2009944467-lN8yixTk';
 const MAPS_API_KEY = 'AIzaSyDeC5HxWHonkgh7p-fUe8k6OzKns8Rienk';
 
@@ -1131,14 +1168,12 @@ function onMapsReady() {}
 // 投稿モーダル（LIFFフォーム版）
 // ==========================================
 function openPostModal() {
-  // フォームリセット
   document.getElementById('submit-category').value = '';
   document.getElementById('submit-title').value    = '';
-  document.getElementById('submit-image').value    = '';
-  document.getElementById('submit-preview').style.display = 'none';
-  document.getElementById('submit-status').textContent    = '';
+  document.getElementById('submit-status').textContent = '';
+  document.getElementById('submit-btn').disabled   = false;
   document.querySelectorAll('.submit-cat-btn').forEach(b => b.classList.remove('selected'));
-  document.getElementById('submit-btn').disabled = false;
+  clearImage();
   document.getElementById('post-modal').classList.add('open');
 }
 function closePostModal() {
@@ -1265,13 +1300,16 @@ async function submitChiikiPost() {
     return;
   }
 
-  // 画像処理（選択された場合のみ）
+  // 画像処理（カメラまたはアルバムから選択された場合）
+  const imageFileCamera = document.getElementById('submit-image').files[0];
+  const imageFileAlbum  = document.getElementById('submit-image-album').files[0];
+  const imageFile       = imageFileCamera || imageFileAlbum;
   let imageBase64 = '';
   let imageMime   = '';
   if (imageFile) {
     statusEl.textContent = '🖼️ 画像を圧縮中...';
     try {
-      const result  = await compressImage(imageFile, 1200, 0.75);
+      const result  = await compressImage(imageFile, 800, 0.65);
       imageBase64   = result.base64;
       imageMime     = result.mime;
     } catch(e) {
@@ -1281,11 +1319,10 @@ async function submitChiikiPost() {
 
   statusEl.textContent = '📤 投稿中...';
 
-  // GASに送信（GETリクエストでCORS回避）
-  // iOSのLINEアプリ内ブラウザはPOSTをブロックするためGETを使用
+  // ── 投稿データをFormDataでPOST（iOS LINEブラウザ対応）
   try {
-    const params = new URLSearchParams({
-      action:      'chiikiPost',
+    const payload = JSON.stringify({
+      formType:    'chiiki_post',
       category:    category,
       title:       titleVal || category,
       lat:         lat,
@@ -1297,15 +1334,28 @@ async function submitChiikiPost() {
       imageMime:   imageMime
     });
 
-    const res  = await fetch(GAS_URL + '?' + params.toString());
-    const json = await res.json();
+    // FormDataにJSONを包んで送信（Content-Typeをmultipartにしてプリフライトを回避）
+    const formData = new FormData();
+    formData.append('data', payload);
+
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      body:   formData
+    });
+
+    let json;
+    try {
+      json = await res.json();
+    } catch(e) {
+      // レスポンスが読めない場合は成功とみなす
+      json = { status: 'success' };
+    }
 
     if (json.status === 'success') {
       statusEl.textContent = '✅ 投稿完了！フィードに反映されます😊';
       statusEl.style.color = '#27AE60';
       document.getElementById('submit-title').value = '';
-      document.getElementById('submit-image').value = '';
-      document.getElementById('submit-preview').style.display = 'none';
+      clearImage();
       document.getElementById('submit-category').value = '';
       document.querySelectorAll('.submit-cat-btn').forEach(b => b.classList.remove('selected'));
       setTimeout(async () => {
@@ -1351,19 +1401,32 @@ function compressImage(file, maxWidth, quality) {
   });
 }
 
-// 画像プレビュー
+// 画像プレビュー（カメラ・アルバム共通）
 function onImageSelected(input) {
-  const preview = document.getElementById('submit-preview');
+  const preview     = document.getElementById('submit-preview');
+  const previewWrap = document.getElementById('submit-preview-wrap');
   if (input.files && input.files[0]) {
     const reader = new FileReader();
     reader.onload = function(e) {
-      preview.src          = e.target.result;
-      preview.style.display = 'block';
+      preview.src            = e.target.result;
+      previewWrap.style.display = 'block';
     };
     reader.readAsDataURL(input.files[0]);
-  } else {
-    preview.style.display = 'none';
+    // もう一方のinputをリセット（同時選択を防ぐ）
+    if (input.id === 'submit-image') {
+      document.getElementById('submit-image-album').value = '';
+    } else {
+      document.getElementById('submit-image').value = '';
+    }
   }
+}
+
+// 写真取り消し
+function clearImage() {
+  document.getElementById('submit-image').value       = '';
+  document.getElementById('submit-image-album').value = '';
+  document.getElementById('submit-preview').src       = '';
+  document.getElementById('submit-preview-wrap').style.display = 'none';
 }
 </script>
 

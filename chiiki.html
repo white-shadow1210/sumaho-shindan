@@ -902,19 +902,27 @@ let liffReady       = false;
 // ==========================================
 async function loadData() {
   try {
-    const res  = await fetch(GAS_URL + '?action=getChiikiData');
-    const json = await res.json();
-    if (json.status !== 'success') throw new Error(json.message);
+    const url = GAS_URL + '?action=getChiikiData&t=' + Date.now();
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    const res  = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeout);
+    const text = await res.text();
+    let json;
+    try { json = JSON.parse(text); }
+    catch(pe) { throw new Error('JSONパースエラー: ' + text.substring(0,100)); }
+    if (json.status !== 'success') throw new Error(json.message || 'status error');
     allRecords = (json.records || []).reverse();
     document.getElementById('total-count').textContent = allRecords.length;
     filterCat(currentCat);
   } catch(e) {
-    console.error('データ取得エラー:', e);
+    const msg = e.name === 'AbortError' ? 'タイムアウト（15秒）' : e.message;
     document.getElementById('feed-grid-wrap').innerHTML = `
       <div class="feed-empty">
         <div class="feed-empty-icon">📡</div>
         <h3>データを取得できませんでした</h3>
-        <p>しばらく経ってから再度お試しください</p>
+        <p style="font-size:0.65rem;color:#e74c3c;word-break:break-all;">${msg}</p>
+        <button onclick="loadData()" style="margin-top:12px;padding:8px 20px;background:var(--primary);color:white;border:none;border-radius:20px;font-size:0.8rem;font-weight:700;cursor:pointer;">再試行</button>
       </div>`;
   }
 }

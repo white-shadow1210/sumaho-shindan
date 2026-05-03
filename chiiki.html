@@ -901,12 +901,25 @@ let liffReady       = false;
 // データ取得
 // ==========================================
 async function loadData() {
-  // ダミーデータで表示テスト（GAS呼び出しなし）
-  allRecords = [
-    { date: '2026-05-03T10:00:00', category: 'グルメ', title: 'テスト投稿', address: '吉田町', lat: 34.767, lng: 138.261, imageUrl: '', likes: 0 }
-  ];
-  document.getElementById('total-count').textContent = allRecords.length;
-  filterCat(currentCat);
+  try {
+    const url = GAS_URL + '?action=getChiikiData&t=' + Date.now();
+    const res  = await fetch(url);
+    const text = await res.text();
+    const json = JSON.parse(text);
+    if (json.status !== 'success') throw new Error(json.message || 'error');
+    allRecords = (json.records || []).reverse();
+    document.getElementById('total-count').textContent = allRecords.length;
+    filterCat(currentCat);
+  } catch(e) {
+    console.error('データ取得エラー:', e);
+    document.getElementById('feed-grid-wrap').innerHTML = `
+      <div class="feed-empty">
+        <div class="feed-empty-icon">📡</div>
+        <h3>データを取得できませんでした</h3>
+        <p style="font-size:0.7rem;color:#e74c3c;">${e.message}</p>
+        <button onclick="loadData()" style="margin-top:12px;padding:8px 20px;background:var(--primary);color:white;border:none;border-radius:20px;font-size:0.8rem;font-weight:700;cursor:pointer;">再試行</button>
+      </div>`;
+  }
 }
 
 // ==========================================

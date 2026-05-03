@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>街のお知らせ | 吉田町まちなかLINE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary:   #249496;
+  --primary-d: #1b7a7c;
+  --navy:      #0f1f2e;
+  --beige:     #FCFAF5;
+  --beige-d:   #f0ece0;
+  --white:     #ffffff;
+  --text:      #1a1a1a;
+  --muted:     #8a8a8a;
+  --border:    rgba(0,0,0,0.08);
+  --r:         16px;
+
+/* カテゴリ別カラー */
+–col-event:   #9B59B6;
+–col-news:    #249496;
+–col-shop:    #e8850a;
+–col-welfare: #27AE60;
+–col-alert:   #E74C3C;
+}
+
+- { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: ‘Noto Sans JP’, sans-serif; background: var(–beige); color: var(–text); height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+
+/* ヘッダー */
+.app-header { background: var(–white); border-bottom: 1px solid var(–border); padding: 0 16px; height: 56px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; position: relative; z-index: 100; }
+.app-logo { font-family: ‘DM Sans’, sans-serif; font-weight: 700; font-size: 1.05rem; color: var(–primary); letter-spacing: -0.03em; }
+.app-logo span { color: var(–navy); }
+.header-subtitle { font-size: 0.58rem; color: var(–muted); position: absolute; left: 50%; transform: translateX(-50%); white-space: nowrap; }
+.header-refresh { background: none; border: none; color: var(–muted); font-size: 1.1rem; cursor: pointer; padding: 8px; }
+
+/* カテゴリフィルター */
+.cat-filter { display: flex; gap: 7px; padding: 10px 14px; overflow-x: auto; background: var(–white); border-bottom: 1px solid var(–border); flex-shrink: 0; scrollbar-width: none; }
+.cat-filter::-webkit-scrollbar { display: none; }
+.cat-pill { flex-shrink: 0; display: flex; align-items: center; gap: 4px; padding: 5px 12px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; cursor: pointer; border: 1.5px solid var(–border); background: var(–beige); color: var(–muted); transition: 0.18s; white-space: nowrap; }
+.cat-pill.active { color: white; border-color: transparent; }
+.cat-pill[data-cat=“all”].active      { background: var(–navy); }
+.cat-pill[data-cat=“event”].active    { background: var(–col-event); }
+.cat-pill[data-cat=“news”].active     { background: var(–col-news); }
+.cat-pill[data-cat=“shop”].active     { background: var(–col-shop); }
+.cat-pill[data-cat=“welfare”].active  { background: var(–col-welfare); }
+.cat-pill[data-cat=“alert”].active    { background: var(–col-alert); }
+
+/* メインスクロール */
+.main-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 12px 14px 30px; }
+
+/* ローディング */
+.loading-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; gap: 12px; color: var(–muted); font-size: 0.82rem; }
+.spinner { width: 32px; height: 32px; border: 3px solid var(–beige-d); border-top-color: var(–primary); border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* お知らせカード */
+.news-card {
+background: var(–white);
+border-radius: var(–r);
+padding: 14px 16px;
+margin-bottom: 10px;
+box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+cursor: pointer;
+transition: transform 0.15s, box-shadow 0.15s;
+display: flex;
+gap: 12px;
+align-items: flex-start;
+text-decoration: none;
+color: inherit;
+}
+.news-card:active { transform: scale(0.98); box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+
+/* カテゴリ帯 */
+.news-cat-bar {
+width: 4px;
+border-radius: 4px;
+flex-shrink: 0;
+align-self: stretch;
+min-height: 50px;
+}
+
+.news-body { flex: 1; min-width: 0; }
+.news-source-row { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
+.news-source-icon { width: 18px; height: 18px; border-radius: 4px; object-fit: cover; flex-shrink: 0; background: var(–beige-d); }
+.news-source-name { font-size: 0.65rem; color: var(–muted); font-weight: 700; }
+.news-cat-badge { font-size: 0.6rem; font-weight: 700; color: white; padding: 1px 7px; border-radius: 10px; }
+.news-title { font-size: 0.9rem; font-weight: 700; line-height: 1.4; margin-bottom: 5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.news-desc  { font-size: 0.72rem; color: var(–muted); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 6px; }
+.news-date  { font-size: 0.65rem; color: var(–muted); }
+
+/* 更新日時バー */
+.last-updated { text-align: center; font-size: 0.65rem; color: var(–muted); padding: 8px 0; }
+
+/* 空状態 */
+.empty-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; gap: 10px; color: var(–muted); text-align: center; }
+.empty-icon { font-size: 2.5rem; }
+</style>
+
+</head>
+<body>
+
+<header class="app-header">
+  <div class="app-logo">街の<span>お知らせ</span></div>
+  <div class="header-subtitle">吉田町・牧之原市エリア</div>
+  <button class="header-refresh" onclick="loadNews(true)" title="更新">🔄</button>
+</header>
+
+<div class="cat-filter">
+  <div class="cat-pill active" data-cat="all"     onclick="filterNews('all')">📋 すべて</div>
+  <div class="cat-pill"        data-cat="event"   onclick="filterNews('event')">🎉 イベント</div>
+  <div class="cat-pill"        data-cat="news"    onclick="filterNews('news')">📰 行政・広報</div>
+  <div class="cat-pill"        data-cat="shop"    onclick="filterNews('shop')">🛍️ お店情報</div>
+  <div class="cat-pill"        data-cat="welfare" onclick="filterNews('welfare')">💚 福祉・健康</div>
+  <div class="cat-pill"        data-cat="alert"   onclick="filterNews('alert')">⚠️ 防災・緊急</div>
+</div>
+
+<div class="main-scroll" id="main-scroll">
+  <div class="loading-wrap"><div class="spinner"></div><div>お知らせを読み込み中...</div></div>
+</div>
+
+<script>
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyX_iaLnrh8BCCCjsqWT5m3KRmUDzHPaxqtMhXJcOc9Ws9t252VmVPxWEOvMP5BskU/exec';
+
+const CAT_COLOR = {
+  event:   '#9B59B6',
+  news:    '#249496',
+  shop:    '#e8850a',
+  welfare: '#27AE60',
+  alert:   '#E74C3C',
+  other:   '#8a8a8a'
+};
+const CAT_LABEL = {
+  event:   '🎉 イベント',
+  news:    '📰 行政',
+  shop:    '🛍️ お店',
+  welfare: '💚 福祉',
+  alert:   '⚠️ 防災',
+  other:   '📋 その他'
+};
+
+let allNews = [], currentCat = 'all';
+
+async function loadNews(forceRefresh = false) {
+  const wrap = document.getElementById('main-scroll');
+  wrap.innerHTML = '<div class="loading-wrap"><div class="spinner"></div><div>お知らせを読み込み中...</div></div>';
+
+  try {
+    const t   = forceRefresh ? Date.now() : Math.floor(Date.now() / (6*60*1000)) * (6*60*1000);
+    const url = GAS_URL + '?action=getOshiraseData&t=' + t;
+    const res  = await fetch(url);
+    const json = JSON.parse(await res.text());
+    if (json.status !== 'success') throw new Error(json.message || 'error');
+    allNews = json.items || [];
+    renderNews();
+  } catch(e) {
+    wrap.innerHTML = `
+      <div class="empty-wrap">
+        <div class="empty-icon">📡</div>
+        <p>お知らせを取得できませんでした</p>
+        <p style="font-size:0.7rem;color:#e74c3c;">${e.message}</p>
+        <button onclick="loadNews(true)" style="margin-top:12px;padding:8px 20px;background:var(--primary);color:white;border:none;border-radius:20px;font-size:0.8rem;font-weight:700;cursor:pointer;">再試行</button>
+      </div>`;
+  }
+}
+
+function filterNews(cat) {
+  currentCat = cat;
+  document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+  document.querySelector(`.cat-pill[data-cat="${cat}"]`).classList.add('active');
+  renderNews();
+}
+
+function renderNews() {
+  const wrap    = document.getElementById('main-scroll');
+  const filtered = currentCat === 'all' ? allNews : allNews.filter(n => n.category === currentCat);
+
+  if (filtered.length === 0) {
+    wrap.innerHTML = `
+      <div class="empty-wrap">
+        <div class="empty-icon">📭</div>
+        <p>このカテゴリのお知らせはまだありません</p>
+      </div>`;
+    return;
+  }
+
+  const cards = filtered.map(item => {
+    const color = CAT_COLOR[item.category] || CAT_COLOR.other;
+    const label = CAT_LABEL[item.category] || CAT_LABEL.other;
+    const dateStr = item.pubDate ? new Date(item.pubDate).toLocaleDateString('ja-JP', { month:'numeric', day:'numeric' }) : '';
+    const iconHtml = item.sourceIcon
+      ? `<img class="news-source-icon" src="${item.sourceIcon}" alt="" onerror="this.style.display='none'">`
+      : `<div class="news-source-icon" style="background:${color};border-radius:4px;"></div>`;
+
+    return `<a class="news-card" href="${item.link || '#'}" target="_blank" rel="noopener">
+      <div class="news-cat-bar" style="background:${color};"></div>
+      <div class="news-body">
+        <div class="news-source-row">
+          ${iconHtml}
+          <span class="news-source-name">${item.sourceName || ''}</span>
+          <span class="news-cat-badge" style="background:${color};">${label}</span>
+        </div>
+        <div class="news-title">${item.title || ''}</div>
+        ${item.description ? `<div class="news-desc">${item.description}</div>` : ''}
+        <div class="news-date">${dateStr}</div>
+      </div>
+    </a>`;
+  }).join('');
+
+  const updatedAt = allNews.length > 0 ? '最終更新：' + new Date().toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'}) : '';
+  wrap.innerHTML = `${cards}<div class="last-updated">${updatedAt}</div>`;
+}
+
+// 初回読み込み
+loadNews();
+</script>
+
+</body>
+</html>

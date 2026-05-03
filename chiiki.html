@@ -26,555 +26,117 @@
   --cat-trouble:   #E74C3C;
   --cat-event:     #9B59B6;
 }
-
-- { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 body {
-font-family: ‘Noto Sans JP’, sans-serif;
-background: var(–beige);
-color: var(–text);
-height: 100dvh;
-display: flex;
-flex-direction: column;
-overflow: hidden;
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--beige);
+  color: var(--text);
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
-
-/* ── ヘッダー ── */
 .app-header {
-background: var(–white);
-border-bottom: 1px solid var(–border);
-padding: 0 16px;
-height: 56px;
-display: flex;
-align-items: center;
-justify-content: space-between;
-flex-shrink: 0;
-position: relative;
-z-index: 100;
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 0 16px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 100;
 }
-.app-logo {
-font-family: ‘DM Sans’, sans-serif;
-font-weight: 700;
-font-size: 1.05rem;
-color: var(–primary);
-letter-spacing: -0.03em;
-}
-.app-logo span { color: var(–navy); }
-.header-subtitle {
-font-size: 0.58rem;
-color: var(–muted);
-position: absolute;
-left: 50%;
-transform: translateX(-50%);
-white-space: nowrap;
-}
-
-/* ── タブナビ ── */
-.view-tabs {
-display: flex;
-background: var(–white);
-border-bottom: 1px solid var(–border);
-flex-shrink: 0;
-}
-.view-tab {
-flex: 1;
-display: flex;
-align-items: center;
-justify-content: center;
-gap: 5px;
-padding: 10px 0;
-font-size: 0.78rem;
-font-weight: 700;
-color: var(–muted);
-cursor: pointer;
-border-bottom: 2.5px solid transparent;
-transition: 0.2s;
-user-select: none;
-}
-.view-tab.active {
-color: var(–primary);
-border-bottom-color: var(–primary);
-}
+.app-logo { font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 1.05rem; color: var(--primary); letter-spacing: -0.03em; }
+.app-logo span { color: var(--navy); }
+.header-subtitle { font-size: 0.58rem; color: var(--muted); position: absolute; left: 50%; transform: translateX(-50%); white-space: nowrap; }
+.view-tabs { display: flex; background: var(--white); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.view-tab { flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 10px 0; font-size: 0.78rem; font-weight: 700; color: var(--muted); cursor: pointer; border-bottom: 2.5px solid transparent; transition: 0.2s; user-select: none; }
+.view-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
 .view-tab svg { width: 16px; height: 16px; }
-
-/* ── カテゴリフィルター ── */
-.cat-filter {
-display: flex;
-gap: 7px;
-padding: 10px 14px;
-overflow-x: auto;
-background: var(–white);
-border-bottom: 1px solid var(–border);
-flex-shrink: 0;
-scrollbar-width: none;
-}
+.cat-filter { display: flex; gap: 7px; padding: 10px 14px; overflow-x: auto; background: var(--white); border-bottom: 1px solid var(--border); flex-shrink: 0; scrollbar-width: none; }
 .cat-filter::-webkit-scrollbar { display: none; }
-.cat-pill {
-flex-shrink: 0;
-display: flex;
-align-items: center;
-gap: 4px;
-padding: 5px 12px;
-border-radius: 20px;
-font-size: 0.72rem;
-font-weight: 700;
-cursor: pointer;
-border: 1.5px solid var(–border);
-background: var(–beige);
-color: var(–muted);
-transition: 0.18s;
-white-space: nowrap;
-}
+.cat-pill { flex-shrink: 0; display: flex; align-items: center; gap: 4px; padding: 5px 12px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; cursor: pointer; border: 1.5px solid var(--border); background: var(--beige); color: var(--muted); transition: 0.18s; white-space: nowrap; }
 .cat-pill.active { color: white; border-color: transparent; }
-.cat-pill[data-cat=“all”].active         { background: var(–navy); }
-.cat-pill[data-cat=“発見・景色”].active  { background: var(–cat-discovery); }
-.cat-pill[data-cat=“グルメ”].active      { background: var(–cat-gourmet); }
-.cat-pill[data-cat=“困りごと”].active    { background: var(–cat-trouble); }
-.cat-pill[data-cat=“イベント”].active    { background: var(–cat-event); }
-
-/* ── メインコンテンツ ── */
-.main-content {
-flex: 1;
-overflow: hidden;
-position: relative;
-}
-
-/* ── フィードビュー ── */
-#feed-view {
-height: 100%;
-overflow-y: auto;
--webkit-overflow-scrolling: touch;
-}
-.feed-grid {
-display: grid;
-grid-template-columns: repeat(3, 1fr);
-gap: 2px;
-padding: 2px;
-}
-
-/* グリッドセル */
-.feed-cell {
-aspect-ratio: 1;
-position: relative;
-overflow: hidden;
-cursor: pointer;
-background: var(–beige-d);
-}
-.feed-cell img {
-width: 100%; height: 100%;
-object-fit: cover;
-transition: transform 0.3s;
-}
+.cat-pill[data-cat="all"].active         { background: var(--navy); }
+.cat-pill[data-cat="発見・景色"].active  { background: var(--cat-discovery); }
+.cat-pill[data-cat="グルメ"].active      { background: var(--cat-gourmet); }
+.cat-pill[data-cat="困りごと"].active    { background: var(--cat-trouble); }
+.cat-pill[data-cat="イベント"].active    { background: var(--cat-event); }
+.main-content { flex: 1; overflow: hidden; position: relative; }
+#feed-view { height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.feed-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 2px; }
+.feed-cell { aspect-ratio: 1; position: relative; overflow: hidden; cursor: pointer; background: var(--beige-d); animation: cellIn 0.4s ease both; }
+.feed-cell img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
 .feed-cell:active img { transform: scale(0.96); }
-.feed-cell .cat-bg {
-width: 100%; height: 100%;
-display: flex;
-flex-direction: column;
-align-items: center;
-justify-content: center;
-gap: 6px;
-color: white;
-padding: 8px;
-text-align: center;
-}
+.feed-cell .cat-bg { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: white; padding: 8px; text-align: center; }
 .feed-cell .cat-icon { font-size: 1.6rem; }
 .feed-cell .cat-text { font-size: 0.65rem; font-weight: 700; line-height: 1.3; }
-.feed-cell .like-badge {
-position: absolute;
-bottom: 5px; right: 5px;
-background: rgba(0,0,0,0.5);
-color: white;
-font-size: 0.6rem;
-font-weight: 700;
-padding: 2px 6px;
-border-radius: 10px;
-display: flex;
-align-items: center;
-gap: 2px;
-backdrop-filter: blur(4px);
-}
-
-/* ローディング・エンプティ */
-.feed-loading {
-display: flex;
-flex-direction: column;
-align-items: center;
-justify-content: center;
-padding: 60px 20px;
-gap: 12px;
-color: var(–muted);
-font-size: 0.82rem;
-}
-.spinner {
-width: 32px; height: 32px;
-border: 3px solid var(–beige-d);
-border-top-color: var(–primary);
-border-radius: 50%;
-animation: spin 0.7s linear infinite;
-}
+.feed-cell .like-badge { position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.5); color: white; font-size: 0.6rem; font-weight: 700; padding: 2px 6px; border-radius: 10px; display: flex; align-items: center; gap: 2px; backdrop-filter: blur(4px); }
+@keyframes cellIn { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
+.feed-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; gap: 12px; color: var(--muted); font-size: 0.82rem; }
+.spinner { width: 32px; height: 32px; border: 3px solid var(--beige-d); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
-
-.feed-empty {
-display: flex;
-flex-direction: column;
-align-items: center;
-justify-content: center;
-padding: 60px 20px;
-gap: 10px;
-color: var(–muted);
-text-align: center;
-}
+.feed-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; gap: 10px; color: var(--muted); text-align: center; }
 .feed-empty-icon { font-size: 2.5rem; }
-.feed-empty h3 { font-size: 0.9rem; color: var(–text); }
+.feed-empty h3 { font-size: 0.9rem; color: var(--text); }
 .feed-empty p  { font-size: 0.75rem; }
-
-/* ── 詳細ポップアップ ── */
-.detail-overlay {
-position: fixed; inset: 0; z-index: 500;
-background: rgba(0,0,0,0.75);
-display: flex; align-items: flex-end;
-opacity: 0; pointer-events: none;
-transition: opacity 0.3s;
-}
+.detail-overlay { position: fixed; inset: 0; z-index: 500; background: rgba(0,0,0,0.75); display: flex; align-items: flex-end; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
 .detail-overlay.open { opacity: 1; pointer-events: all; }
-.detail-sheet {
-background: var(–white);
-border-radius: 20px 20px 0 0;
-width: 100%;
-max-height: 82vh;
-overflow-y: auto;
-transform: translateY(100%);
-transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
-padding-bottom: env(safe-area-inset-bottom, 16px);
-}
+.detail-sheet { background: var(--white); border-radius: 20px 20px 0 0; width: 100%; max-height: 92vh; overflow-y: auto; transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.32,0.72,0,1); padding-bottom: env(safe-area-inset-bottom, 16px); }
 .detail-overlay.open .detail-sheet { transform: translateY(0); }
-
-/* ── 詳細ヘッダー ── */
-.detail-header {
-display: flex;
-align-items: center;
-justify-content: space-between;
-padding: 14px 16px 0;
-}
-.detail-back-btn {
-display: flex;
-align-items: center;
-gap: 6px;
-background: #ffffff;
-border: 2px solid var(–primary);
-border-radius: 20px;
-padding: 8px 16px 8px 12px;
-font-family: inherit;
-font-size: 0.82rem;
-font-weight: 700;
-color: var(–primary);
-cursor: pointer;
-transition: 0.18s;
-box-shadow: 0 2px 12px rgba(0,0,0,0.18);
-}
+.detail-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 0; }
+.detail-back-btn { display: flex; align-items: center; gap: 6px; background: #ffffff; border: 2px solid var(--primary); border-radius: 20px; padding: 8px 16px 8px 12px; font-family: inherit; font-size: 0.82rem; font-weight: 700; color: var(--primary); cursor: pointer; transition: 0.18s; box-shadow: 0 2px 12px rgba(0,0,0,0.18); }
 .detail-back-btn:active { transform: scale(0.95); background: #e8f7f7; }
-.detail-back-btn svg { width: 16px; height: 16px; stroke: var(–primary); }
-.detail-handle {
-width: 40px; height: 5px;
-background: #e0ddd6;
-border-radius: 3px;
-margin: 0 auto;
-}
+.detail-back-btn svg { width: 16px; height: 16px; stroke: var(--primary); }
+.detail-handle { width: 40px; height: 5px; background: #e0ddd6; border-radius: 3px; margin: 0 auto; }
 
-.detail-img {
-width: 100%;
-max-height: 52vw;
-object-fit: cover;
-margin-top: 8px;
-}
-.detail-img-placeholder {
-width: 100%;
-height: 52vw;
-margin-top: 8px;
-display: flex;
-align-items: center;
-justify-content: center;
-font-size: 3rem;
-}
+/* ★ 修正④：縦写真対応 */
+.detail-img { width: 100%; max-height: 80vw; object-fit: contain; margin-top: 8px; background: #111111; display: block; }
+.detail-img-placeholder { width: 100%; height: 52vw; margin-top: 8px; display: flex; align-items: center; justify-content: center; font-size: 3rem; }
+
 .detail-body { padding: 16px 18px 20px; }
-.detail-cat-badge {
-display: inline-flex;
-align-items: center;
-gap: 4px;
-font-size: 0.7rem;
-font-weight: 700;
-color: white;
-padding: 3px 10px;
-border-radius: 20px;
-margin-bottom: 10px;
-}
-.detail-title {
-font-size: 1.05rem;
-font-weight: 700;
-margin-bottom: 4px;
-line-height: 1.4;
-}
-.detail-address {
-font-size: 0.75rem;
-color: var(–muted);
-display: flex;
-align-items: center;
-gap: 4px;
-margin-bottom: 12px;
-}
-.detail-date {
-font-size: 0.68rem;
-color: var(–muted);
-margin-bottom: 16px;
-}
-.detail-actions {
-display: flex;
-gap: 10px;
-}
-.like-btn {
-flex: 1;
-display: flex;
-align-items: center;
-justify-content: center;
-gap: 6px;
-padding: 12px;
-border-radius: 12px;
-border: 2px solid #e8e4d8;
-font-family: inherit;
-font-size: 0.85rem;
-font-weight: 700;
-cursor: pointer;
-transition: 0.2s;
-background: var(–beige-d);
-color: var(–text);
-}
+.detail-cat-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.7rem; font-weight: 700; color: white; padding: 3px 10px; border-radius: 20px; margin-bottom: 10px; }
+.detail-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 4px; line-height: 1.4; }
+.detail-address { font-size: 0.75rem; color: var(–muted); display: flex; align-items: center; gap: 4px; margin-bottom: 12px; }
+.detail-date { font-size: 0.68rem; color: var(–muted); margin-bottom: 16px; }
+.detail-actions { display: flex; gap: 10px; }
+.like-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; border-radius: 12px; border: 2px solid #e8e4d8; font-family: inherit; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: 0.2s; background: var(–beige-d); color: var(–text); }
 .like-btn.liked { background: #fde8e8; color: #e74c3c; border-color: #f5c0c0; }
 .like-btn:active { transform: scale(0.95); }
-
-.map-link-btn {
-flex: 1;
-display: flex;
-align-items: center;
-justify-content: center;
-gap: 6px;
-padding: 12px;
-border-radius: 12px;
-background: #ffffff;
-color: var(–primary);
-font-family: inherit;
-font-size: 0.85rem;
-font-weight: 700;
-border: 2px solid var(–primary);
-cursor: pointer;
-transition: 0.2s;
-box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
+.map-link-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; border-radius: 12px; background: #ffffff; color: var(–primary); font-family: inherit; font-size: 0.85rem; font-weight: 700; border: 2px solid var(–primary); cursor: pointer; transition: 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
 .map-link-btn:active { background: #e8f7f7; transform: scale(0.95); }
-
-/* ── マップビュー ── */
-#map-view {
-height: 100%;
-display: none;
-}
-#map-view.active { display: block; }
+#map-view { height: 100%; display: none; }
 #chiiki-map { width: 100%; height: 100%; }
-
-/* ── 投稿促進バナー ── */
-.post-cta {
-margin: 16px 14px;
-background: linear-gradient(135deg, var(–primary) 0%, var(–primary-d) 100%);
-border-radius: var(–r);
-padding: 18px 16px;
-color: white;
-text-align: center;
-}
+.post-cta { margin: 16px 14px; background: linear-gradient(135deg, var(–primary) 0%, var(–primary-d) 100%); border-radius: var(–r); padding: 18px 16px; color: white; text-align: center; }
 .post-cta h3 { font-size: 0.9rem; font-weight: 700; margin-bottom: 4px; }
 .post-cta p  { font-size: 0.72rem; opacity: 0.85; margin-bottom: 12px; }
-
-.post-cta-btn {
-display: inline-block;
-background: white;
-color: var(–primary);
-font-weight: 700;
-font-size: 0.8rem;
-padding: 9px 22px;
-border-radius: 20px;
-text-decoration: none;
-font-family: inherit;
-border: none;
-cursor: pointer;
-}
-
-/* ── スライドイン ── */
-.feed-cell {
-animation: cellIn 0.4s ease both;
-}
-@keyframes cellIn {
-from { opacity: 0; transform: scale(0.92); }
-to   { opacity: 1; transform: scale(1); }
-}
-
-/* ── 投稿モーダル ── */
-.post-modal-overlay {
-position: fixed; inset: 0; z-index: 600;
-background: rgba(0,0,0,0.72);
-backdrop-filter: blur(6px);
--webkit-backdrop-filter: blur(6px);
-display: flex; align-items: flex-end;
-opacity: 0; pointer-events: none;
-transition: opacity 0.3s;
-}
+.post-cta-btn { display: inline-block; background: white; color: var(–primary); font-weight: 700; font-size: 0.8rem; padding: 9px 22px; border-radius: 20px; text-decoration: none; font-family: inherit; border: none; cursor: pointer; }
+.post-modal-overlay { position: fixed; inset: 0; z-index: 600; background: rgba(0,0,0,0.72); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: flex; align-items: flex-end; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
 .post-modal-overlay.open { opacity: 1; pointer-events: all; }
-.post-modal-sheet {
-background: #ffffff;
-border-radius: 24px 24px 0 0;
-width: 100%;
-max-height: 90vh;
-overflow-y: auto;
--webkit-overflow-scrolling: touch;
-transform: translateY(100%);
-transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
-box-shadow: 0 -8px 40px rgba(0,0,0,0.25);
-padding: 8px 20px calc(env(safe-area-inset-bottom, 20px) + 20px);
-}
+.post-modal-sheet { background: #ffffff; border-radius: 24px 24px 0 0; width: 100%; max-height: 90vh; overflow-y: auto; -webkit-overflow-scrolling: touch; transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.32,0.72,0,1); box-shadow: 0 -8px 40px rgba(0,0,0,0.25); padding: 8px 20px calc(env(safe-area-inset-bottom, 20px) + 20px); }
 .post-modal-overlay.open .post-modal-sheet { transform: translateY(0); }
-.post-modal-handle {
-width: 40px; height: 5px;
-background: #e0ddd6;
-border-radius: 3px;
-margin: 10px auto 18px;
-}
-.post-modal-title {
-font-size: 1.05rem;
-font-weight: 900;
-text-align: center;
-margin-bottom: 5px;
-color: #1a1a1a;
-}
-.post-modal-sub {
-font-size: 0.73rem;
-color: #888;
-text-align: center;
-margin-bottom: 18px;
-line-height: 1.6;
-}
-
-/* ── 投稿フォームスタイル ── */
-.submit-label {
-font-size: 0.8rem;
-font-weight: 700;
-color: var(–text);
-margin-bottom: 6px;
-}
-.submit-required {
-color: #e74c3c;
-font-size: 0.68rem;
-margin-left: 4px;
-}
-.submit-cat-grid {
-display: grid;
-grid-template-columns: 1fr 1fr;
-gap: 8px;
-margin-bottom: 4px;
-}
-.submit-cat-btn {
-padding: 10px 6px;
-border-radius: 12px;
-border: 2px solid var(–border);
-background: var(–beige);
-font-family: inherit;
-font-size: 0.82rem;
-font-weight: 700;
-color: var(–text);
-cursor: pointer;
-transition: 0.18s;
-}
-.submit-cat-btn.selected {
-border-color: var(–primary);
-background: #e8f7f7;
-color: var(–primary);
-}
+.post-modal-handle { width: 40px; height: 5px; background: #e0ddd6; border-radius: 3px; margin: 10px auto 18px; }
+.post-modal-title { font-size: 1.05rem; font-weight: 900; text-align: center; margin-bottom: 5px; color: #1a1a1a; }
+.post-modal-sub { font-size: 0.73rem; color: #888; text-align: center; margin-bottom: 18px; line-height: 1.6; }
+.submit-label { font-size: 0.8rem; font-weight: 700; color: var(–text); margin-bottom: 6px; }
+.submit-required { color: #e74c3c; font-size: 0.68rem; margin-left: 4px; }
+.submit-cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 4px; }
+.submit-cat-btn { padding: 10px 6px; border-radius: 12px; border: 2px solid var(–border); background: var(–beige); font-family: inherit; font-size: 0.82rem; font-weight: 700; color: var(–text); cursor: pointer; transition: 0.18s; }
+.submit-cat-btn.selected { border-color: var(–primary); background: #e8f7f7; color: var(–primary); }
 .submit-cat-btn:active { transform: scale(0.96); }
-.submit-input {
-width: 100%;
-padding: 10px 14px;
-border-radius: 12px;
-border: 1.5px solid var(–border);
-background: var(–beige);
-font-family: inherit;
-font-size: 0.88rem;
-color: var(–text);
-outline: none;
-box-sizing: border-box;
-max-width: 100%;
-}
+.submit-input { width: 100%; padding: 10px 14px; border-radius: 12px; border: 1.5px solid var(–border); background: var(–beige); font-family: inherit; font-size: 0.88rem; color: var(–text); outline: none; box-sizing: border-box; max-width: 100%; }
 .submit-input:focus { border-color: var(–primary); }
-.submit-img-buttons {
-display: grid;
-grid-template-columns: 1fr 1fr;
-gap: 8px;
-}
+.submit-img-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .submit-img-half-label { display: block; cursor: pointer; }
-.submit-img-half-btn {
-display: flex;
-align-items: center;
-justify-content: center;
-gap: 6px;
-padding: 11px 6px;
-border-radius: 12px;
-border: 2px dashed var(–border);
-background: var(–beige);
-font-size: 0.82rem;
-font-weight: 700;
-color: var(–muted);
-transition: 0.18s;
-white-space: nowrap;
-}
+.submit-img-half-btn { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 11px 6px; border-radius: 12px; border: 2px dashed var(–border); background: var(–beige); font-size: 0.82rem; font-weight: 700; color: var(–muted); transition: 0.18s; white-space: nowrap; }
 .submit-img-half-btn:active { background: var(–beige-d); }
-.submit-location-note {
-font-size: 0.72rem;
-color: var(–muted);
-text-align: center;
-margin: 10px 0 4px;
-padding: 8px;
-background: var(–beige);
-border-radius: 10px;
-}
-.submit-post-btn {
-width: 100%;
-padding: 15px;
-border-radius: 14px;
-border: none;
-background: var(–primary);
-color: white;
-font-family: inherit;
-font-size: 1rem;
-font-weight: 900;
-cursor: pointer;
-transition: 0.18s;
-margin-bottom: 10px;
-box-shadow: 0 3px 12px rgba(36,148,150,0.35);
-}
-.submit-post-btn:disabled {
-background: var(–muted);
-box-shadow: none;
-cursor: not-allowed;
-}
+.submit-location-note { font-size: 0.72rem; color: var(–muted); text-align: center; margin: 10px 0 4px; padding: 8px; background: var(–beige); border-radius: 10px; }
+.submit-post-btn { width: 100%; padding: 15px; border-radius: 14px; border: none; background: var(–primary); color: white; font-family: inherit; font-size: 1rem; font-weight: 900; cursor: pointer; transition: 0.18s; margin-bottom: 10px; box-shadow: 0 3px 12px rgba(36,148,150,0.35); }
+.submit-post-btn:disabled { background: var(–muted); box-shadow: none; cursor: not-allowed; }
 .submit-post-btn:not(:disabled):active { background: var(–primary-d); transform: scale(0.98); }
-.post-modal-cancel {
-margin-top: 10px;
-width: 100%;
-padding: 13px;
-border-radius: 14px;
-border: none;
-background: #f0ece0;
-font-family: inherit;
-font-size: 0.85rem;
-font-weight: 700;
-color: #888;
-cursor: pointer;
-transition: 0.18s;
-}
+.post-modal-cancel { margin-top: 10px; width: 100%; padding: 13px; border-radius: 14px; border: none; background: #f0ece0; font-family: inherit; font-size: 0.85rem; font-weight: 700; color: #888; cursor: pointer; transition: 0.18s; }
 .post-modal-cancel:active { background: #e5e0d4; }
 </style>
 
@@ -583,36 +145,26 @@ transition: 0.18s;
 </head>
 <body>
 
-<!-- ヘッダー -->
-
 <header class="app-header">
   <div class="app-logo">まちなか<span>発見</span></div>
   <div class="header-subtitle">吉田町・牧之原市エリア</div>
-  <div style="font-size:0.65rem;color:var(--muted);text-align:right;">
-    <span id="total-count">--</span>件
-  </div>
+  <div style="font-size:0.65rem;color:var(--muted);text-align:right;"><span id="total-count">--</span>件</div>
 </header>
-
-<!-- タブ -->
 
 <div class="view-tabs">
   <div class="view-tab active" id="tab-feed" onclick="switchView('feed')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
       <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
       <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
-    </svg>
-    フィード
+    </svg>フィード
   </div>
   <div class="view-tab" id="tab-map" onclick="switchView('map')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
       <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
       <circle cx="12" cy="9" r="2.5"/>
-    </svg>
-    マップ
+    </svg>マップ
   </div>
 </div>
-
-<!-- カテゴリフィルター -->
 
 <div class="cat-filter" id="cat-filter">
   <div class="cat-pill active" data-cat="all"       onclick="filterCat('all')">🗺️ すべて</div>
@@ -622,32 +174,20 @@ transition: 0.18s;
   <div class="cat-pill"        data-cat="イベント"   onclick="filterCat('イベント')">🎉 イベント</div>
 </div>
 
-<!-- メインコンテンツ -->
-
 <div class="main-content">
   <div id="feed-view">
     <div id="feed-grid-wrap">
-      <div class="feed-loading">
-        <div class="spinner"></div>
-        <div>読み込み中...</div>
-      </div>
+      <div class="feed-loading"><div class="spinner"></div><div>読み込み中...</div></div>
     </div>
   </div>
-
-  <div id="map-view">
-    <div id="chiiki-map"></div>
-  </div>
+  <div id="map-view"><div id="chiiki-map"></div></div>
 </div>
-
-<!-- 詳細ポップアップ -->
 
 <div class="detail-overlay" id="detail-overlay" onclick="closeDetailOnBg(event)">
   <div class="detail-sheet" id="detail-sheet">
     <div class="detail-header">
       <button class="detail-back-btn" onclick="closeDetail()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <path d="M19 12H5M12 5l-7 7 7 7"/>
-        </svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
         一覧に戻る
       </button>
       <div class="detail-handle"></div>
@@ -660,88 +200,54 @@ transition: 0.18s;
       <div id="detail-address" class="detail-address"></div>
       <div id="detail-date" class="detail-date"></div>
       <div class="detail-actions">
-        <button class="like-btn" id="like-btn" onclick="toggleLike()">
-          ❤️ <span id="like-count">0</span> いいね
-        </button>
-        <button class="map-link-btn" id="detail-map-btn" onclick="openInternalMap()">
-          📍 地図で見る
-        </button>
+        <button class="like-btn" id="like-btn" onclick="toggleLike()">❤️ <span id="like-count">0</span> いいね</button>
+        <button class="map-link-btn" id="detail-map-btn" onclick="openInternalMap()">📍 地図で見る</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- 投稿モーダル -->
-
 <div class="post-modal-overlay" id="post-modal" onclick="closePostModalOnBg(event)">
   <div class="post-modal-sheet">
     <div class="post-modal-handle"></div>
-
-```
-<div id="post-step1">
-  <div class="post-modal-title">📍 地域発見を投稿する</div>
-  <div class="post-modal-sub">写真と現在地を添えて投稿しましょう</div>
-
-  <div class="submit-label">カテゴリ <span class="submit-required">必須</span></div>
-  <div class="submit-cat-grid">
-    <button class="submit-cat-btn" data-cat="発見・景色" onclick="selectSubmitCat(this)">🌸 発見・景色</button>
-    <button class="submit-cat-btn" data-cat="グルメ"     onclick="selectSubmitCat(this)">🍜 グルメ</button>
-    <button class="submit-cat-btn" data-cat="困りごと"   onclick="selectSubmitCat(this)">⚠️ 困りごと</button>
-    <button class="submit-cat-btn" data-cat="イベント"   onclick="selectSubmitCat(this)">🎉 イベント</button>
-  </div>
-  <input type="hidden" id="submit-category" value="">
-
-  <div class="submit-label" style="margin-top:14px;">タイトル <span style="color:var(--muted);font-size:0.7rem;">任意</span></div>
-  <input type="text" id="submit-title" class="submit-input"
-    placeholder="例：牧之原の絶景スポット" maxlength="40">
-
-  <div class="submit-label" style="margin-top:14px;">写真 <span style="color:var(--muted);font-size:0.7rem;">任意</span></div>
-  <div class="submit-img-buttons">
-    <label class="submit-img-half-label">
-      <input type="file" id="submit-image" accept="image/*" capture="environment"
-        onchange="onImageSelected(this)" style="display:none">
-      <span class="submit-img-half-btn">📷 撮影する</span>
-    </label>
-    <label class="submit-img-half-label">
-      <input type="file" id="submit-image-album" accept="image/*"
-        onchange="onImageSelected(this)" style="display:none">
-      <span class="submit-img-half-btn">🖼️ アルバムから</span>
-    </label>
-  </div>
-  <div id="submit-preview-wrap" style="display:none;position:relative;margin-top:8px;">
-    <img id="submit-preview" src="" alt="プレビュー"
-      style="width:100%;border-radius:12px;max-height:200px;object-fit:cover;display:block;">
-    <button onclick="clearImage()" style="
-      position:absolute;top:6px;right:6px;
-      background:rgba(0,0,0,0.6);color:white;
-      border:none;border-radius:50%;
-      width:28px;height:28px;font-size:0.9rem;
-      cursor:pointer;display:flex;align-items:center;justify-content:center;
-    ">✕</button>
-  </div>
-
-  <div class="submit-location-note">
-    📍 投稿ボタンを押すと現在地を自動取得します
-  </div>
-
-  <div id="submit-status" style="font-size:0.8rem;min-height:1.2em;margin:8px 0;text-align:center;"></div>
-
-  <button id="submit-btn" class="submit-post-btn" onclick="submitChiikiPost()">
-    📮 投稿する
-  </button>
-  <button class="post-modal-cancel" onclick="closePostModal()">キャンセル</button>
-</div>
-
-<div id="post-step2" style="display:none;"></div>
-```
-
+    <div id="post-step1">
+      <div class="post-modal-title">📍 地域発見を投稿する</div>
+      <div class="post-modal-sub">写真と現在地を添えて投稿しましょう</div>
+      <div class="submit-label">カテゴリ <span class="submit-required">必須</span></div>
+      <div class="submit-cat-grid">
+        <button class="submit-cat-btn" data-cat="発見・景色" onclick="selectSubmitCat(this)">🌸 発見・景色</button>
+        <button class="submit-cat-btn" data-cat="グルメ"     onclick="selectSubmitCat(this)">🍜 グルメ</button>
+        <button class="submit-cat-btn" data-cat="困りごと"   onclick="selectSubmitCat(this)">⚠️ 困りごと</button>
+        <button class="submit-cat-btn" data-cat="イベント"   onclick="selectSubmitCat(this)">🎉 イベント</button>
+      </div>
+      <input type="hidden" id="submit-category" value="">
+      <div class="submit-label" style="margin-top:14px;">タイトル <span style="color:var(--muted);font-size:0.7rem;">任意</span></div>
+      <input type="text" id="submit-title" class="submit-input" placeholder="例：牧之原の絶景スポット" maxlength="40">
+      <div class="submit-label" style="margin-top:14px;">写真 <span style="color:var(--muted);font-size:0.7rem;">任意</span></div>
+      <div class="submit-img-buttons">
+        <label class="submit-img-half-label">
+          <input type="file" id="submit-image" accept="image/*" capture="environment" onchange="onImageSelected(this)" style="display:none">
+          <span class="submit-img-half-btn">📷 撮影する</span>
+        </label>
+        <label class="submit-img-half-label">
+          <input type="file" id="submit-image-album" accept="image/*" onchange="onImageSelected(this)" style="display:none">
+          <span class="submit-img-half-btn">🖼️ アルバムから</span>
+        </label>
+      </div>
+      <div id="submit-preview-wrap" style="display:none;position:relative;margin-top:8px;">
+        <img id="submit-preview" src="" alt="プレビュー" style="width:100%;border-radius:12px;max-height:200px;object-fit:cover;display:block;">
+        <button onclick="clearImage()" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.6);color:white;border:none;border-radius:50%;width:28px;height:28px;font-size:0.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+      </div>
+      <div class="submit-location-note">📍 投稿ボタンを押すと現在地を自動取得します</div>
+      <div id="submit-status" style="font-size:0.8rem;min-height:1.2em;margin:8px 0;text-align:center;"></div>
+      <button id="submit-btn" class="submit-post-btn" onclick="submitChiikiPost()">📮 投稿する</button>
+      <button class="post-modal-cancel" onclick="closePostModal()">キャンセル</button>
+    </div>
+    <div id="post-step2" style="display:none;"></div>
   </div>
 </div>
 
 <script>
-// ==========================================
-// ★ 設定（GAS URLを最新デプロイに更新）
-// ==========================================
 const GAS_URL      = 'https://script.google.com/macros/s/AKfycbyX_iaLnrh8BCCCjsqWT5m3KRmUDzHPaxqtMhXJcOc9Ws9t252VmVPxWEOvMP5BskU/exec';
 const LIFF_ID      = '2009944467-lN8yixTk';
 const MAPS_API_KEY = 'AIzaSyDeC5HxWHonkgh7p-fUe8k6OzKns8Rienk';
@@ -753,41 +259,22 @@ const CAT_CONFIG = {
   'イベント':   { color: '#9B59B6', icon: '🎉' }
 };
 
-// ==========================================
-// 状態管理
-// ==========================================
-let allRecords      = [];
-let filteredRecords = [];
-let currentCat      = 'all';
-let currentView     = 'feed';
-let currentRecord   = null;
-let likedIds        = JSON.parse(localStorage.getItem('chiiki_likes') || '{}');
-let chiikiMap       = null;
-let mapMarkers      = [];
-let mapInitialized  = false;
-let focusedLat      = null;
-let focusedLng      = null;
+let allRecords = [], filteredRecords = [], currentCat = 'all', currentView = 'feed';
+let currentRecord = null;
+let likedIds      = JSON.parse(localStorage.getItem('chiiki_likes') || '{}');
+let chiikiMap     = null, mapMarkers = [], mapInitialized = false;
+let focusedLat = null, focusedLng = null;
+let liffUserId = '', liffDisplayName = '', liffReady = false;
 
-// LIFF ユーザー情報
-let liffUserId      = '';
-let liffDisplayName = '';
-let liffReady       = false;
-
-// ==========================================
-// データ取得
-// ==========================================
 async function loadData() {
   try {
-    const url = GAS_URL + '?action=getChiikiData&t=' + Date.now();
-    const res  = await fetch(url);
-    const text = await res.text();
-    const json = JSON.parse(text);
+    const res  = await fetch(GAS_URL + '?action=getChiikiData&t=' + Date.now());
+    const json = JSON.parse(await res.text());
     if (json.status !== 'success') throw new Error(json.message || 'error');
     allRecords = (json.records || []).reverse();
     document.getElementById('total-count').textContent = allRecords.length;
     filterCat(currentCat);
   } catch(e) {
-    console.error('データ取得エラー:', e);
     document.getElementById('feed-grid-wrap').innerHTML = `
       <div class="feed-empty">
         <div class="feed-empty-icon">📡</div>
@@ -798,9 +285,6 @@ async function loadData() {
   }
 }
 
-// ==========================================
-// カテゴリフィルター
-// ==========================================
 function filterCat(cat) {
   currentCat = cat;
   document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
@@ -810,102 +294,51 @@ function filterCat(cat) {
   if (currentView === 'map' && mapInitialized) renderMapMarkers();
 }
 
-// ==========================================
-// フィードレンダリング
-// ==========================================
 function renderFeed() {
   const wrap = document.getElementById('feed-grid-wrap');
-
   if (filteredRecords.length === 0) {
     wrap.innerHTML = `
-      <div class="feed-empty">
-        <div class="feed-empty-icon">🔍</div>
-        <h3>まだ投稿がありません</h3>
-        <p>LINEから地域発見を投稿してみましょう！</p>
-      </div>
-      <div class="post-cta">
-        <h3>📸 あなたも投稿しよう！</h3>
-        <p>吉田町の素敵な場所・美味しいお店・地域の情報をシェアしてください</p>
-        <button class="post-cta-btn" onclick="openPostModal()">LINEで投稿する →</button>
-      </div>`;
+      <div class="feed-empty"><div class="feed-empty-icon">🔍</div><h3>まだ投稿がありません</h3><p>LINEから地域発見を投稿してみましょう！</p></div>
+      <div class="post-cta"><h3>📸 あなたも投稿しよう！</h3><p>吉田町の素敵な場所・美味しいお店・地域の情報をシェアしてください</p><button class="post-cta-btn" onclick="openPostModal()">LINEで投稿する →</button></div>`;
     return;
   }
-
   const cells = filteredRecords.map((rec, i) => {
-    const cat   = CAT_CONFIG[rec.category] || { color: '#249496', icon: '📍' };
+    const cat = CAT_CONFIG[rec.category] || { color: '#249496', icon: '📍' };
     const likes = rec.likes || 0;
-    const delay = Math.min(i * 0.04, 0.5);
-
-    let inner = '';
-    if (rec.imageUrl) {
-      inner = `<img src="${rec.imageUrl}" alt="${rec.title}" loading="lazy"
-                    onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-               <div class="cat-bg" style="background:${cat.color};display:none;">
-                 <div class="cat-icon">${cat.icon}</div>
-                 <div class="cat-text">${rec.title || rec.category}</div>
-               </div>`;
-    } else {
-      inner = `<div class="cat-bg" style="background:${cat.color};">
-                 <div class="cat-icon">${cat.icon}</div>
-                 <div class="cat-text">${rec.title || rec.category}</div>
-               </div>`;
-    }
-
-    return `<div class="feed-cell" style="animation-delay:${delay}s" onclick="openDetail(${i})">
-              ${inner}
-              ${likes > 0 ? `<div class="like-badge">❤️ ${likes}</div>` : ''}
+    let inner = rec.imageUrl
+      ? `<img src="${rec.imageUrl}" alt="${rec.title}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+         <div class="cat-bg" style="background:${cat.color};display:none;"><div class="cat-icon">${cat.icon}</div><div class="cat-text">${rec.title||rec.category}</div></div>`
+      : `<div class="cat-bg" style="background:${cat.color};"><div class="cat-icon">${cat.icon}</div><div class="cat-text">${rec.title||rec.category}</div></div>`;
+    return `<div class="feed-cell" style="animation-delay:${Math.min(i*0.04,0.5)}s" onclick="openDetail(${i})">
+              ${inner}${likes>0?`<div class="like-badge">❤️ ${likes}</div>`:''}
             </div>`;
   }).join('');
-
   wrap.innerHTML = `<div class="feed-grid">${cells}</div>
-    <div class="post-cta">
-      <h3>📸 あなたも投稿しよう！</h3>
-      <p>吉田町の素敵な場所・美味しいお店・地域の情報をシェアしてください</p>
-      <button class="post-cta-btn" onclick="openPostModal()">LINEで投稿する →</button>
-    </div>`;
+    <div class="post-cta"><h3>📸 あなたも投稿しよう！</h3><p>吉田町の素敵な場所・美味しいお店・地域の情報をシェアしてください</p><button class="post-cta-btn" onclick="openPostModal()">LINEで投稿する →</button></div>`;
 }
 
-// ==========================================
-// 詳細ポップアップ
-// ==========================================
 function openDetail(index) {
   const rec = filteredRecords[index];
   if (!rec) return;
   currentRecord = { ...rec, index };
-
   const cat   = CAT_CONFIG[rec.category] || { color: '#249496', icon: '📍' };
   const liked = !!likedIds[rec.date + rec.lat];
-
   const imgWrap = document.getElementById('detail-img-wrap');
-  if (rec.imageUrl) {
-    imgWrap.innerHTML = `<img class="detail-img" src="${rec.imageUrl}" alt="${rec.title}"
-      onerror="this.style.display='none'">`;
-  } else {
-    imgWrap.innerHTML = `<div class="detail-img-placeholder" style="background:${cat.color}20;">
-      <span style="font-size:4rem">${cat.icon}</span></div>`;
-  }
-
-  document.getElementById('detail-cat-badge').textContent = cat.icon + ' ' + rec.category;
+  imgWrap.innerHTML = rec.imageUrl
+    ? `<img class="detail-img" src="${rec.imageUrl}" alt="${rec.title}" onerror="this.style.display='none'">`
+    : `<div class="detail-img-placeholder" style="background:${cat.color}20;"><span style="font-size:4rem">${cat.icon}</span></div>`;
+  document.getElementById('detail-cat-badge').textContent      = cat.icon + ' ' + rec.category;
   document.getElementById('detail-cat-badge').style.background = cat.color;
-  document.getElementById('detail-title').textContent  = rec.title || rec.category;
-  document.getElementById('detail-address').innerHTML  = `<span>📍</span>${rec.address || '住所不明'}`;
-  document.getElementById('detail-date').textContent   = '📅 ' + (rec.date ? rec.date.substring(0,10) : '---');
-  document.getElementById('like-count').textContent    = rec.likes || 0;
-  document.getElementById('like-btn').className        = 'like-btn' + (liked ? ' liked' : '');
-
+  document.getElementById('detail-title').textContent   = rec.title || rec.category;
+  document.getElementById('detail-address').innerHTML   = `<span>📍</span>${rec.address || '住所不明'}`;
+  document.getElementById('detail-date').textContent    = '📅 ' + (rec.date ? rec.date.substring(0,10) : '---');
+  document.getElementById('like-count').textContent     = rec.likes || 0;
+  document.getElementById('like-btn').className         = 'like-btn' + (liked ? ' liked' : '');
   document.getElementById('detail-overlay').classList.add('open');
 }
+function closeDetail() { document.getElementById('detail-overlay').classList.remove('open'); }
+function closeDetailOnBg(e) { if (e.target === document.getElementById('detail-overlay')) closeDetail(); }
 
-function closeDetail() {
-  document.getElementById('detail-overlay').classList.remove('open');
-}
-function closeDetailOnBg(e) {
-  if (e.target === document.getElementById('detail-overlay')) closeDetail();
-}
-
-// ==========================================
-// 「地図で見る」→ 内部マップタブへ遷移
-// ==========================================
 function openInternalMap() {
   if (!currentRecord) return;
   focusedLat = currentRecord.lat;
@@ -914,9 +347,7 @@ function openInternalMap() {
   switchView('map');
 }
 
-// ==========================================
-// いいね機能
-// ==========================================
+// ★ 修正①：いいね - GAS送信後2秒待ってloadData()でキャッシュリフレッシュ
 async function toggleLike() {
   if (!currentRecord) return;
   const key   = currentRecord.date + currentRecord.lat;
@@ -935,37 +366,33 @@ async function toggleLike() {
     btn.style.transform = 'scale(1.15)';
     setTimeout(() => btn.style.transform = '', 200);
   }
-
   cnt.textContent = currentRecord.likes;
   localStorage.setItem('chiiki_likes', JSON.stringify(likedIds));
 
   try {
     await fetch(GAS_URL, {
-      method:  'POST',
-      mode:    'no-cors',
+      method: 'POST', mode: 'no-cors',
       headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({
-        formType:   'chiiki_like',
-        recordDate: currentRecord.date,
-        lat:        currentRecord.lat,
-        liked:      !liked
-      })
+      body: JSON.stringify({ formType: 'chiiki_like', recordDate: currentRecord.date, lat: currentRecord.lat, liked: !liked })
     });
   } catch(e) { console.warn('いいね送信エラー:', e); }
 
-  renderFeed();
+  // ★ GASのキャッシュクリア後（2秒）にフィードを再取得
+  setTimeout(async () => {
+    const savedIndex = currentRecord ? currentRecord.index : -1;
+    await loadData();
+    if (savedIndex >= 0 && filteredRecords[savedIndex]) {
+      document.getElementById('like-count').textContent = filteredRecords[savedIndex].likes || 0;
+    }
+  }, 2000);
 }
 
-// ==========================================
-// ビュー切り替え
-// ==========================================
 function switchView(view) {
   currentView = view;
   document.getElementById('tab-feed').classList.toggle('active', view === 'feed');
   document.getElementById('tab-map').classList.toggle('active', view === 'map');
   document.getElementById('feed-view').style.display = view === 'feed' ? 'block' : 'none';
   document.getElementById('map-view').style.display  = view === 'map'  ? 'block' : 'none';
-
   if (view === 'map' && !mapInitialized) {
     initChiikiMap();
   } else if (view === 'map') {
@@ -973,25 +400,16 @@ function switchView(view) {
     if (focusedLat && focusedLng && chiikiMap) {
       chiikiMap.setCenter({ lat: focusedLat, lng: focusedLng });
       chiikiMap.setZoom(16);
-      focusedLat = null;
-      focusedLng = null;
+      focusedLat = null; focusedLng = null;
     }
   }
 }
 
-// ==========================================
-// マップ初期化
-// ==========================================
 function initChiikiMap() {
   chiikiMap = new google.maps.Map(document.getElementById('chiiki-map'), {
-    center:            { lat: 34.768, lng: 138.261 },
-    zoom:              13,
-    mapTypeId:         'roadmap',
-    zoomControl:       true,
-    mapTypeControl:    false,
-    streetViewControl: false,
-    fullscreenControl: false,
-    gestureHandling:   'greedy',
+    center: { lat: 34.768, lng: 138.261 }, zoom: 13, mapTypeId: 'roadmap',
+    zoomControl: true, mapTypeControl: false, streetViewControl: false, fullscreenControl: false,
+    gestureHandling: 'greedy',
     styles: [
       { featureType: 'poi',     stylers: [{ visibility: 'simplified' }] },
       { featureType: 'transit', stylers: [{ visibility: 'off' }] },
@@ -1000,33 +418,66 @@ function initChiikiMap() {
   });
   mapInitialized = true;
   renderMapMarkers();
-
   if (focusedLat && focusedLng) {
     chiikiMap.setCenter({ lat: focusedLat, lng: focusedLng });
     chiikiMap.setZoom(16);
-    focusedLat = null;
-    focusedLng = null;
+    focusedLat = null; focusedLng = null;
   }
 }
 
+// ★ 修正②：マップピン - カテゴリ別絵文字アイコン・大型吹き出しデザイン
 function renderMapMarkers() {
   mapMarkers.forEach(m => m.setMap(null));
   mapMarkers = [];
-
   filteredRecords.forEach(function(rec, i) {
     if (!rec.lat || !rec.lng) return;
-    const cat = CAT_CONFIG[rec.category] || { color: '#249496', icon: '📍' };
+    const cat  = CAT_CONFIG[rec.category] || { color: '#249496', icon: '📍' };
+    const size = 56, tip = 14;
+    const canvas = document.createElement('canvas');
+    canvas.width  = size;
+    canvas.height = size + tip;
+    const ctx = canvas.getContext('2d');
+
+    // 影
+    ctx.shadowColor = 'rgba(0,0,0,0.3)';
+    ctx.shadowBlur  = 6;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 3;
+
+    // 吹き出し本体
+    ctx.fillStyle = cat.color;
+    ctx.beginPath();
+    ctx.roundRect(0, 0, size, size, 12);
+    ctx.fill();
+
+    // 三角（ピン先）
+    ctx.shadowColor = 'transparent';
+    ctx.beginPath();
+    ctx.moveTo(size * 0.35, size - 1);
+    ctx.lineTo(size / 2, size + tip);
+    ctx.lineTo(size * 0.65, size - 1);
+    ctx.fill();
+
+    // 白縁取り
+    ctx.strokeStyle = 'rgba(255,255,255,0.75)';
+    ctx.lineWidth   = 2.5;
+    ctx.beginPath();
+    ctx.roundRect(1.5, 1.5, size - 3, size - 3, 11);
+    ctx.stroke();
+
+    // 絵文字
+    ctx.font = '28px serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(cat.icon, size / 2, size / 2 - 1);
+
     const marker = new google.maps.Marker({
-      position:  { lat: rec.lat, lng: rec.lng },
-      map:       chiikiMap,
-      title:     rec.title,
+      position: { lat: rec.lat, lng: rec.lng },
+      map: chiikiMap, title: rec.title,
       icon: {
-        path:        google.maps.SymbolPath.CIRCLE,
-        fillColor:    cat.color,
-        fillOpacity:  1,
-        strokeColor:  '#ffffff',
-        strokeWeight: 2.5,
-        scale:        13
+        url:    canvas.toDataURL(),
+        size:   new google.maps.Size(size, size + tip),
+        anchor: new google.maps.Point(size / 2, size + tip)
       },
       animation: google.maps.Animation.DROP
     });
@@ -1037,62 +488,40 @@ function renderMapMarkers() {
 
 function onMapsReady() {}
 
-// ==========================================
-// 投稿モーダル
-// ==========================================
 function openPostModal() {
-  document.getElementById('submit-category').value    = '';
-  document.getElementById('submit-title').value       = '';
+  document.getElementById('submit-category').value     = '';
+  document.getElementById('submit-title').value        = '';
   document.getElementById('submit-status').textContent = '';
-  document.getElementById('submit-btn').disabled      = false;
+  document.getElementById('submit-btn').disabled       = false;
   document.querySelectorAll('.submit-cat-btn').forEach(b => b.classList.remove('selected'));
   clearImage();
   document.getElementById('post-modal').classList.add('open');
 }
-function closePostModal() {
-  document.getElementById('post-modal').classList.remove('open');
-}
-function closePostModalOnBg(e) {
-  if (e.target === document.getElementById('post-modal')) closePostModal();
-}
-
+function closePostModal() { document.getElementById('post-modal').classList.remove('open'); }
+function closePostModalOnBg(e) { if (e.target === document.getElementById('post-modal')) closePostModal(); }
 function selectSubmitCat(btn) {
   document.querySelectorAll('.submit-cat-btn').forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
   document.getElementById('submit-category').value = btn.dataset.cat;
 }
 
-// ==========================================
-// 起動 + LIFF初期化
-// ==========================================
 document.addEventListener('DOMContentLoaded', async function() {
   switchView('feed');
   loadData();
-
   try {
     if (typeof liff !== 'undefined') {
       await liff.init({ liffId: LIFF_ID });
       if (liff.isLoggedIn()) {
-        const profile   = await liff.getProfile();
+        const profile = await liff.getProfile();
         liffUserId      = profile.userId;
         liffDisplayName = profile.displayName;
         liffReady       = true;
-        console.log('LIFF初期化完了: ' + liffDisplayName);
-      } else {
-        liffReady = false;
+        console.log('LIFF初期化完了: ' + liffDisplayName + ' / ' + liffUserId);
       }
     }
-  } catch(e) {
-    console.warn('LIFF初期化エラー: ' + e);
-    liffReady = false;
-  }
+  } catch(e) { console.warn('LIFF初期化エラー: ' + e); }
 });
 
-// ==========================================
-// ★ 投稿フォーム送信処理
-//   修正点：FormData → text/plain JSON送信に変更
-//   （multipartパースエラー＆CORS問題を解消）
-// ==========================================
 async function submitChiikiPost() {
   const category  = document.getElementById('submit-category').value;
   const titleVal  = document.getElementById('submit-title').value.trim();
@@ -1104,191 +533,122 @@ async function submitChiikiPost() {
     statusEl.style.color = '#e74c3c';
     return;
   }
-
-  submitBtn.disabled   = true;
+  submitBtn.disabled = true;
   statusEl.textContent = '🔍 LIFF確認中... userId=' + (liffUserId || '未取得');
   statusEl.style.color = '#249496';
 
-  // LIFF未初期化なら再試行
   if (!liffReady || !liffUserId) {
     try {
       statusEl.textContent = '🔄 LIFF再初期化中...';
       await liff.init({ liffId: LIFF_ID });
       if (liff.isLoggedIn()) {
-        const profile   = await liff.getProfile();
-        liffUserId      = profile.userId;
-        liffDisplayName = profile.displayName;
-        liffReady       = true;
+        const profile = await liff.getProfile();
+        liffUserId = profile.userId; liffDisplayName = profile.displayName; liffReady = true;
         statusEl.textContent = '✅ LIFF初期化完了: ' + liffDisplayName;
       } else {
         statusEl.textContent = '⚠️ LINEログインが必要です';
         statusEl.style.color = '#e74c3c';
-        submitBtn.disabled   = false;
-        liff.login();
-        return;
+        submitBtn.disabled = false;
+        liff.login(); return;
       }
     } catch(liffErr) {
       statusEl.textContent = '⚠️ LIFF初期化失敗: ' + liffErr.message;
       statusEl.style.color = '#e74c3c';
-      submitBtn.disabled   = false;
-      return;
+      submitBtn.disabled = false; return;
     }
   }
 
   statusEl.textContent = '📍 位置情報を取得中...';
   statusEl.style.color = '#249496';
 
-  // 位置情報取得
   let lat = 0, lng = 0, address = '';
   try {
-    const pos = await new Promise((resolve, reject) => {
-      navigator.geolocation.getCurrentPosition(resolve, reject, {
-        enableHighAccuracy: true, timeout: 10000
-      });
-    });
-    lat = pos.coords.latitude;
-    lng = pos.coords.longitude;
-
-    // 逆ジオコーディング
+    const pos = await new Promise((resolve, reject) =>
+      navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000 })
+    );
+    lat = pos.coords.latitude; lng = pos.coords.longitude;
     try {
-      const geoRes  = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&language=ja&key=${MAPS_API_KEY}`
-      );
+      const geoRes  = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&language=ja&key=${MAPS_API_KEY}`);
       const geoJson = await geoRes.json();
-      if (geoJson.results && geoJson.results[0]) {
-        address = geoJson.results[0].formatted_address;
-      }
-    } catch(ge) { console.warn('逆ジオコーディング失敗:', ge); }
-
+      if (geoJson.results && geoJson.results[0]) address = geoJson.results[0].formatted_address;
+    } catch(ge) {}
   } catch(e) {
     statusEl.textContent = '⚠️ 位置情報の取得に失敗しました。設定で位置情報を許可してください。';
-    statusEl.style.color = '#e74c3c';
-    submitBtn.disabled   = false;
-    return;
+    statusEl.style.color = '#e74c3c'; submitBtn.disabled = false; return;
   }
 
-  // 画像処理
-  const imageFileCamera = document.getElementById('submit-image').files[0];
-  const imageFileAlbum  = document.getElementById('submit-image-album').files[0];
-  const imageFile       = imageFileCamera || imageFileAlbum;
-  let imageBase64 = '';
-  let imageMime   = '';
-  if (imageFile) {
+  const imgC = document.getElementById('submit-image').files[0];
+  const imgA = document.getElementById('submit-image-album').files[0];
+  const imgF = imgC || imgA;
+  let imageBase64 = '', imageMime = '';
+  if (imgF) {
     statusEl.textContent = '🖼️ 画像を圧縮中...';
-    try {
-      const result = await compressImage(imageFile, 800, 0.65);
-      imageBase64  = result.base64;
-      imageMime    = result.mime;
-    } catch(e) {
-      console.warn('画像圧縮エラー:', e);
-    }
+    try { const r = await compressImage(imgF, 800, 0.65); imageBase64 = r.base64; imageMime = r.mime; } catch(e) {}
   }
 
   statusEl.textContent = '📤 投稿中...';
-
-  // ★ 修正：text/plain + no-cors で送信（FormData廃止）
   try {
-    const payload = JSON.stringify({
-      formType:    'chiiki_post',
-      category:    category,
-      title:       titleVal || category,
-      lat:         lat,
-      lng:         lng,
-      address:     address,
-      userId:      liffUserId,
-      displayName: liffDisplayName,
-      imageBase64: imageBase64,
-      imageMime:   imageMime
-    });
-
-    // ★ no-cors + text/plain でプリフライトを回避
     await fetch(GAS_URL, {
-      method:  'POST',
-      mode:    'no-cors',
+      method: 'POST', mode: 'no-cors',
       headers: { 'Content-Type': 'text/plain' },
-      body:    payload
+      body: JSON.stringify({ formType:'chiiki_post', category, title: titleVal||category, lat, lng, address, userId: liffUserId, displayName: liffDisplayName, imageBase64, imageMime })
     });
-
-    // ★ no-corsではレスポンスが読めないため、送信完了=成功とみなす
     statusEl.textContent = '✅ 投稿完了！審査後にフィードに反映されます😊';
     statusEl.style.color = '#27AE60';
     document.getElementById('submit-title').value = '';
     clearImage();
     document.getElementById('submit-category').value = '';
     document.querySelectorAll('.submit-cat-btn').forEach(b => b.classList.remove('selected'));
-    setTimeout(async () => {
-      closePostModal();
-      await loadData();
-    }, 2500);
-
+    setTimeout(async () => { closePostModal(); await loadData(); }, 2500);
   } catch(e) {
     statusEl.textContent = '❌ エラー: ' + e.message;
     statusEl.style.color = '#e74c3c';
-    console.error('投稿エラー:', e);
   }
-
   submitBtn.disabled = false;
 }
 
-// ==========================================
-// 画像圧縮（Canvas使用）
-// ==========================================
 function compressImage(file, maxWidth, quality) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = e => {
       const img = new Image();
-      img.onload = function() {
+      img.onload = () => {
         const canvas = document.createElement('canvas');
         let w = img.width, h = img.height;
         if (w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
-        canvas.width  = w;
-        canvas.height = h;
+        canvas.width = w; canvas.height = h;
         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
         const dataUrl = canvas.toDataURL('image/jpeg', quality);
-        const base64  = dataUrl.split(',')[1];
-        resolve({ base64: base64, mime: 'image/jpeg' });
+        resolve({ base64: dataUrl.split(',')[1], mime: 'image/jpeg' });
       };
-      img.onerror = reject;
-      img.src = e.target.result;
+      img.onerror = reject; img.src = e.target.result;
     };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
+    reader.onerror = reject; reader.readAsDataURL(file);
   });
 }
 
-// 画像プレビュー
 function onImageSelected(input) {
-  const preview     = document.getElementById('submit-preview');
-  const previewWrap = document.getElementById('submit-preview-wrap');
   if (input.files && input.files[0]) {
     const reader = new FileReader();
-    reader.onload = function(e) {
-      preview.src               = e.target.result;
-      previewWrap.style.display = 'block';
+    reader.onload = e => {
+      document.getElementById('submit-preview').src = e.target.result;
+      document.getElementById('submit-preview-wrap').style.display = 'block';
     };
     reader.readAsDataURL(input.files[0]);
-    if (input.id === 'submit-image') {
-      document.getElementById('submit-image-album').value = '';
-    } else {
-      document.getElementById('submit-image').value = '';
-    }
+    if (input.id === 'submit-image') document.getElementById('submit-image-album').value = '';
+    else document.getElementById('submit-image').value = '';
   }
 }
 
-// 写真取り消し
 function clearImage() {
-  document.getElementById('submit-image').value       = '';
+  document.getElementById('submit-image').value = '';
   document.getElementById('submit-image-album').value = '';
-  document.getElementById('submit-preview').src       = '';
+  document.getElementById('submit-preview').src = '';
   document.getElementById('submit-preview-wrap').style.display = 'none';
 }
 </script>
 
-<script
-  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDeC5HxWHonkgh7p-fUe8k6OzKns8Rienk&callback=onMapsReady&language=ja"
-  async defer>
-</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDeC5HxWHonkgh7p-fUe8k6OzKns8Rienk&callback=onMapsReady&language=ja" async defer></script>
 
 </body>
 </html>

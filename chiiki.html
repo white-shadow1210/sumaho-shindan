@@ -1190,23 +1190,22 @@ document.addEventListener('DOMContentLoaded', async function() {
   switchView('feed');
   loadData();
 
-  // LIFF初期化
+  // LIFF初期化（失敗しても続行）
   try {
-    await liff.init({ liffId: LIFF_ID });
-    if (liff.isLoggedIn()) {
-      const profile   = await liff.getProfile();
-      liffUserId      = profile.userId;
+    if (typeof liff !== 'undefined') {
+      await liff.init({ liffId: LIFF_ID });
+      if (liff.isLoggedIn()) {
+        const profile   = await liff.getProfile();
+        liffUserId      = profile.userId;
       liffDisplayName = profile.displayName;
       liffReady       = true;
       console.log('LIFF初期化完了: ' + liffDisplayName);
     } else {
-      // LINEアプリ外（ブラウザ）でアクセスした場合はログイン
-      if (!liff.isInClient()) {
-        liff.login();
-      }
+      // ブラウザアクセス時は強制ログインしない
+      liffReady = false;
     }
   } catch(e) {
-    console.warn('LIFF初期化エラー（ブラウザアクセスの可能性）: ' + e);
+    console.warn('LIFF初期化エラー: ' + e);
     liffReady = false;
   }
 });

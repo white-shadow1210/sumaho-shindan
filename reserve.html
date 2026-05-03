@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>スマホの相談士 - 予約フォーム</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- ★ LIFF SDK -->
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
         :root {
             --primary-blue: #249496;
@@ -17,217 +19,88 @@
             --step-bg: #f4f4f4;
             --member-gold: #cba052;
         }
-
-```
-    body {
-        font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
-        background-color: var(--bg-beige);
-        color: var(--text-main);
-        margin: 0;
-        padding: 0;
-    }
-
-    .container {
-        max-width: 800px;
-        margin: 0 auto;
-        background: #fff;
-        min-height: 100vh;
-        box-shadow: 0 0 15px rgba(0,0,0,0.05);
-        position: relative;
-    }
-
-    #returning-banner {
-        display: none;
-        background: #fff3e0;
-        border-bottom: 2px solid var(--accent-orange);
-        padding: 12px;
-        text-align: center;
-        font-size: 0.85rem;
-        color: #d35400;
-        line-height: 1.4;
-    }
-
-    .header {
-        text-align: center;
-        padding: 20px;
-        border-bottom: 1px solid var(--border-color);
-        transition: 0.3s;
-    }
-    .header h1 {
-        margin: 0;
-        font-size: 1.2rem;
-        color: var(--primary-blue);
-        letter-spacing: 1px;
-    }
-
-    .step-nav {
-        display: flex;
-        background: var(--step-bg);
-        border-bottom: 2px solid var(--border-color);
-    }
-    .step-item {
-        flex: 1;
-        text-align: center;
-        padding: 15px 5px;
-        font-size: 0.9rem;
-        color: #888;
-        position: relative;
-        font-weight: bold;
-    }
-    .step-item.active { background: var(--primary-blue); color: #fff; }
-    .step-item:not(:last-child)::after {
-        content: ''; position: absolute; top: 0; right: -15px;
-        border-top: 25px solid transparent; border-bottom: 25px solid transparent;
-        border-left: 15px solid var(--step-bg); z-index: 1;
-    }
-    .step-item.active::after { border-left-color: var(--primary-blue); z-index: 2; }
-
-    .form-section { display: none; padding: 30px 20px; animation: fadeIn 0.3s; }
-    .form-section.active { display: block; }
-
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-    .section-title {
-        font-size: 1.2rem; margin-top: 0; margin-bottom: 20px;
-        border-left: 4px solid var(--primary-blue); padding-left: 10px; transition: 0.3s;
-    }
-
-    .subscriber-login {
-        background: #e8f5f5; padding: 15px; border-radius: 8px;
-        margin-bottom: 25px; text-align: center; border: 1px solid #bce0e0; transition: 0.3s;
-    }
-    .subscriber-login p { margin: 0 0 10px 0; font-size: 0.9rem; }
-    .btn-line { background: #06C755; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-    .btn-line:hover { background: #05b34c; }
-
-    .member-mode .subscriber-login { background: #fdfaf2; border-color: var(--member-gold); }
-    .member-mode .header h1, .member-mode .section-title { color: var(--member-gold); }
-    .member-mode .step-item.active { background: var(--member-gold); }
-    .member-mode .step-item.active::after { border-left-color: var(--member-gold); }
-
-    .menu-card {
-        border: 2px solid var(--border-color); border-radius: 8px; padding: 15px;
-        margin-bottom: 15px; cursor: pointer; transition: 0.2s;
-        display: flex; justify-content: space-between; align-items: center;
-    }
-    .menu-card:hover { border-color: var(--primary-blue); background: #f0f8f8; }
-    .member-mode .menu-card:hover { border-color: var(--member-gold); background: #fcfbf8; }
-    .menu-card input[type="radio"] { transform: scale(1.5); margin-right: 15px; accent-color: var(--primary-blue); }
-    .member-mode .menu-card input[type="radio"] { accent-color: var(--member-gold); }
-    .menu-content { flex: 1; }
-    .menu-title { font-weight: bold; font-size: 1.1rem; margin-bottom: 5px; }
-    .menu-desc { font-size: 0.85rem; color: #666; }
-    .subs-upsell { font-size: 0.75rem; color: #e74c3c; margin-top: 5px; display: inline-block; background: #fdf0ed; padding: 3px 8px; border-radius: 4px; font-weight: bold; }
-    .member-mode .subs-upsell { display: none; }
-    .menu-price { font-weight: bold; color: var(--primary-blue); text-align: right; min-width: 90px; }
-    .member-mode .menu-price { color: var(--member-gold); }
-    .price-original { display: none; text-decoration: line-through; color: #999; font-size: 0.8rem; font-weight: normal; }
-    .member-mode .price-original { display: block; }
-
-    .calendar-wrap { overflow-x: auto; margin-bottom: 20px; border: 1px solid var(--border-color); border-radius: 8px; }
-    .calendar-table { width: 100%; border-collapse: collapse; min-width: 1000px; background: #fff; table-layout: fixed; }
-    .calendar-table th, .calendar-table td { border: 1px solid var(--border-color); text-align: center; padding: 12px 5px; vertical-align: middle; width: 80px; }
-    .calendar-table th { background: var(--step-bg); font-weight: normal; font-size: 0.9rem; line-height: 1.4; }
-    .time-slot { background: #f9f9f9; font-weight: bold; font-size: 0.9rem; width: 60px !important; position: sticky; left: 0; z-index: 10; border-right: 2px solid var(--border-color); }
-    .slot-available { color: var(--accent-orange); font-size: 1.2rem; cursor: pointer; transition: 0.2s; }
-    .slot-available:hover { background: #fff3e0; }
-    .slot-full { color: #ccc; font-size: 1.2rem; }
-    .slot-selected { background: var(--accent-orange) !important; color: #fff !important; font-size: 0.9rem !important; font-weight: bold; }
-    .slot-blocked { background: #fcdfb6 !important; color: #d35400 !important; font-size: 0.8rem !important; }
-
-    .summary-box { background: #fdfdfd; border: 1px solid var(--border-color); padding: 15px; margin-bottom: 20px; border-radius: 5px; }
-    .summary-item { display: flex; justify-content: space-between; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed #eee; }
-    .summary-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-    .total-price-row { font-size: 1.2rem; font-weight: bold; color: var(--primary-blue); border-top: 2px solid var(--border-color); padding-top: 15px; margin-top: 5px; }
-    .member-mode .total-price-row { color: var(--member-gold); }
-
-    .form-group { margin-bottom: 20px; }
-    .form-group label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 0.9rem; }
-    .form-group label span { color: red; font-size: 0.8rem; margin-left: 5px; }
-    .form-control { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 5px; box-sizing: border-box; font-size: 1rem; }
-
-    .privacy-policy { background: #f9f9f9; padding: 15px; border-radius: 5px; border: 1px solid #eee; margin-top: 20px; font-size: 0.8rem; color: #555; line-height: 1.6; }
-
-    .bottom-nav { display: flex; justify-content: space-between; padding: 20px; background: #fff; border-top: 1px solid var(--border-color); position: sticky; bottom: 0; }
-    .btn { padding: 12px 25px; border-radius: 5px; font-size: 1rem; font-weight: bold; cursor: pointer; border: none; transition: 0.2s; }
-    .btn-back { background: #fff; border: 1px solid #ccc; color: #333; }
-    .btn-next { background: var(--accent-orange); color: #fff; flex-grow: 1; margin-left: 15px; }
-    .btn-next:hover { background: #e68a00; }
-
-    #sending-overlay {
-        display: none;
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        background: rgba(26, 42, 64, 0.88);
-        z-index: 9999;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-    }
-    #sending-overlay.active { display: flex; }
-
-    .sending-card {
-        background: #fff;
-        border-radius: 24px;
-        padding: 44px 32px 36px;
-        text-align: center;
-        width: 82%;
-        max-width: 300px;
-        box-shadow: 0 16px 48px rgba(0,0,0,0.35);
-        animation: cardIn 0.3s ease;
-    }
-    @keyframes cardIn {
-        from { opacity: 0; transform: scale(0.92) translateY(12px); }
-        to { opacity: 1; transform: scale(1) translateY(0); }
-    }
-
-    .spinner {
-        width: 60px; height: 60px;
-        border: 5px solid #e0f0f0;
-        border-top: 5px solid var(--primary-blue);
-        border-radius: 50%;
-        animation: spin 0.85s linear infinite;
-        margin: 0 auto 22px;
-    }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-    .checkmark-svg { display: none; width: 60px; height: 60px; margin: 0 auto 22px; }
-    .checkmark-circle {
-        stroke-dasharray: 166; stroke-dashoffset: 166; stroke-width: 3;
-        stroke: var(--primary-blue); fill: none;
-        animation: drawCircle 0.5s ease forwards;
-    }
-    .checkmark-path {
-        stroke-dasharray: 48; stroke-dashoffset: 48; stroke-width: 3.5;
-        stroke: var(--primary-blue); fill: none;
-        stroke-linecap: round; stroke-linejoin: round;
-        animation: drawCheck 0.35s 0.45s ease forwards;
-    }
-    @keyframes drawCircle { 100% { stroke-dashoffset: 0; } }
-    @keyframes drawCheck  { 100% { stroke-dashoffset: 0; } }
-
-    .sending-title { font-size: 1.15rem; font-weight: bold; color: #1a2a40; margin-bottom: 6px; }
-    .sending-sub   { font-size: 0.85rem; color: #999; line-height: 1.6; }
-
-    .dot-flashing { display: inline-flex; gap: 7px; margin-top: 18px; justify-content: center; }
-    .dot-flashing span {
-        width: 9px; height: 9px; background: var(--primary-blue);
-        border-radius: 50%; animation: dotBlink 1.3s infinite ease-in-out;
-    }
-    .dot-flashing span:nth-child(2) { animation-delay: 0.22s; }
-    .dot-flashing span:nth-child(3) { animation-delay: 0.44s; }
-    @keyframes dotBlink {
-        0%, 80%, 100% { opacity: 0.15; transform: scale(0.75); }
-        40%            { opacity: 1;    transform: scale(1.25); }
-    }
-</style>
-```
-
+        body { font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif; background-color: var(--bg-beige); color: var(--text-main); margin: 0; padding: 0; }
+        .container { max-width: 800px; margin: 0 auto; background: #fff; min-height: 100vh; box-shadow: 0 0 15px rgba(0,0,0,0.05); position: relative; }
+        #returning-banner { display: none; background: #fff3e0; border-bottom: 2px solid var(--accent-orange); padding: 12px; text-align: center; font-size: 0.85rem; color: #d35400; line-height: 1.4; }
+        .header { text-align: center; padding: 20px; border-bottom: 1px solid var(--border-color); transition: 0.3s; }
+        .header h1 { margin: 0; font-size: 1.2rem; color: var(--primary-blue); letter-spacing: 1px; }
+        .step-nav { display: flex; background: var(--step-bg); border-bottom: 2px solid var(--border-color); }
+        .step-item { flex: 1; text-align: center; padding: 15px 5px; font-size: 0.9rem; color: #888; position: relative; font-weight: bold; }
+        .step-item.active { background: var(--primary-blue); color: #fff; }
+        .step-item:not(:last-child)::after { content: ''; position: absolute; top: 0; right: -15px; border-top: 25px solid transparent; border-bottom: 25px solid transparent; border-left: 15px solid var(--step-bg); z-index: 1; }
+        .step-item.active::after { border-left-color: var(--primary-blue); z-index: 2; }
+        .form-section { display: none; padding: 30px 20px; animation: fadeIn 0.3s; }
+        .form-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .section-title { font-size: 1.2rem; margin-top: 0; margin-bottom: 20px; border-left: 4px solid var(--primary-blue); padding-left: 10px; transition: 0.3s; }
+        .subscriber-login { background: #e8f5f5; padding: 15px; border-radius: 8px; margin-bottom: 25px; text-align: center; border: 1px solid #bce0e0; transition: 0.3s; }
+        .subscriber-login p { margin: 0 0 10px 0; font-size: 0.9rem; }
+        .btn-line { background: #06C755; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-line:hover { background: #05b34c; }
+        .member-mode .subscriber-login { background: #fdfaf2; border-color: var(--member-gold); }
+        .member-mode .header h1, .member-mode .section-title { color: var(--member-gold); }
+        .member-mode .step-item.active { background: var(--member-gold); }
+        .member-mode .step-item.active::after { border-left-color: var(--member-gold); }
+        .menu-card { border: 2px solid var(--border-color); border-radius: 8px; padding: 15px; margin-bottom: 15px; cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between; align-items: center; }
+        .menu-card:hover { border-color: var(--primary-blue); background: #f0f8f8; }
+        .member-mode .menu-card:hover { border-color: var(--member-gold); background: #fcfbf8; }
+        .menu-card input[type="radio"] { transform: scale(1.5); margin-right: 15px; accent-color: var(--primary-blue); }
+        .member-mode .menu-card input[type="radio"] { accent-color: var(--member-gold); }
+        .menu-content { flex: 1; }
+        .menu-title { font-weight: bold; font-size: 1.1rem; margin-bottom: 5px; }
+        .menu-desc { font-size: 0.85rem; color: #666; }
+        .subs-upsell { font-size: 0.75rem; color: #e74c3c; margin-top: 5px; display: inline-block; background: #fdf0ed; padding: 3px 8px; border-radius: 4px; font-weight: bold; }
+        .member-mode .subs-upsell { display: none; }
+        .menu-price { font-weight: bold; color: var(--primary-blue); text-align: right; min-width: 90px; }
+        .member-mode .menu-price { color: var(--member-gold); }
+        .price-original { display: none; text-decoration: line-through; color: #999; font-size: 0.8rem; font-weight: normal; }
+        .member-mode .price-original { display: block; }
+        .calendar-wrap { overflow-x: auto; margin-bottom: 20px; border: 1px solid var(--border-color); border-radius: 8px; }
+        .calendar-table { width: 100%; border-collapse: collapse; min-width: 1000px; background: #fff; table-layout: fixed; }
+        .calendar-table th, .calendar-table td { border: 1px solid var(--border-color); text-align: center; padding: 12px 5px; vertical-align: middle; width: 80px; }
+        .calendar-table th { background: var(--step-bg); font-weight: normal; font-size: 0.9rem; line-height: 1.4; }
+        .time-slot { background: #f9f9f9; font-weight: bold; font-size: 0.9rem; width: 60px !important; position: sticky; left: 0; z-index: 10; border-right: 2px solid var(--border-color); }
+        .slot-available { color: var(--accent-orange); font-size: 1.2rem; cursor: pointer; transition: 0.2s; }
+        .slot-available:hover { background: #fff3e0; }
+        .slot-full { color: #ccc; font-size: 1.2rem; }
+        .slot-selected { background: var(--accent-orange) !important; color: #fff !important; font-size: 0.9rem !important; font-weight: bold; }
+        .slot-blocked { background: #fcdfb6 !important; color: #d35400 !important; font-size: 0.8rem !important; }
+        .summary-box { background: #fdfdfd; border: 1px solid var(--border-color); padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+        .summary-item { display: flex; justify-content: space-between; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed #eee; }
+        .summary-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .total-price-row { font-size: 1.2rem; font-weight: bold; color: var(--primary-blue); border-top: 2px solid var(--border-color); padding-top: 15px; margin-top: 5px; }
+        .member-mode .total-price-row { color: var(--member-gold); }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 0.9rem; }
+        .form-group label span { color: red; font-size: 0.8rem; margin-left: 5px; }
+        .form-control { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 5px; box-sizing: border-box; font-size: 1rem; }
+        .privacy-policy { background: #f9f9f9; padding: 15px; border-radius: 5px; border: 1px solid #eee; margin-top: 20px; font-size: 0.8rem; color: #555; line-height: 1.6; }
+        .bottom-nav { display: flex; justify-content: space-between; padding: 20px; background: #fff; border-top: 1px solid var(--border-color); position: sticky; bottom: 0; }
+        .btn { padding: 12px 25px; border-radius: 5px; font-size: 1rem; font-weight: bold; cursor: pointer; border: none; transition: 0.2s; }
+        .btn-back { background: #fff; border: 1px solid #ccc; color: #333; }
+        .btn-next { background: var(--accent-orange); color: #fff; flex-grow: 1; margin-left: 15px; }
+        .btn-next:hover { background: #e68a00; }
+        #sending-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(26,42,64,0.88); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; }
+        #sending-overlay.active { display: flex; }
+        .sending-card { background: #fff; border-radius: 24px; padding: 44px 32px 36px; text-align: center; width: 82%; max-width: 300px; box-shadow: 0 16px 48px rgba(0,0,0,0.35); animation: cardIn 0.3s ease; }
+        @keyframes cardIn { from { opacity: 0; transform: scale(0.92) translateY(12px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        .spinner { width: 60px; height: 60px; border: 5px solid #e0f0f0; border-top: 5px solid var(--primary-blue); border-radius: 50%; animation: spin 0.85s linear infinite; margin: 0 auto 22px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .checkmark-svg { display: none; width: 60px; height: 60px; margin: 0 auto 22px; }
+        .checkmark-circle { stroke-dasharray: 166; stroke-dashoffset: 166; stroke-width: 3; stroke: var(--primary-blue); fill: none; animation: drawCircle 0.5s ease forwards; }
+        .checkmark-path { stroke-dasharray: 48; stroke-dashoffset: 48; stroke-width: 3.5; stroke: var(--primary-blue); fill: none; stroke-linecap: round; stroke-linejoin: round; animation: drawCheck 0.35s 0.45s ease forwards; }
+        @keyframes drawCircle { 100% { stroke-dashoffset: 0; } }
+        @keyframes drawCheck  { 100% { stroke-dashoffset: 0; } }
+        .sending-title { font-size: 1.15rem; font-weight: bold; color: #1a2a40; margin-bottom: 6px; }
+        .sending-sub   { font-size: 0.85rem; color: #999; line-height: 1.6; }
+        .dot-flashing { display: inline-flex; gap: 7px; margin-top: 18px; justify-content: center; }
+        .dot-flashing span { width: 9px; height: 9px; background: var(--primary-blue); border-radius: 50%; animation: dotBlink 1.3s infinite ease-in-out; }
+        .dot-flashing span:nth-child(2) { animation-delay: 0.22s; }
+        .dot-flashing span:nth-child(3) { animation-delay: 0.44s; }
+        @keyframes dotBlink { 0%, 80%, 100% { opacity: 0.15; transform: scale(0.75); } 40% { opacity: 1; transform: scale(1.25); } }
+    </style>
 </head>
 <body>
-
-<!-- 送信中オーバーレイ -->
 
 <div id="sending-overlay">
     <div class="sending-card">
@@ -238,97 +111,55 @@
         </svg>
         <div class="sending-title" id="overlay-title">予約を送信中です</div>
         <div class="sending-sub"   id="overlay-sub">少々お待ちください</div>
-        <div class="dot-flashing"  id="overlay-dots">
-            <span></span><span></span><span></span>
-        </div>
+        <div class="dot-flashing"  id="overlay-dots"><span></span><span></span><span></span></div>
     </div>
 </div>
 
 <div class="container" id="app-container">
     <div id="returning-banner"></div>
+    <div class="header"><h1>MOBILE PLANNING<br>スマホの相談士</h1></div>
+    <div class="step-nav">
+        <div class="step-item active" id="nav-step1">メニューを選択</div>
+        <div class="step-item"        id="nav-step2">日時を指定</div>
+        <div class="step-item"        id="nav-step3">情報入力・確認</div>
+    </div>
 
 ```
-<div class="header">
-    <h1>MOBILE PLANNING<br>スマホの相談士</h1>
-</div>
-
-<div class="step-nav">
-    <div class="step-item active" id="nav-step1">メニューを選択</div>
-    <div class="step-item"        id="nav-step2">日時を指定</div>
-    <div class="step-item"        id="nav-step3">情報入力・確認</div>
-</div>
-
-<!-- STEP 1: メニュー選択 -->
+<!-- STEP 1 -->
 <div id="step1" class="form-section active">
     <div class="subscriber-login" id="login-box">
         <p><strong>すでにサブスク会員（かかりつけ登録）の方はこちら</strong><br>ご登録情報と紐づけて、会員限定価格でスムーズに予約が可能です。</p>
         <button class="btn-line" type="button" onclick="tryMemberLogin()">パスワードを入力してログイン</button>
     </div>
-
     <h2 class="section-title">ご希望のメニュー</h2>
-
     <label class="menu-card" onclick="selectMenu('menu1','スマホ健康診断（まずは無料診断）',0,30)">
         <input type="radio" name="menu" id="menu1">
-        <div class="menu-content">
-            <div class="menu-title">スマホ健康診断（まずは無料診断）</div>
-            <div class="menu-desc">料金プランの見直し等、現状のカルテを作成します。</div>
-        </div>
+        <div class="menu-content"><div class="menu-title">スマホ健康診断（まずは無料診断）</div><div class="menu-desc">料金プランの見直し等、現状のカルテを作成します。</div></div>
         <div class="menu-price">¥0<br><span style="font-size:0.8rem;font-weight:normal;">(30分)</span></div>
     </label>
-
     <label class="menu-card" onclick="selectMenu('menu2','スマホ整理・お悩み相談',3300,60)">
         <input type="radio" name="menu" id="menu2">
-        <div class="menu-content">
-            <div class="menu-title">スマホ整理・お悩み相談</div>
-            <div class="menu-desc">写真整理や操作方法の疑問などあらゆるお悩みを解決します。</div>
-            <div class="subs-upsell">★サブスク会員様は20%割引！</div>
-        </div>
-        <div class="menu-price">
-            <span class="price-original">通常: ¥3,300</span>
-            <span class="price-display">¥3,300</span><br>
-            <span style="font-size:0.8rem;font-weight:normal;">(60分)</span>
-        </div>
+        <div class="menu-content"><div class="menu-title">スマホ整理・お悩み相談</div><div class="menu-desc">写真整理や操作方法の疑問などあらゆるお悩みを解決します。</div><div class="subs-upsell">★サブスク会員様は20%割引！</div></div>
+        <div class="menu-price"><span class="price-original">通常: ¥3,300</span><span class="price-display">¥3,300</span><br><span style="font-size:0.8rem;font-weight:normal;">(60分)</span></div>
     </label>
-
     <label class="menu-card" onclick="selectMenu('menu3','プラン見直し・最適化診断',5500,60)">
         <input type="radio" name="menu" id="menu3">
-        <div class="menu-content">
-            <div class="menu-title">プラン見直し・最適化診断</div>
-            <div class="menu-desc">各社プランを比較し、最適な通信費削減をご提案します。</div>
-            <div class="subs-upsell">★サブスク会員様は20%割引！</div>
-        </div>
-        <div class="menu-price">
-            <span class="price-original">通常: ¥5,500</span>
-            <span class="price-display">¥5,500</span><br>
-            <span style="font-size:0.8rem;font-weight:normal;">(60分)</span>
-        </div>
+        <div class="menu-content"><div class="menu-title">プラン見直し・最適化診断</div><div class="menu-desc">各社プランを比較し、最適な通信費削減をご提案します。</div><div class="subs-upsell">★サブスク会員様は20%割引！</div></div>
+        <div class="menu-price"><span class="price-original">通常: ¥5,500</span><span class="price-display">¥5,500</span><br><span style="font-size:0.8rem;font-weight:normal;">(60分)</span></div>
     </label>
-
     <label class="menu-card" onclick="selectMenu('menu4','完全データ移行パック',11000,120)">
         <input type="radio" name="menu" id="menu4">
-        <div class="menu-content">
-            <div class="menu-title">完全データ移行パック</div>
-            <div class="menu-desc">機種変更時のデータ移行、LINE引継ぎ等を全て代行します。</div>
-            <div class="subs-upsell">★サブスク会員様は20%割引！</div>
-        </div>
-        <div class="menu-price">
-            <span class="price-original">通常: ¥11,000</span>
-            <span class="price-display">¥11,000</span><br>
-            <span style="font-size:0.8rem;font-weight:normal;">(120分)</span>
-        </div>
+        <div class="menu-content"><div class="menu-title">完全データ移行パック</div><div class="menu-desc">機種変更時のデータ移行、LINE引継ぎ等を全て代行します。</div><div class="subs-upsell">★サブスク会員様は20%割引！</div></div>
+        <div class="menu-price"><span class="price-original">通常: ¥11,000</span><span class="price-display">¥11,000</span><br><span style="font-size:0.8rem;font-weight:normal;">(120分)</span></div>
     </label>
-
     <label class="menu-card" onclick="selectMenu('menu5','【会員限定】定期点検サポート',0,45)">
         <input type="radio" name="menu" id="menu5">
-        <div class="menu-content">
-            <div class="menu-title">【会員限定】定期点検サポート</div>
-            <div class="menu-desc">サブスク会員様向けの定期メンテナンス枠です。</div>
-        </div>
+        <div class="menu-content"><div class="menu-title">【会員限定】定期点検サポート</div><div class="menu-desc">サブスク会員様向けの定期メンテナンス枠です。</div></div>
         <div class="menu-price">¥0<br><span style="font-size:0.8rem;font-weight:normal;">(会員限定/45分)</span></div>
     </label>
 </div>
 
-<!-- STEP 2: 日時指定 -->
+<!-- STEP 2 -->
 <div id="step2" class="form-section">
     <h2 class="section-title">日時の指定</h2>
     <p style="font-size:0.9rem;margin-bottom:5px;">ご希望の日時の「◎」をタップしてください。</p>
@@ -342,7 +173,7 @@
     </div>
 </div>
 
-<!-- STEP 3: 情報入力・確認 -->
+<!-- STEP 3 -->
 <div id="step3" class="form-section">
     <h2 class="section-title">ご予約内容の確認</h2>
     <div class="summary-box">
@@ -351,7 +182,6 @@
         <div class="summary-item"><span>日時:</span><strong id="summary-datetime">-</strong></div>
         <div class="summary-item total-price-row"><span>お支払い予定額:</span><strong id="summary-price">-</strong></div>
     </div>
-
     <h2 class="section-title">お客様情報の入力</h2>
     <div class="form-group">
         <label>お名前<span>(必須)</span></label>
@@ -365,12 +195,10 @@
         <label>メールアドレス<span>(必須)</span></label>
         <input type="email" class="form-control" id="input-email" placeholder="例：example@mail.com">
     </div>
-
     <div class="privacy-policy">
         <strong>【セキュリティと個人情報の取扱いについて】</strong><br>
         ご入力いただいたお名前・電話番号等の個人情報は、予約の管理および当日のご本人様確認・ご相談対応のためにのみ使用し、適切かつ安全に管理いたします。
     </div>
-
     <div class="subscriber-login" id="subs-promo-box" style="background:#fffaf0;border-color:#ffe0b2;margin-top:20px;">
         <p style="color:#d35400;font-weight:bold;">💡 サブスク会員（かかりつけ登録）について</p>
         <p style="text-align:left;font-size:0.85rem;color:#555;">月額定額でサポートが受けられるお得なプラン。当日加入も可能です。</p>
@@ -391,17 +219,34 @@
 
 <script>
     // ============================================================
+    // ★ 設定（GAS URL最新デプロイ・LIFF追加）
+    // ============================================================
+    const GAS_URL  = "https://script.google.com/macros/s/AKfycbyX_iaLnrh8BCCCjsqWT5m3KRmUDzHPaxqtMhXJcOc9Ws9t252VmVPxWEOvMP5BskU/exec";
+    const LIFF_ID  = "2009944467-lN8yixTk";
+
+    // ★ LIFF初期化（バックグラウンドで実行）
+    let liffUserId = '', liffDisplayName = '';
+    (async function initLiff() {
+        try {
+            await liff.init({ liffId: LIFF_ID });
+            if (liff.isLoggedIn()) {
+                const profile  = await liff.getProfile();
+                liffUserId      = profile.userId;
+                liffDisplayName = profile.displayName;
+                console.log('[LIFF reserve] 初期化完了:', liffDisplayName);
+            }
+        } catch(e) { console.warn('[LIFF reserve] 初期化エラー:', e); }
+    })();
+
+    // ============================================================
     // 状態変数
     // ============================================================
     let currentStep  = 1;
     let isMemberMode = false;
     let selected     = { id:'', name:'', price:0, duration:0, dateRaw:'', time:'' };
-    const START_MIN  = 570;   // 9:30
-    const END_MIN    = 1260;  // 21:00
+    const START_MIN  = 570;
+    const END_MIN    = 1260;
     const INTERVAL   = 30;
-
-    // ★ 最新デプロイ URL（変更しないこと）
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbz3CsxRGLTs5HzPI9zw0q9sXPTTOIQhI2zV-48snqVNiw16TNi8zmTDYveK6jkZjeM/exec";
 
     // ============================================================
     // 初期化
@@ -410,7 +255,7 @@
         const lastBooking = localStorage.getItem('nishidate_last_booking');
         if (lastBooking) {
             try {
-                const d = JSON.parse(lastBooking);
+                const d      = JSON.parse(lastBooking);
                 const banner = document.getElementById('returning-banner');
                 banner.style.display = 'block';
                 banner.innerHTML = '🔔 <b>前回の予約内容:</b> ' + d.date + ' ' + d.time + '〜 (' + d.menu + ')';
@@ -422,13 +267,11 @@
     // 会員ログイン
     // ============================================================
     async function hashPassword(password) {
-        const encoder   = new TextEncoder();
-        const data      = encoder.encode(password);
+        const encoder    = new TextEncoder();
+        const data       = encoder.encode(password);
         const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-        return Array.from(new Uint8Array(hashBuffer))
-                    .map(b => b.toString(16).padStart(2,'0')).join('');
+        return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2,'0')).join('');
     }
-
     const MEMBER_PW_HASH = "f020272c938ba0a213d31613fd5a1a8b053c693d489551f8b24e900db43d6873";
 
     async function tryMemberLogin() {
@@ -438,10 +281,7 @@
             text: "会員カードに記載されている「4桁のパスワード」を入力してください。",
             input: "password",
             inputAttributes: { inputmode:"numeric", pattern:"[0-9]*" },
-            showCancelButton: true,
-            confirmButtonText: "認証する",
-            cancelButtonText: "キャンセル",
-            confirmButtonColor: "#cba052"
+            showCancelButton: true, confirmButtonText: "認証する", cancelButtonText: "キャンセル", confirmButtonColor: "#cba052"
         }).then(async function(result) {
             if (result.isConfirmed) {
                 const inputHash = await hashPassword(result.value);
@@ -458,14 +298,11 @@
     function enableMemberMode() {
         isMemberMode = true;
         document.getElementById('app-container').classList.add('member-mode');
-        document.getElementById('login-box').innerHTML =
-            '<p style="color:var(--member-gold);font-size:1.1rem;margin:0;"><strong>✓ サブスク会員としてログイン中</strong></p>';
+        document.getElementById('login-box').innerHTML = '<p style="color:var(--member-gold);font-size:1.1rem;margin:0;"><strong>✓ サブスク会員としてログイン中</strong></p>';
         document.getElementById('subs-promo-box').style.display = 'none';
-
         const priceDisplays = document.querySelectorAll('.price-display');
         const memberPrices  = ['¥2,640','¥4,400','¥8,800'];
         priceDisplays.forEach(function(el, i) { if (memberPrices[i]) el.innerText = memberPrices[i]; });
-
         if (selected.id) {
             const basePrices = { menu2:3300, menu3:5500, menu4:11000 };
             if (basePrices[selected.id]) selected.price = basePrices[selected.id] * 0.8;
@@ -477,14 +314,7 @@
     // ============================================================
     function selectMenu(menuId, name, basePrice, duration) {
         document.getElementById(menuId).checked = true;
-        selected = {
-            id:       menuId,
-            name:     name,
-            price:    (isMemberMode && basePrice > 0) ? basePrice * 0.8 : basePrice,
-            duration: duration,
-            dateRaw:  '',
-            time:     ''
-        };
+        selected = { id: menuId, name, price: (isMemberMode && basePrice > 0) ? basePrice * 0.8 : basePrice, duration, dateRaw:'', time:'' };
     }
 
     // ============================================================
@@ -505,50 +335,38 @@
             const res  = await fetch(GAS_URL);
             const json = await res.json();
             busySlots  = json.busy || [];
-        } catch(err) {
-            console.warn("カレンダー取得エラー:", err);
-            // 取得失敗でも空きカレンダーとして表示を続ける
-        }
+        } catch(err) { console.warn("カレンダー取得エラー:", err); }
 
-        // 予約済みスロットをセット化
         const busySet = new Set();
         busySlots.forEach(function(slot) {
             const start = new Date(slot.start);
             const end   = new Date(slot.end);
             for (let t = new Date(start); t < end; t.setMinutes(t.getMinutes() + 30)) {
-                const key = t.getFullYear() + "/" + (t.getMonth()+1) + "/" + t.getDate()
-                          + "_" + t.getHours() + ":" + String(t.getMinutes()).padStart(2,'0');
+                const key = t.getFullYear() + "/" + (t.getMonth()+1) + "/" + t.getDate() + "_" + t.getHours() + ":" + String(t.getMinutes()).padStart(2,'0');
                 busySet.add(key);
             }
         });
 
-        // ヘッダー行（日付）
         thead.innerHTML = '';
-        const trH  = document.createElement('tr');
-        const thT  = document.createElement('th');
-        thT.innerText  = '時間';
-        thT.className  = 'time-slot';
+        const trH = document.createElement('tr');
+        const thT = document.createElement('th');
+        thT.innerText = '時間'; thT.className = 'time-slot';
         trH.appendChild(thT);
 
         const days     = [];
         const today    = new Date();
         const dayNames = ['日','月','火','水','木','金','土'];
         for (let i = 1; i <= 14; i++) {
-            const d     = new Date(today);
+            const d = new Date(today);
             d.setDate(today.getDate() + i);
             const color = d.getDay() === 0 ? 'red' : (d.getDay() === 6 ? 'blue' : 'black');
-            days.push({
-                raw:     d.getFullYear() + "年" + (d.getMonth()+1) + "月" + d.getDate() + "日",
-                dateObj: new Date(d)
-            });
+            days.push({ raw: d.getFullYear() + "年" + (d.getMonth()+1) + "月" + d.getDate() + "日", dateObj: new Date(d) });
             const th = document.createElement('th');
-            th.innerHTML = '<span style="color:' + color + '">'
-                         + d.getDate() + '<br>(' + dayNames[d.getDay()] + ')</span>';
+            th.innerHTML = '<span style="color:' + color + '">' + d.getDate() + '<br>(' + dayNames[d.getDay()] + ')</span>';
             trH.appendChild(th);
         }
         thead.appendChild(trH);
 
-        // ボディ行（時間スロット）
         const totalRows = (END_MIN - START_MIN) / INTERVAL;
         for (let r = 0; r <= totalRows; r++) {
             const tm   = START_MIN + (r * INTERVAL);
@@ -557,28 +375,16 @@
             const tStr = h + ":" + (m === 0 ? '00' : '30');
             const tr   = document.createElement('tr');
             const tdT  = document.createElement('td');
-            tdT.innerText = tStr;
-            tdT.className = 'time-slot';
+            tdT.innerText = tStr; tdT.className = 'time-slot';
             tr.appendChild(tdT);
-
             const rowCells = [];
             for (let c = 0; c < 14; c++) {
                 const td  = document.createElement('td');
                 const d   = days[c].dateObj;
                 const key = d.getFullYear() + "/" + (d.getMonth()+1) + "/" + d.getDate() + "_" + tStr;
-                td.dataset.row     = r;
-                td.dataset.col     = c;
-                td.dataset.time    = tStr;
-                td.dataset.dateRaw = days[c].raw;
-
-                if (busySet.has(key)) {
-                    td.innerHTML  = '×';
-                    td.className  = 'slot-full';
-                } else {
-                    td.innerHTML  = '◎';
-                    td.className  = 'slot-available';
-                    td.onclick    = function() { handleSlotClick(this); };
-                }
+                td.dataset.row = r; td.dataset.col = c; td.dataset.time = tStr; td.dataset.dateRaw = days[c].raw;
+                if (busySet.has(key)) { td.innerHTML = '×'; td.className = 'slot-full'; }
+                else { td.innerHTML = '◎'; td.className = 'slot-available'; td.onclick = function() { handleSlotClick(this); }; }
                 tr.appendChild(td);
                 rowCells.push(td);
             }
@@ -587,49 +393,29 @@
         }
     }
 
-    // ============================================================
-    // スロットクリック
-    // ============================================================
     function handleSlotClick(clickedTd) {
         const row      = parseInt(clickedTd.dataset.row);
         const col      = parseInt(clickedTd.dataset.col);
         const required = Math.ceil((selected.duration + 30) / INTERVAL);
         let canBook    = true;
         const slotsToBook = [];
-
         for (let i = 0; i < required; i++) {
-            if (row + i >= calendarMatrix.length ||
-                calendarMatrix[row + i][col].classList.contains('slot-full')) {
-                canBook = false; break;
-            }
+            if (row + i >= calendarMatrix.length || calendarMatrix[row + i][col].classList.contains('slot-full')) { canBook = false; break; }
             slotsToBook.push(calendarMatrix[row + i][col]);
         }
-        if (!canBook) {
-            return Swal.fire("エラー", "連続した空き枠がありません。別の時間をお選びください。", "error");
-        }
-
-        // 前の選択をリセット
+        if (!canBook) return Swal.fire("エラー", "連続した空き枠がありません。別の時間をお選びください。", "error");
         document.querySelectorAll('td').forEach(function(td) {
-            if (td.classList.contains('slot-selected') || td.classList.contains('slot-blocked')) {
-                td.className = 'slot-available';
-                td.innerHTML = '◎';
-            }
+            if (td.classList.contains('slot-selected') || td.classList.contains('slot-blocked')) { td.className = 'slot-available'; td.innerHTML = '◎'; }
         });
-
-        // 新しい選択を反映
         slotsToBook.forEach(function(td, idx) {
             if (idx === 0) { td.className = 'slot-selected'; td.innerHTML = '選択'; }
             else           { td.className = 'slot-blocked';  td.innerHTML = '確保'; }
         });
-
         selected.dateRaw = clickedTd.dataset.dateRaw;
         selected.time    = clickedTd.dataset.time;
         document.getElementById('btn-next').innerText = '次へ (内容を確認)';
     }
 
-    // ============================================================
-    // オーバーレイ制御
-    // ============================================================
     function showSendingOverlay() {
         document.getElementById('overlay-spinner').style.display = 'block';
         document.getElementById('overlay-check').style.display   = 'none';
@@ -645,24 +431,13 @@
         document.getElementById('overlay-title').innerText       = '送信完了！';
         document.getElementById('overlay-sub').innerText         = '確認メールをお送りします';
     }
-    function hideSendingOverlay() {
-        document.getElementById('sending-overlay').classList.remove('active');
-    }
+    function hideSendingOverlay() { document.getElementById('sending-overlay').classList.remove('active'); }
 
-    // ============================================================
-    // ナビゲーション
-    // ============================================================
     function updateNavAndButtons() {
-        document.querySelectorAll('.form-section').forEach(function(el, i) {
-            el.classList.toggle('active', i + 1 === currentStep);
-        });
-        document.querySelectorAll('.step-item').forEach(function(el, i) {
-            el.classList.toggle('active', i + 1 === currentStep);
-        });
-
+        document.querySelectorAll('.form-section').forEach(function(el, i) { el.classList.toggle('active', i + 1 === currentStep); });
+        document.querySelectorAll('.step-item').forEach(function(el, i) { el.classList.toggle('active', i + 1 === currentStep); });
         const btnBack = document.getElementById('btn-back');
         const btnNext = document.getElementById('btn-next');
-
         if (currentStep === 1) {
             btnBack.style.display = 'none';
             btnNext.innerText     = '次へ (日時を指定)';
@@ -676,35 +451,20 @@
             document.getElementById('summary-menu').innerText     = selected.name;
             document.getElementById('summary-time').innerText     = selected.duration + '分';
             document.getElementById('summary-datetime').innerText = selected.dateRaw + " " + selected.time + "〜";
-            document.getElementById('summary-price').innerText    =
-                selected.price === 0 ? '無料' : '¥' + selected.price.toLocaleString() + ' (税込)';
+            document.getElementById('summary-price').innerText    = selected.price === 0 ? '無料' : '¥' + selected.price.toLocaleString() + ' (税込)';
         }
     }
 
     function goNext() {
-        if (currentStep === 1 && !selected.id) {
-            return Swal.fire("確認", "メニューを選択してください", "warning");
-        }
-        if (currentStep === 2 && !selected.dateRaw) {
-            return Swal.fire("確認", "日時を選択してください", "warning");
-        }
+        if (currentStep === 1 && !selected.id) return Swal.fire("確認", "メニューを選択してください", "warning");
+        if (currentStep === 2 && !selected.dateRaw) return Swal.fire("確認", "日時を選択してください", "warning");
         if (currentStep === 3) {
             const name  = document.getElementById('input-name').value.trim();
             const tel   = document.getElementById('input-tel').value.trim();
             const email = document.getElementById('input-email').value.trim();
-            if (!name || !tel || !email) {
-                return Swal.fire("エラー", "必須項目（名前・電話・メール）をすべて入力してください", "error");
-            }
-            Swal.fire({
-                title: "確認",
-                text: "この内容で予約を確定しますか？",
-                icon: "question",
-                showCancelButton:   true,
-                confirmButtonText:  "確定する",
-                cancelButtonText:   "キャンセル"
-            }).then(function(result) {
-                if (result.isConfirmed) submitToGAS();
-            });
+            if (!name || !tel || !email) return Swal.fire("エラー", "必須項目（名前・電話・メール）をすべて入力してください", "error");
+            Swal.fire({ title:"確認", text:"この内容で予約を確定しますか？", icon:"question", showCancelButton:true, confirmButtonText:"確定する", cancelButtonText:"キャンセル" })
+            .then(function(result) { if (result.isConfirmed) submitToGAS(); });
             return;
         }
         currentStep++;
@@ -713,16 +473,11 @@
     }
 
     function goBack() {
-        if (currentStep > 1) {
-            currentStep--;
-            window.scrollTo({ top:0, behavior:'smooth' });
-            updateNavAndButtons();
-        }
+        if (currentStep > 1) { currentStep--; window.scrollTo({ top:0, behavior:'smooth' }); updateNavAndButtons(); }
     }
 
     // ============================================================
-    // GAS 送信（V3 — 同時予約競合対応・エラーポップアップ修正済み）
-    // ★ この関数は1つだけ定義する。重複厳禁。
+    // ★ GAS送信（LIFF情報を追加）
     // ============================================================
     function submitToGAS() {
         const btnNext = document.getElementById('btn-next');
@@ -731,58 +486,38 @@
         showSendingOverlay();
 
         const data = {
-            token:     "smaho2026sakurai",
-            name:      document.getElementById('input-name').value.trim(),
-            tel:       document.getElementById('input-tel').value.trim(),
-            email:     document.getElementById('input-email').value.trim(),
-            menu:      selected.name,
-            date:      selected.dateRaw,
-            time:      selected.time,
-            price:     selected.price,
-            promoInfo: document.getElementById('check-promo').checked ? "説明希望" : "希望なし"
+            token:           "smaho2026sakurai",
+            name:            document.getElementById('input-name').value.trim(),
+            tel:             document.getElementById('input-tel').value.trim(),
+            email:           document.getElementById('input-email').value.trim(),
+            menu:            selected.name,
+            date:            selected.dateRaw,
+            time:            selected.time,
+            price:           selected.price,
+            promoInfo:       document.getElementById('check-promo').checked ? "説明希望" : "希望なし",
+            // ★ LIFF情報を追加（ポイント付与・顧客マスター紐付けに使用）
+            lineUserId:      liffUserId,
+            lineDisplayName: liffDisplayName
         };
 
-        localStorage.setItem('nishidate_last_booking', JSON.stringify({
-            menu: data.menu, date: data.date, time: data.time
-        }));
+        localStorage.setItem('nishidate_last_booking', JSON.stringify({ menu: data.menu, date: data.date, time: data.time }));
 
         fetch(GAS_URL, { method:'POST', body: JSON.stringify(data) })
         .then(function(response) { return response.json(); })
         .then(function(json) {
-
-            // ── 同時予約の競合
             if (json.status === 'error' && json.message === 'SLOT_CONFLICT') {
                 hideSendingOverlay();
-                Swal.fire({
-                    title: "⚠️ この時間帯は予約できません",
-                    html:  "申し訳ありません。<br>たった今、同じ時間帯が他の方によって予約されました。<br><br>別の日時を選択してください。",
-                    icon:  "warning",
-                    confirmButtonText:  "日時を選び直す",
-                    confirmButtonColor: "#249496"
-                }).then(function() {
-                    currentStep      = 2;
-                    selected.dateRaw = '';
-                    selected.time    = '';
-                    window.scrollTo({ top:0, behavior:'smooth' });
-                    updateNavAndButtons();
-                });
+                Swal.fire({ title:"⚠️ この時間帯は予約できません", html:"申し訳ありません。<br>たった今、同じ時間帯が他の方によって予約されました。<br><br>別の日時を選択してください。", icon:"warning", confirmButtonText:"日時を選び直す", confirmButtonColor:"#249496" })
+                .then(function() { currentStep=2; selected.dateRaw=''; selected.time=''; window.scrollTo({top:0,behavior:'smooth'}); updateNavAndButtons(); });
                 btnNext.disabled  = false;
                 btnNext.innerText = 'この内容で予約を確定する';
                 return;
             }
-
-            // ── 通常の成功（status が success でも、その他エラーでも完了扱い）
-            // GAS 側で Notion 失敗でも success を返す設計のため、
-            // メール・カレンダーが成功していれば予約完了として扱う
             updateOverlayToSuccess();
             setTimeout(function() {
                 hideSendingOverlay();
-                Swal.fire({
-                    title: "予約完了！",
-                    text:  "ご予約ありがとうございます！\nご登録のメールアドレスに確認メールをお送りしました。",
-                    icon:  "success",
-                    confirmButtonColor: "#249496"
-                }).then(function() { location.reload(); });
+                Swal.fire({ title:"予約完了！", text:"ご予約ありがとうございます！\nご登録のメールアドレスに確認メールをお送りしました。", icon:"success", confirmButtonColor:"#249496" })
+                .then(function() { location.reload(); });
             }, 1500);
         })
         .catch(function(err) {

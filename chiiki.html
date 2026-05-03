@@ -1197,12 +1197,12 @@ document.addEventListener('DOMContentLoaded', async function() {
       if (liff.isLoggedIn()) {
         const profile   = await liff.getProfile();
         liffUserId      = profile.userId;
-      liffDisplayName = profile.displayName;
-      liffReady       = true;
-      console.log('LIFF初期化完了: ' + liffDisplayName);
-    } else {
-      // ブラウザアクセス時は強制ログインしない
-      liffReady = false;
+        liffDisplayName = profile.displayName;
+        liffReady       = true;
+        console.log('LIFF初期化完了: ' + liffDisplayName);
+      } else {
+        liffReady = false;
+      }
     }
   } catch(e) {
     console.warn('LIFF初期化エラー: ' + e);

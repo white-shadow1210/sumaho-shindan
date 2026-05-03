@@ -901,57 +901,12 @@ let liffReady       = false;
 // データ取得
 // ==========================================
 async function loadData() {
-  return new Promise((resolve) => {
-    const wrap = document.getElementById('feed-grid-wrap');
-
-    // タイムアウト設定（20秒）
-    const timer = setTimeout(() => {
-      wrap.innerHTML = `
-        <div class="feed-empty">
-          <div class="feed-empty-icon">📡</div>
-          <h3>データを取得できませんでした</h3>
-          <p style="font-size:0.7rem;color:#e74c3c;">タイムアウト（20秒）</p>
-          <button onclick="loadData()" style="margin-top:12px;padding:8px 20px;background:var(--primary);color:white;border:none;border-radius:20px;font-size:0.8rem;font-weight:700;cursor:pointer;">再試行</button>
-        </div>`;
-      resolve();
-    }, 20000);
-
-    // JSONP方式でGASからデータ取得（LINEブラウザのCORS制限を回避）
-    window.__chiikiCallback = function(json) {
-      clearTimeout(timer);
-      try {
-        if (json.status !== 'success') throw new Error(json.message || 'status error');
-        allRecords = (json.records || []).reverse();
-        document.getElementById('total-count').textContent = allRecords.length;
-        filterCat(currentCat);
-      } catch(e) {
-        wrap.innerHTML = `
-          <div class="feed-empty">
-            <div class="feed-empty-icon">📡</div>
-            <h3>データを取得できませんでした</h3>
-            <p style="font-size:0.7rem;color:#e74c3c;">${e.message}</p>
-            <button onclick="loadData()" style="margin-top:12px;padding:8px 20px;background:var(--primary);color:white;border:none;border-radius:20px;font-size:0.8rem;font-weight:700;cursor:pointer;">再試行</button>
-          </div>`;
-      }
-      resolve();
-    };
-
-    // scriptタグで動的ロード
-    const script = document.createElement('script');
-    script.src = GAS_URL + '?action=getChiikiData&callback=__chiikiCallback&t=' + Date.now();
-    script.onerror = function() {
-      clearTimeout(timer);
-      wrap.innerHTML = `
-        <div class="feed-empty">
-          <div class="feed-empty-icon">📡</div>
-          <h3>データを取得できませんでした</h3>
-          <p style="font-size:0.7rem;color:#e74c3c;">スクリプト読み込みエラー</p>
-          <button onclick="loadData()" style="margin-top:12px;padding:8px 20px;background:var(--primary);color:white;border:none;border-radius:20px;font-size:0.8rem;font-weight:700;cursor:pointer;">再試行</button>
-        </div>`;
-      resolve();
-    };
-    document.head.appendChild(script);
-  });
+  // ダミーデータで表示テスト（GAS呼び出しなし）
+  allRecords = [
+    { date: '2026-05-03T10:00:00', category: 'グルメ', title: 'テスト投稿', address: '吉田町', lat: 34.767, lng: 138.261, imageUrl: '', likes: 0 }
+  ];
+  document.getElementById('total-count').textContent = allRecords.length;
+  filterCat(currentCat);
 }
 
 // ==========================================

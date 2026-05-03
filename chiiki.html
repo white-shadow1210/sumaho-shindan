@@ -91,28 +91,25 @@ body {
 .detail-back-btn:active { transform: scale(0.95); background: #e8f7f7; }
 .detail-back-btn svg { width: 16px; height: 16px; stroke: var(--primary); }
 .detail-handle { width: 40px; height: 5px; background: #e0ddd6; border-radius: 3px; margin: 0 auto; }
-
-/* ★ 修正④：縦写真対応 */
 .detail-img { width: 100%; max-height: 80vw; object-fit: contain; margin-top: 8px; background: #111111; display: block; }
 .detail-img-placeholder { width: 100%; height: 52vw; margin-top: 8px; display: flex; align-items: center; justify-content: center; font-size: 3rem; }
-
 .detail-body { padding: 16px 18px 20px; }
 .detail-cat-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.7rem; font-weight: 700; color: white; padding: 3px 10px; border-radius: 20px; margin-bottom: 10px; }
 .detail-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 4px; line-height: 1.4; }
-.detail-address { font-size: 0.75rem; color: var(–muted); display: flex; align-items: center; gap: 4px; margin-bottom: 12px; }
-.detail-date { font-size: 0.68rem; color: var(–muted); margin-bottom: 16px; }
+.detail-address { font-size: 0.75rem; color: var(--muted); display: flex; align-items: center; gap: 4px; margin-bottom: 12px; }
+.detail-date { font-size: 0.68rem; color: var(--muted); margin-bottom: 16px; }
 .detail-actions { display: flex; gap: 10px; }
-.like-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; border-radius: 12px; border: 2px solid #e8e4d8; font-family: inherit; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: 0.2s; background: var(–beige-d); color: var(–text); }
+.like-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; border-radius: 12px; border: 2px solid #e8e4d8; font-family: inherit; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: 0.2s; background: var(--beige-d); color: var(--text); }
 .like-btn.liked { background: #fde8e8; color: #e74c3c; border-color: #f5c0c0; }
 .like-btn:active { transform: scale(0.95); }
-.map-link-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; border-radius: 12px; background: #ffffff; color: var(–primary); font-family: inherit; font-size: 0.85rem; font-weight: 700; border: 2px solid var(–primary); cursor: pointer; transition: 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.map-link-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; border-radius: 12px; background: #ffffff; color: var(--primary); font-family: inherit; font-size: 0.85rem; font-weight: 700; border: 2px solid var(--primary); cursor: pointer; transition: 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
 .map-link-btn:active { background: #e8f7f7; transform: scale(0.95); }
 #map-view { height: 100%; display: none; }
 #chiiki-map { width: 100%; height: 100%; }
-.post-cta { margin: 16px 14px; background: linear-gradient(135deg, var(–primary) 0%, var(–primary-d) 100%); border-radius: var(–r); padding: 18px 16px; color: white; text-align: center; }
+.post-cta { margin: 16px 14px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-d) 100%); border-radius: var(--r); padding: 18px 16px; color: white; text-align: center; }
 .post-cta h3 { font-size: 0.9rem; font-weight: 700; margin-bottom: 4px; }
 .post-cta p  { font-size: 0.72rem; opacity: 0.85; margin-bottom: 12px; }
-.post-cta-btn { display: inline-block; background: white; color: var(–primary); font-weight: 700; font-size: 0.8rem; padding: 9px 22px; border-radius: 20px; text-decoration: none; font-family: inherit; border: none; cursor: pointer; }
+.post-cta-btn { display: inline-block; background: white; color: var(--primary); font-weight: 700; font-size: 0.8rem; padding: 9px 22px; border-radius: 20px; text-decoration: none; font-family: inherit; border: none; cursor: pointer; }
 .post-modal-overlay { position: fixed; inset: 0; z-index: 600; background: rgba(0,0,0,0.72); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: flex; align-items: flex-end; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
 .post-modal-overlay.open { opacity: 1; pointer-events: all; }
 .post-modal-sheet { background: #ffffff; border-radius: 24px 24px 0 0; width: 100%; max-height: 90vh; overflow-y: auto; -webkit-overflow-scrolling: touch; transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.32,0.72,0,1); box-shadow: 0 -8px 40px rgba(0,0,0,0.25); padding: 8px 20px calc(env(safe-area-inset-bottom, 20px) + 20px); }
@@ -120,28 +117,26 @@ body {
 .post-modal-handle { width: 40px; height: 5px; background: #e0ddd6; border-radius: 3px; margin: 10px auto 18px; }
 .post-modal-title { font-size: 1.05rem; font-weight: 900; text-align: center; margin-bottom: 5px; color: #1a1a1a; }
 .post-modal-sub { font-size: 0.73rem; color: #888; text-align: center; margin-bottom: 18px; line-height: 1.6; }
-.submit-label { font-size: 0.8rem; font-weight: 700; color: var(–text); margin-bottom: 6px; }
+.submit-label { font-size: 0.8rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
 .submit-required { color: #e74c3c; font-size: 0.68rem; margin-left: 4px; }
 .submit-cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 4px; }
-.submit-cat-btn { padding: 10px 6px; border-radius: 12px; border: 2px solid var(–border); background: var(–beige); font-family: inherit; font-size: 0.82rem; font-weight: 700; color: var(–text); cursor: pointer; transition: 0.18s; }
-.submit-cat-btn.selected { border-color: var(–primary); background: #e8f7f7; color: var(–primary); }
+.submit-cat-btn { padding: 10px 6px; border-radius: 12px; border: 2px solid var(--border); background: var(--beige); font-family: inherit; font-size: 0.82rem; font-weight: 700; color: var(--text); cursor: pointer; transition: 0.18s; }
+.submit-cat-btn.selected { border-color: var(--primary); background: #e8f7f7; color: var(--primary); }
 .submit-cat-btn:active { transform: scale(0.96); }
-.submit-input { width: 100%; padding: 10px 14px; border-radius: 12px; border: 1.5px solid var(–border); background: var(–beige); font-family: inherit; font-size: 0.88rem; color: var(–text); outline: none; box-sizing: border-box; max-width: 100%; }
-.submit-input:focus { border-color: var(–primary); }
+.submit-input { width: 100%; padding: 10px 14px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--beige); font-family: inherit; font-size: 0.88rem; color: var(--text); outline: none; box-sizing: border-box; max-width: 100%; }
+.submit-input:focus { border-color: var(--primary); }
 .submit-img-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .submit-img-half-label { display: block; cursor: pointer; }
-.submit-img-half-btn { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 11px 6px; border-radius: 12px; border: 2px dashed var(–border); background: var(–beige); font-size: 0.82rem; font-weight: 700; color: var(–muted); transition: 0.18s; white-space: nowrap; }
-.submit-img-half-btn:active { background: var(–beige-d); }
-.submit-location-note { font-size: 0.72rem; color: var(–muted); text-align: center; margin: 10px 0 4px; padding: 8px; background: var(–beige); border-radius: 10px; }
-.submit-post-btn { width: 100%; padding: 15px; border-radius: 14px; border: none; background: var(–primary); color: white; font-family: inherit; font-size: 1rem; font-weight: 900; cursor: pointer; transition: 0.18s; margin-bottom: 10px; box-shadow: 0 3px 12px rgba(36,148,150,0.35); }
-.submit-post-btn:disabled { background: var(–muted); box-shadow: none; cursor: not-allowed; }
-.submit-post-btn:not(:disabled):active { background: var(–primary-d); transform: scale(0.98); }
+.submit-img-half-btn { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 11px 6px; border-radius: 12px; border: 2px dashed var(--border); background: var(--beige); font-size: 0.82rem; font-weight: 700; color: var(--muted); transition: 0.18s; white-space: nowrap; }
+.submit-img-half-btn:active { background: var(--beige-d); }
+.submit-location-note { font-size: 0.72rem; color: var(--muted); text-align: center; margin: 10px 0 4px; padding: 8px; background: var(--beige); border-radius: 10px; }
+.submit-post-btn { width: 100%; padding: 15px; border-radius: 14px; border: none; background: var(--primary); color: white; font-family: inherit; font-size: 1rem; font-weight: 900; cursor: pointer; transition: 0.18s; margin-bottom: 10px; box-shadow: 0 3px 12px rgba(36,148,150,0.35); }
+.submit-post-btn:disabled { background: var(--muted); box-shadow: none; cursor: not-allowed; }
+.submit-post-btn:not(:disabled):active { background: var(--primary-d); transform: scale(0.98); }
 .post-modal-cancel { margin-top: 10px; width: 100%; padding: 13px; border-radius: 14px; border: none; background: #f0ece0; font-family: inherit; font-size: 0.85rem; font-weight: 700; color: #888; cursor: pointer; transition: 0.18s; }
 .post-modal-cancel:active { background: #e5e0d4; }
 </style>
-
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-
 </head>
 <body>
 
@@ -239,11 +234,17 @@ body {
         <button onclick="clearImage()" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.6);color:white;border:none;border-radius:50%;width:28px;height:28px;font-size:0.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
       </div>
       <div class="submit-location-note">📍 投稿ボタンを押すと現在地を自動取得します</div>
-      <div id="submit-status" style="font-size:0.8rem;min-height:1.2em;margin:8px 0;text-align:center;"></div>
-      <button id="submit-btn" class="submit-post-btn" onclick="submitChiikiPost()">📮 投稿する</button>
-      <button class="post-modal-cancel" onclick="closePostModal()">キャンセル</button>
-    </div>
-    <div id="post-step2" style="display:none;"></div>
+
+```
+  <!-- ★ デバッグ用ステータス：通常は非表示、エラー時のみ表示 -->
+  <div id="submit-status" style="font-size:0.8rem;min-height:0;margin:4px 0;text-align:center;display:none;"></div>
+
+  <button id="submit-btn" class="submit-post-btn" onclick="submitChiikiPost()">📮 投稿する</button>
+  <button class="post-modal-cancel" onclick="closePostModal()">キャンセル</button>
+</div>
+<div id="post-step2" style="display:none;"></div>
+```
+
   </div>
 </div>
 
@@ -265,6 +266,21 @@ let likedIds      = JSON.parse(localStorage.getItem('chiiki_likes') || '{}');
 let chiikiMap     = null, mapMarkers = [], mapInitialized = false;
 let focusedLat = null, focusedLng = null;
 let liffUserId = '', liffDisplayName = '', liffReady = false;
+
+// ★ ステータス表示ヘルパー（エラーのみ表示、通常処理は非表示）
+function showStatus(msg, isError) {
+  const el = document.getElementById('submit-status');
+  if (isError) {
+    el.textContent    = msg;
+    el.style.color    = '#e74c3c';
+    el.style.display  = 'block';
+    el.style.minHeight = '1.2em';
+  } else {
+    // 通常の処理中メッセージは非表示（コンソールにのみ出力）
+    el.style.display = 'none';
+    console.log('[chiiki]', msg);
+  }
+}
 
 async function loadData() {
   try {
@@ -347,14 +363,12 @@ function openInternalMap() {
   switchView('map');
 }
 
-// ★ 修正①：いいね - GAS送信後2秒待ってloadData()でキャッシュリフレッシュ
 async function toggleLike() {
   if (!currentRecord) return;
   const key   = currentRecord.date + currentRecord.lat;
   const liked = !!likedIds[key];
   const btn   = document.getElementById('like-btn');
   const cnt   = document.getElementById('like-count');
-
   if (liked) {
     delete likedIds[key];
     currentRecord.likes = Math.max(0, (currentRecord.likes || 1) - 1);
@@ -368,16 +382,10 @@ async function toggleLike() {
   }
   cnt.textContent = currentRecord.likes;
   localStorage.setItem('chiiki_likes', JSON.stringify(likedIds));
-
   try {
-    await fetch(GAS_URL, {
-      method: 'POST', mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ formType: 'chiiki_like', recordDate: currentRecord.date, lat: currentRecord.lat, liked: !liked })
-    });
+    await fetch(GAS_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ formType: 'chiiki_like', recordDate: currentRecord.date, lat: currentRecord.lat, liked: !liked }) });
   } catch(e) { console.warn('いいね送信エラー:', e); }
-
-  // ★ GASのキャッシュクリア後（2秒）にフィードを再取得
   setTimeout(async () => {
     const savedIndex = currentRecord ? currentRecord.index : -1;
     await loadData();
@@ -393,9 +401,8 @@ function switchView(view) {
   document.getElementById('tab-map').classList.toggle('active', view === 'map');
   document.getElementById('feed-view').style.display = view === 'feed' ? 'block' : 'none';
   document.getElementById('map-view').style.display  = view === 'map'  ? 'block' : 'none';
-  if (view === 'map' && !mapInitialized) {
-    initChiikiMap();
-  } else if (view === 'map') {
+  if (view === 'map' && !mapInitialized) { initChiikiMap(); }
+  else if (view === 'map') {
     renderMapMarkers();
     if (focusedLat && focusedLng && chiikiMap) {
       chiikiMap.setCenter({ lat: focusedLat, lng: focusedLng });
@@ -425,7 +432,6 @@ function initChiikiMap() {
   }
 }
 
-// ★ 修正②：マップピン - カテゴリ別絵文字アイコン・大型吹き出しデザイン
 function renderMapMarkers() {
   mapMarkers.forEach(m => m.setMap(null));
   mapMarkers = [];
@@ -434,51 +440,20 @@ function renderMapMarkers() {
     const cat  = CAT_CONFIG[rec.category] || { color: '#249496', icon: '📍' };
     const size = 56, tip = 14;
     const canvas = document.createElement('canvas');
-    canvas.width  = size;
-    canvas.height = size + tip;
+    canvas.width = size; canvas.height = size + tip;
     const ctx = canvas.getContext('2d');
-
-    // 影
-    ctx.shadowColor = 'rgba(0,0,0,0.3)';
-    ctx.shadowBlur  = 6;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 3;
-
-    // 吹き出し本体
+    ctx.shadowColor = 'rgba(0,0,0,0.3)'; ctx.shadowBlur = 6; ctx.shadowOffsetY = 3;
     ctx.fillStyle = cat.color;
-    ctx.beginPath();
-    ctx.roundRect(0, 0, size, size, 12);
-    ctx.fill();
-
-    // 三角（ピン先）
+    ctx.beginPath(); ctx.roundRect(0, 0, size, size, 12); ctx.fill();
     ctx.shadowColor = 'transparent';
-    ctx.beginPath();
-    ctx.moveTo(size * 0.35, size - 1);
-    ctx.lineTo(size / 2, size + tip);
-    ctx.lineTo(size * 0.65, size - 1);
-    ctx.fill();
-
-    // 白縁取り
-    ctx.strokeStyle = 'rgba(255,255,255,0.75)';
-    ctx.lineWidth   = 2.5;
-    ctx.beginPath();
-    ctx.roundRect(1.5, 1.5, size - 3, size - 3, 11);
-    ctx.stroke();
-
-    // 絵文字
-    ctx.font = '28px serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(cat.icon, size / 2, size / 2 - 1);
-
+    ctx.beginPath(); ctx.moveTo(size*0.35, size-1); ctx.lineTo(size/2, size+tip); ctx.lineTo(size*0.65, size-1); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.75)'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.roundRect(1.5, 1.5, size-3, size-3, 11); ctx.stroke();
+    ctx.font = '28px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(cat.icon, size/2, size/2-1);
     const marker = new google.maps.Marker({
-      position: { lat: rec.lat, lng: rec.lng },
-      map: chiikiMap, title: rec.title,
-      icon: {
-        url:    canvas.toDataURL(),
-        size:   new google.maps.Size(size, size + tip),
-        anchor: new google.maps.Point(size / 2, size + tip)
-      },
+      position: { lat: rec.lat, lng: rec.lng }, map: chiikiMap, title: rec.title,
+      icon: { url: canvas.toDataURL(), size: new google.maps.Size(size, size+tip), anchor: new google.maps.Point(size/2, size+tip) },
       animation: google.maps.Animation.DROP
     });
     marker.addListener('click', function() { openDetail(i); });
@@ -489,10 +464,10 @@ function renderMapMarkers() {
 function onMapsReady() {}
 
 function openPostModal() {
-  document.getElementById('submit-category').value     = '';
-  document.getElementById('submit-title').value        = '';
-  document.getElementById('submit-status').textContent = '';
-  document.getElementById('submit-btn').disabled       = false;
+  document.getElementById('submit-category').value = '';
+  document.getElementById('submit-title').value    = '';
+  document.getElementById('submit-status').style.display = 'none';
+  document.getElementById('submit-btn').disabled   = false;
   document.querySelectorAll('.submit-cat-btn').forEach(b => b.classList.remove('selected'));
   clearImage();
   document.getElementById('post-modal').classList.add('open');
@@ -516,56 +491,52 @@ document.addEventListener('DOMContentLoaded', async function() {
         liffUserId      = profile.userId;
         liffDisplayName = profile.displayName;
         liffReady       = true;
-        console.log('LIFF初期化完了: ' + liffDisplayName + ' / ' + liffUserId);
+        console.log('[LIFF] 初期化完了:', liffDisplayName, liffUserId);
       }
     }
-  } catch(e) { console.warn('LIFF初期化エラー: ' + e); }
+  } catch(e) { console.warn('[LIFF] 初期化エラー:', e); }
 });
 
 async function submitChiikiPost() {
   const category  = document.getElementById('submit-category').value;
   const titleVal  = document.getElementById('submit-title').value.trim();
   const submitBtn = document.getElementById('submit-btn');
-  const statusEl  = document.getElementById('submit-status');
 
   if (!category) {
-    statusEl.textContent = '⚠️ カテゴリを選択してください';
-    statusEl.style.color = '#e74c3c';
+    showStatus('⚠️ カテゴリを選択してください', true);
     return;
   }
-  submitBtn.disabled = true;
-  statusEl.textContent = '🔍 LIFF確認中... userId=' + (liffUserId || '未取得');
-  statusEl.style.color = '#249496';
 
+  submitBtn.disabled = true;
+  showStatus('処理中...', false);
+
+  // LIFF未初期化なら再試行
   if (!liffReady || !liffUserId) {
     try {
-      statusEl.textContent = '🔄 LIFF再初期化中...';
       await liff.init({ liffId: LIFF_ID });
       if (liff.isLoggedIn()) {
         const profile = await liff.getProfile();
         liffUserId = profile.userId; liffDisplayName = profile.displayName; liffReady = true;
-        statusEl.textContent = '✅ LIFF初期化完了: ' + liffDisplayName;
+        console.log('[LIFF] 再初期化成功:', liffDisplayName);
       } else {
-        statusEl.textContent = '⚠️ LINEログインが必要です';
-        statusEl.style.color = '#e74c3c';
+        showStatus('⚠️ LINEログインが必要です', true);
         submitBtn.disabled = false;
         liff.login(); return;
       }
     } catch(liffErr) {
-      statusEl.textContent = '⚠️ LIFF初期化失敗: ' + liffErr.message;
-      statusEl.style.color = '#e74c3c';
+      showStatus('⚠️ LIFF初期化失敗: ' + liffErr.message, true);
       submitBtn.disabled = false; return;
     }
   }
 
-  statusEl.textContent = '📍 位置情報を取得中...';
-  statusEl.style.color = '#249496';
-
+  // 位置情報取得
   let lat = 0, lng = 0, address = '';
   try {
     const pos = await new Promise((resolve, reject) =>
-      navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000 })
-    );
+      navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 15000,
+    maximumAge: 0   // ★ キャッシュ禁止・毎回新鮮なGPS取得
+  })
+);
     lat = pos.coords.latitude; lng = pos.coords.longitude;
     try {
       const geoRes  = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&language=ja&key=${MAPS_API_KEY}`);
@@ -573,36 +544,38 @@ async function submitChiikiPost() {
       if (geoJson.results && geoJson.results[0]) address = geoJson.results[0].formatted_address;
     } catch(ge) {}
   } catch(e) {
-    statusEl.textContent = '⚠️ 位置情報の取得に失敗しました。設定で位置情報を許可してください。';
-    statusEl.style.color = '#e74c3c'; submitBtn.disabled = false; return;
+    showStatus('⚠️ 位置情報の取得に失敗しました。設定で位置情報を許可してください。', true);
+    submitBtn.disabled = false; return;
   }
 
+  // 画像処理
   const imgC = document.getElementById('submit-image').files[0];
   const imgA = document.getElementById('submit-image-album').files[0];
-  const imgF = imgC || imgA;
   let imageBase64 = '', imageMime = '';
-  if (imgF) {
-    statusEl.textContent = '🖼️ 画像を圧縮中...';
-    try { const r = await compressImage(imgF, 800, 0.65); imageBase64 = r.base64; imageMime = r.mime; } catch(e) {}
+  if (imgC || imgA) {
+    try { const r = await compressImage(imgC||imgA, 800, 0.65); imageBase64 = r.base64; imageMime = r.mime; } catch(e) {}
   }
 
-  statusEl.textContent = '📤 投稿中...';
   try {
     await fetch(GAS_URL, {
-      method: 'POST', mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain' },
+      method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({ formType:'chiiki_post', category, title: titleVal||category, lat, lng, address, userId: liffUserId, displayName: liffDisplayName, imageBase64, imageMime })
     });
-    statusEl.textContent = '✅ 投稿完了！審査後にフィードに反映されます😊';
-    statusEl.style.color = '#27AE60';
+
+    // ★ 成功時はシンプルなメッセージのみ表示
+    const statusEl = document.getElementById('submit-status');
+    statusEl.textContent  = '✅ 投稿完了！審査後にフィードに反映されます😊';
+    statusEl.style.color  = '#27AE60';
+    statusEl.style.display = 'block';
+    statusEl.style.minHeight = '1.2em';
+
     document.getElementById('submit-title').value = '';
     clearImage();
     document.getElementById('submit-category').value = '';
     document.querySelectorAll('.submit-cat-btn').forEach(b => b.classList.remove('selected'));
     setTimeout(async () => { closePostModal(); await loadData(); }, 2500);
   } catch(e) {
-    statusEl.textContent = '❌ エラー: ' + e.message;
-    statusEl.style.color = '#e74c3c';
+    showStatus('❌ 送信エラーが発生しました。もう一度お試しください。', true);
   }
   submitBtn.disabled = false;
 }
@@ -618,8 +591,7 @@ function compressImage(file, maxWidth, quality) {
         if (w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
         canvas.width = w; canvas.height = h;
         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        const dataUrl = canvas.toDataURL('image/jpeg', quality);
-        resolve({ base64: dataUrl.split(',')[1], mime: 'image/jpeg' });
+        resolve({ base64: canvas.toDataURL('image/jpeg', quality).split(',')[1], mime: 'image/jpeg' });
       };
       img.onerror = reject; img.src = e.target.result;
     };

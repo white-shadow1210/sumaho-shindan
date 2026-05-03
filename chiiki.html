@@ -249,7 +249,7 @@ padding-bottom: env(safe-area-inset-bottom, 16px);
 }
 .detail-overlay.open .detail-sheet { transform: translateY(0); }
 
-/* ── 詳細ヘッダー（戻るボタン付き）── */
+/* ── 詳細ヘッダー ── */
 .detail-header {
 display: flex;
 align-items: center;
@@ -351,7 +351,6 @@ color: var(–text);
 .like-btn.liked { background: #fde8e8; color: #e74c3c; border-color: #f5c0c0; }
 .like-btn:active { transform: scale(0.95); }
 
-/* 「地図で見る」ボタン：button要素に変更（内部マップに遷移） */
 .map-link-btn {
 flex: 1;
 display: flex;
@@ -380,7 +379,7 @@ display: none;
 #map-view.active { display: block; }
 #chiiki-map { width: 100%; height: 100%; }
 
-/* ── 投稿促進バナー（フィード下部） ── */
+/* ── 投稿促進バナー ── */
 .post-cta {
 margin: 16px 14px;
 background: linear-gradient(135deg, var(–primary) 0%, var(–primary-d) 100%);
@@ -392,7 +391,6 @@ text-align: center;
 .post-cta h3 { font-size: 0.9rem; font-weight: 700; margin-bottom: 4px; }
 .post-cta p  { font-size: 0.72rem; opacity: 0.85; margin-bottom: 12px; }
 
-/* LINEで投稿するボタン：buttonに変更 */
 .post-cta-btn {
 display: inline-block;
 background: white;
@@ -407,7 +405,7 @@ border: none;
 cursor: pointer;
 }
 
-/* ── スライドイン アニメーション ── */
+/* ── スライドイン ── */
 .feed-cell {
 animation: cellIn 0.4s ease both;
 }
@@ -460,54 +458,6 @@ text-align: center;
 margin-bottom: 18px;
 line-height: 1.6;
 }
-.post-modal-actions {
-display: flex;
-flex-direction: column;
-gap: 10px;
-}
-.post-action-btn {
-display: flex;
-align-items: center;
-gap: 14px;
-padding: 14px 16px;
-border-radius: 16px;
-border: 1.5px solid #e0dbd0;
-background: #f7f5f0;
-font-family: inherit;
-font-size: 0.88rem;
-font-weight: 700;
-color: #1a1a1a;
-cursor: pointer;
-transition: 0.18s;
-text-decoration: none;
-box-shadow: 0 1px 4px rgba(0,0,0,0.07);
-}
-.post-action-btn:active { transform: scale(0.97); background: #edeae2; }
-.post-action-icon {
-width: 44px; height: 44px;
-border-radius: 14px;
-display: flex; align-items: center; justify-content: center;
-font-size: 1.5rem;
-flex-shrink: 0;
-}
-.post-action-text { display: flex; flex-direction: column; gap: 3px; }
-.post-action-label { font-size: 0.88rem; font-weight: 700; color: #1a1a1a; }
-.post-action-desc  { font-size: 0.68rem; color: #888; font-weight: 400; }
-.post-modal-cancel {
-margin-top: 10px;
-width: 100%;
-padding: 13px;
-border-radius: 14px;
-border: none;
-background: #f0ece0;
-font-family: inherit;
-font-size: 0.85rem;
-font-weight: 700;
-color: #888;
-cursor: pointer;
-transition: 0.18s;
-}
-.post-modal-cancel:active { background: #e5e0d4; }
 
 /* ── 投稿フォームスタイル ── */
 .submit-label {
@@ -559,21 +509,6 @@ box-sizing: border-box;
 max-width: 100%;
 }
 .submit-input:focus { border-color: var(–primary); }
-.submit-img-label { display: block; cursor: pointer; }
-.submit-img-btn {
-display: flex;
-align-items: center;
-justify-content: center;
-gap: 8px;
-padding: 11px;
-border-radius: 12px;
-border: 2px dashed var(–border);
-background: var(–beige);
-font-size: 0.85rem;
-font-weight: 700;
-color: var(–muted);
-transition: 0.18s;
-}
 .submit-img-buttons {
 display: grid;
 grid-template-columns: 1fr 1fr;
@@ -626,67 +561,21 @@ box-shadow: none;
 cursor: not-allowed;
 }
 .submit-post-btn:not(:disabled):active { background: var(–primary-d); transform: scale(0.98); }
-
-/* ── STEP2スタイル ── */
-.post-step2-cat {
-text-align: center;
-font-size: 2rem;
-margin-bottom: 6px;
-padding: 10px;
-background: var(–beige-d);
-border-radius: 14px;
-margin-bottom: 14px;
-font-weight: 700;
-color: var(–text);
-}
-.post-step2-guide {
-display: flex;
-flex-direction: column;
-gap: 10px;
-margin-bottom: 20px;
-background: var(–beige);
-border-radius: 14px;
-padding: 14px 16px;
-}
-.post-step2-step {
-display: flex;
-align-items: center;
-gap: 12px;
-}
-.post-step2-num {
-width: 26px; height: 26px;
-border-radius: 50%;
-background: var(–primary);
-color: white;
-font-size: 0.78rem;
-font-weight: 900;
-display: flex; align-items: center; justify-content: center;
-flex-shrink: 0;
-}
-.post-step2-text {
-font-size: 0.82rem;
-font-weight: 700;
-color: var(–text);
-}
-.post-line-btn {
-display: flex;
-align-items: center;
-justify-content: center;
-gap: 8px;
+.post-modal-cancel {
+margin-top: 10px;
 width: 100%;
-padding: 15px;
+padding: 13px;
 border-radius: 14px;
-background: #06C755;
-color: white;
+border: none;
+background: #f0ece0;
 font-family: inherit;
-font-size: 0.95rem;
-font-weight: 900;
-text-decoration: none;
-margin-bottom: 10px;
-box-shadow: 0 3px 12px rgba(6,199,85,0.35);
+font-size: 0.85rem;
+font-weight: 700;
+color: #888;
+cursor: pointer;
 transition: 0.18s;
 }
-.post-line-btn:active { background: #05b04c; transform: scale(0.98); }
+.post-modal-cancel:active { background: #e5e0d4; }
 </style>
 
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -726,7 +615,7 @@ transition: 0.18s;
 <!-- カテゴリフィルター -->
 
 <div class="cat-filter" id="cat-filter">
-  <div class="cat-pill active" data-cat="all"      onclick="filterCat('all')">🗺️ すべて</div>
+  <div class="cat-pill active" data-cat="all"       onclick="filterCat('all')">🗺️ すべて</div>
   <div class="cat-pill"        data-cat="発見・景色" onclick="filterCat('発見・景色')">🌸 発見・景色</div>
   <div class="cat-pill"        data-cat="グルメ"     onclick="filterCat('グルメ')">🍜 グルメ</div>
   <div class="cat-pill"        data-cat="困りごと"   onclick="filterCat('困りごと')">⚠️ 困りごと</div>
@@ -736,7 +625,6 @@ transition: 0.18s;
 <!-- メインコンテンツ -->
 
 <div class="main-content">
-  <!-- フィードビュー -->
   <div id="feed-view">
     <div id="feed-grid-wrap">
       <div class="feed-loading">
@@ -745,8 +633,6 @@ transition: 0.18s;
       </div>
     </div>
   </div>
-
-  <!-- マップビュー -->
 
   <div id="map-view">
     <div id="chiiki-map"></div>
@@ -757,7 +643,6 @@ transition: 0.18s;
 
 <div class="detail-overlay" id="detail-overlay" onclick="closeDetailOnBg(event)">
   <div class="detail-sheet" id="detail-sheet">
-    <!-- 戻るボタン付きヘッダー -->
     <div class="detail-header">
       <button class="detail-back-btn" onclick="closeDetail()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -766,7 +651,7 @@ transition: 0.18s;
         一覧に戻る
       </button>
       <div class="detail-handle"></div>
-      <div style="width:80px"></div><!-- バランス用スペーサー -->
+      <div style="width:80px"></div>
     </div>
     <div id="detail-img-wrap"></div>
     <div class="detail-body">
@@ -778,7 +663,6 @@ transition: 0.18s;
         <button class="like-btn" id="like-btn" onclick="toggleLike()">
           ❤️ <span id="like-count">0</span> いいね
         </button>
-        <!-- 「地図で見る」: 内部マップタブへ遷移 -->
         <button class="map-link-btn" id="detail-map-btn" onclick="openInternalMap()">
           📍 地図で見る
         </button>
@@ -787,19 +671,17 @@ transition: 0.18s;
   </div>
 </div>
 
-<!-- 投稿モーダル：2ステップ（カテゴリ選択 → LINE誘導） -->
+<!-- 投稿モーダル -->
 
 <div class="post-modal-overlay" id="post-modal" onclick="closePostModalOnBg(event)">
   <div class="post-modal-sheet">
     <div class="post-modal-handle"></div>
 
 ```
-<!-- STEP 1: カテゴリ＋投稿フォーム -->
 <div id="post-step1">
   <div class="post-modal-title">📍 地域発見を投稿する</div>
   <div class="post-modal-sub">写真と現在地を添えて投稿しましょう</div>
 
-  <!-- カテゴリ選択 -->
   <div class="submit-label">カテゴリ <span class="submit-required">必須</span></div>
   <div class="submit-cat-grid">
     <button class="submit-cat-btn" data-cat="発見・景色" onclick="selectSubmitCat(this)">🌸 発見・景色</button>
@@ -809,12 +691,10 @@ transition: 0.18s;
   </div>
   <input type="hidden" id="submit-category" value="">
 
-  <!-- タイトル（任意） -->
   <div class="submit-label" style="margin-top:14px;">タイトル <span style="color:var(--muted);font-size:0.7rem;">任意</span></div>
   <input type="text" id="submit-title" class="submit-input"
     placeholder="例：牧之原の絶景スポット" maxlength="40">
 
-  <!-- 写真（任意） -->
   <div class="submit-label" style="margin-top:14px;">写真 <span style="color:var(--muted);font-size:0.7rem;">任意</span></div>
   <div class="submit-img-buttons">
     <label class="submit-img-half-label">
@@ -840,22 +720,18 @@ transition: 0.18s;
     ">✕</button>
   </div>
 
-  <!-- 位置情報の説明 -->
   <div class="submit-location-note">
     📍 投稿ボタンを押すと現在地を自動取得します
   </div>
 
-  <!-- ステータス表示 -->
   <div id="submit-status" style="font-size:0.8rem;min-height:1.2em;margin:8px 0;text-align:center;"></div>
 
-  <!-- 送信ボタン -->
   <button id="submit-btn" class="submit-post-btn" onclick="submitChiikiPost()">
     📮 投稿する
   </button>
   <button class="post-modal-cancel" onclick="closePostModal()">キャンセル</button>
 </div>
 
-<!-- STEP2は削除（LIFFで直接投稿するため不要） -->
 <div id="post-step2" style="display:none;"></div>
 ```
 
@@ -864,10 +740,10 @@ transition: 0.18s;
 
 <script>
 // ==========================================
-// 設定
+// ★ 設定（GAS URLを最新デプロイに更新）
 // ==========================================
-const GAS_URL   = 'https://script.google.com/macros/s/AKfycbxW3N7LelETp6JLTfzV-oogSzxgbQL4zoFdyF54MiMXoh3fKL_UKSWNWoDOtXkFLWI/exec';
-const LIFF_ID   = '2009944467-lN8yixTk';
+const GAS_URL      = 'https://script.google.com/macros/s/AKfycbyX_iaLnrh8BCCCjsqWT5m3KRmUDzHPaxqtMhXJcOc9Ws9t252VmVPxWEOvMP5BskU/exec';
+const LIFF_ID      = '2009944467-lN8yixTk';
 const MAPS_API_KEY = 'AIzaSyDeC5HxWHonkgh7p-fUe8k6OzKns8Rienk';
 
 const CAT_CONFIG = {
@@ -892,7 +768,7 @@ let mapInitialized  = false;
 let focusedLat      = null;
 let focusedLng      = null;
 
-// ── LIFF ユーザー情報
+// LIFF ユーザー情報
 let liffUserId      = '';
 let liffDisplayName = '';
 let liffReady       = false;
@@ -1015,7 +891,7 @@ function openDetail(index) {
   document.getElementById('detail-address').innerHTML  = `<span>📍</span>${rec.address || '住所不明'}`;
   document.getElementById('detail-date').textContent   = '📅 ' + (rec.date ? rec.date.substring(0,10) : '---');
   document.getElementById('like-count').textContent    = rec.likes || 0;
-  document.getElementById('like-btn').className       = 'like-btn' + (liked ? ' liked' : '');
+  document.getElementById('like-btn').className        = 'like-btn' + (liked ? ' liked' : '');
 
   document.getElementById('detail-overlay').classList.add('open');
 }
@@ -1023,7 +899,6 @@ function openDetail(index) {
 function closeDetail() {
   document.getElementById('detail-overlay').classList.remove('open');
 }
-
 function closeDetailOnBg(e) {
   if (e.target === document.getElementById('detail-overlay')) closeDetail();
 }
@@ -1082,7 +957,7 @@ async function toggleLike() {
 }
 
 // ==========================================
-// ビュー切り替え（フィード⇔マップ）
+// ビュー切り替え
 // ==========================================
 function switchView(view) {
   currentView = view;
@@ -1095,7 +970,6 @@ function switchView(view) {
     initChiikiMap();
   } else if (view === 'map') {
     renderMapMarkers();
-    // 詳細→マップ遷移時はそのピンにフォーカス
     if (focusedLat && focusedLng && chiikiMap) {
       chiikiMap.setCenter({ lat: focusedLat, lng: focusedLng });
       chiikiMap.setZoom(16);
@@ -1127,7 +1001,6 @@ function initChiikiMap() {
   mapInitialized = true;
   renderMapMarkers();
 
-  // 詳細→マップ遷移時はそのピンにフォーカス
   if (focusedLat && focusedLng) {
     chiikiMap.setCenter({ lat: focusedLat, lng: focusedLng });
     chiikiMap.setZoom(16);
@@ -1162,19 +1035,16 @@ function renderMapMarkers() {
   });
 }
 
-// ==========================================
-// Google Maps 読み込み
-// ==========================================
 function onMapsReady() {}
 
 // ==========================================
-// 投稿モーダル（LIFFフォーム版）
+// 投稿モーダル
 // ==========================================
 function openPostModal() {
-  document.getElementById('submit-category').value = '';
-  document.getElementById('submit-title').value    = '';
+  document.getElementById('submit-category').value    = '';
+  document.getElementById('submit-title').value       = '';
   document.getElementById('submit-status').textContent = '';
-  document.getElementById('submit-btn').disabled   = false;
+  document.getElementById('submit-btn').disabled      = false;
   document.querySelectorAll('.submit-cat-btn').forEach(b => b.classList.remove('selected'));
   clearImage();
   document.getElementById('post-modal').classList.add('open');
@@ -1192,10 +1062,6 @@ function selectSubmitCat(btn) {
   document.getElementById('submit-category').value = btn.dataset.cat;
 }
 
-// 旧関数（後方互換のため残す）
-function selectPostCategory(cat) {}
-function backToStep1() {}
-
 // ==========================================
 // 起動 + LIFF初期化
 // ==========================================
@@ -1203,7 +1069,6 @@ document.addEventListener('DOMContentLoaded', async function() {
   switchView('feed');
   loadData();
 
-  // LIFF初期化（失敗しても続行）
   try {
     if (typeof liff !== 'undefined') {
       await liff.init({ liffId: LIFF_ID });
@@ -1224,13 +1089,15 @@ document.addEventListener('DOMContentLoaded', async function() {
 });
 
 // ==========================================
-// 投稿フォーム送信処理（LIFF）
+// ★ 投稿フォーム送信処理
+//   修正点：FormData → text/plain JSON送信に変更
+//   （multipartパースエラー＆CORS問題を解消）
 // ==========================================
 async function submitChiikiPost() {
-  const category    = document.getElementById('submit-category').value;
-  const titleVal    = document.getElementById('submit-title').value.trim();
-  const submitBtn   = document.getElementById('submit-btn');
-  const statusEl    = document.getElementById('submit-status');
+  const category  = document.getElementById('submit-category').value;
+  const titleVal  = document.getElementById('submit-title').value.trim();
+  const submitBtn = document.getElementById('submit-btn');
+  const statusEl  = document.getElementById('submit-status');
 
   if (!category) {
     statusEl.textContent = '⚠️ カテゴリを選択してください';
@@ -1239,11 +1106,10 @@ async function submitChiikiPost() {
   }
 
   submitBtn.disabled   = true;
-  // ★ デバッグ：LIFF状態を表示
   statusEl.textContent = '🔍 LIFF確認中... userId=' + (liffUserId || '未取得');
   statusEl.style.color = '#249496';
 
-  // ★ LIFFが未初期化の場合は再試行
+  // LIFF未初期化なら再試行
   if (!liffReady || !liffUserId) {
     try {
       statusEl.textContent = '🔄 LIFF再初期化中...';
@@ -1283,7 +1149,7 @@ async function submitChiikiPost() {
     lat = pos.coords.latitude;
     lng = pos.coords.longitude;
 
-    // 逆ジオコーディング（住所取得）
+    // 逆ジオコーディング
     try {
       const geoRes  = await fetch(
         `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&language=ja&key=${MAPS_API_KEY}`
@@ -1301,7 +1167,7 @@ async function submitChiikiPost() {
     return;
   }
 
-  // 画像処理（カメラまたはアルバムから選択された場合）
+  // 画像処理
   const imageFileCamera = document.getElementById('submit-image').files[0];
   const imageFileAlbum  = document.getElementById('submit-image-album').files[0];
   const imageFile       = imageFileCamera || imageFileAlbum;
@@ -1310,9 +1176,9 @@ async function submitChiikiPost() {
   if (imageFile) {
     statusEl.textContent = '🖼️ 画像を圧縮中...';
     try {
-      const result  = await compressImage(imageFile, 800, 0.65);
-      imageBase64   = result.base64;
-      imageMime     = result.mime;
+      const result = await compressImage(imageFile, 800, 0.65);
+      imageBase64  = result.base64;
+      imageMime    = result.mime;
     } catch(e) {
       console.warn('画像圧縮エラー:', e);
     }
@@ -1320,7 +1186,7 @@ async function submitChiikiPost() {
 
   statusEl.textContent = '📤 投稿中...';
 
-  // ── 投稿データをFormDataでPOST（iOS LINEブラウザ対応）
+  // ★ 修正：text/plain + no-cors で送信（FormData廃止）
   try {
     const payload = JSON.stringify({
       formType:    'chiiki_post',
@@ -1335,37 +1201,26 @@ async function submitChiikiPost() {
       imageMime:   imageMime
     });
 
-    // FormDataにJSONを包んで送信（Content-Typeをmultipartにしてプリフライトを回避）
-    const formData = new FormData();
-    formData.append('data', payload);
-
-    const res = await fetch(GAS_URL, {
-      method: 'POST',
-      body:   formData
+    // ★ no-cors + text/plain でプリフライトを回避
+    await fetch(GAS_URL, {
+      method:  'POST',
+      mode:    'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body:    payload
     });
 
-    let json;
-    try {
-      const text = await res.text();
-      json = text ? JSON.parse(text) : { status: 'success' };
-    } catch(e) {
-      json = { status: 'success' };
-    }
+    // ★ no-corsではレスポンスが読めないため、送信完了=成功とみなす
+    statusEl.textContent = '✅ 投稿完了！審査後にフィードに反映されます😊';
+    statusEl.style.color = '#27AE60';
+    document.getElementById('submit-title').value = '';
+    clearImage();
+    document.getElementById('submit-category').value = '';
+    document.querySelectorAll('.submit-cat-btn').forEach(b => b.classList.remove('selected'));
+    setTimeout(async () => {
+      closePostModal();
+      await loadData();
+    }, 2500);
 
-    if (json.status === 'success') {
-      statusEl.textContent = '✅ 投稿完了！フィードに反映されます😊';
-      statusEl.style.color = '#27AE60';
-      document.getElementById('submit-title').value = '';
-      clearImage();
-      document.getElementById('submit-category').value = '';
-      document.querySelectorAll('.submit-cat-btn').forEach(b => b.classList.remove('selected'));
-      setTimeout(async () => {
-        closePostModal();
-        await loadData();
-      }, 2500);
-    } else {
-      throw new Error(json.message || '送信エラー');
-    }
   } catch(e) {
     statusEl.textContent = '❌ エラー: ' + e.message;
     statusEl.style.color = '#e74c3c';
@@ -1390,8 +1245,8 @@ function compressImage(file, maxWidth, quality) {
         canvas.width  = w;
         canvas.height = h;
         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        const dataUrl  = canvas.toDataURL('image/jpeg', quality);
-        const base64   = dataUrl.split(',')[1];
+        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+        const base64  = dataUrl.split(',')[1];
         resolve({ base64: base64, mime: 'image/jpeg' });
       };
       img.onerror = reject;
@@ -1402,18 +1257,17 @@ function compressImage(file, maxWidth, quality) {
   });
 }
 
-// 画像プレビュー（カメラ・アルバム共通）
+// 画像プレビュー
 function onImageSelected(input) {
   const preview     = document.getElementById('submit-preview');
   const previewWrap = document.getElementById('submit-preview-wrap');
   if (input.files && input.files[0]) {
     const reader = new FileReader();
     reader.onload = function(e) {
-      preview.src            = e.target.result;
+      preview.src               = e.target.result;
       previewWrap.style.display = 'block';
     };
     reader.readAsDataURL(input.files[0]);
-    // もう一方のinputをリセット（同時選択を防ぐ）
     if (input.id === 'submit-image') {
       document.getElementById('submit-image-album').value = '';
     } else {

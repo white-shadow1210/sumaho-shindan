@@ -1346,9 +1346,9 @@ async function submitChiikiPost() {
 
     let json;
     try {
-      json = await res.json();
+      const text = await res.text();
+      json = text ? JSON.parse(text) : { status: 'success' };
     } catch(e) {
-      // レスポンスが読めない場合は成功とみなす
       json = { status: 'success' };
     }
 

@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>かかりつけ登録 | スマホ相談士</title>
+<style>
+:root {
+  --navy:   #1a2a40;
+  --teal:   #249496;
+  --teal-l: #82c4c3;
+  --beige:  #FCFAF5;
+  --gold:   #cba052;
+  --red:    #d32f2f;
+  --text:   #222;
+  --muted:  #666;
+  --border: #e0ddd6;
+  --white:  #fff;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Meiryo', sans-serif;
+  background: var(--beige);
+  color: var(--text);
+  line-height: 1.7;
+  -webkit-text-size-adjust: 100%;
+}
+.container { max-width: 500px; margin: 0 auto; background: var(--white); min-height: 100vh; padding-bottom: 60px; }
+
+/* ヘッダー */
+.header { background: var(–navy); color: var(–white); padding: 36px 20px 28px; text-align: center; }
+.header-badge { display: inline-block; background: var(–gold); color: var(–white); font-size: 0.72rem; font-weight: bold; padding: 4px 14px; border-radius: 20px; letter-spacing: 0.08em; margin-bottom: 12px; }
+.header h1 { font-size: 1.5rem; letter-spacing: 0.05em; margin-bottom: 8px; }
+.header p  { font-size: 0.88rem; opacity: 0.85; }
+
+/* ベネフィット */
+.benefits { background: linear-gradient(135deg, #e8f7f7 0%, #f0faf8 100%); border-bottom: 2px solid var(–teal-l); padding: 22px 20px; }
+.benefits-title { font-size: 0.9rem; font-weight: bold; color: var(–navy); margin-bottom: 12px; text-align: center; }
+.benefit-item { display: flex; align-items: flex-start; gap: 10px; font-size: 0.9rem; margin-bottom: 10px; color: var(–navy); }
+.benefit-item .icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+.benefit-item strong { color: var(–teal); }
+
+/* おすすめバッジ */
+.recommend-banner {
+background: linear-gradient(90deg, var(–teal) 0%, #1b7a7c 100%);
+color: white; text-align: center;
+padding: 10px 20px; font-size: 0.82rem; font-weight: bold;
+}
+
+/* セクションラベル */
+.section-label { font-size: 0.75rem; font-weight: bold; color: var(–teal); letter-spacing: 0.1em; text-align: center; margin: 28px 0 14px; }
+
+/* ★ プランカード */
+.plan-wrap { padding: 0 16px; }
+.plan-card {
+border: 2.5px solid var(–border); border-radius: 16px;
+margin-bottom: 14px; overflow: hidden; background: var(–white);
+transition: border-color 0.2s, box-shadow 0.2s;
+}
+.plan-card.recommended { border-color: var(–teal); box-shadow: 0 0 0 3px rgba(36,148,150,0.12); }
+
+.plan-card-header {
+padding: 16px 18px 14px;
+display: flex; align-items: flex-start; justify-content: space-between;
+}
+.plan-title { font-size: 1.05rem; font-weight: bold; color: var(–navy); }
+.plan-title small { display: block; font-size: 0.72rem; font-weight: normal; color: var(–muted); margin-top: 2px; }
+.plan-rec-badge {
+background: var(–teal); color: white;
+font-size: 0.6rem; font-weight: bold; padding: 2px 8px;
+border-radius: 10px; white-space: nowrap; flex-shrink: 0; margin-left: 8px; margin-top: 3px;
+}
+
+/* サイクル切り替えタブ */
+.cycle-tabs { display: flex; border-top: 1px solid var(–border); }
+.cycle-btn {
+flex: 1; padding: 12px 8px; border: none; background: #f8f8f6;
+font-family: inherit; font-size: 0.82rem; font-weight: bold;
+color: var(–muted); cursor: pointer; transition: 0.2s;
+border-right: 1px solid var(–border); position: relative;
+}
+.cycle-btn:last-child { border-right: none; }
+.cycle-btn.active { background: var(–white); color: var(–teal); }
+.cycle-btn .saving-tag {
+display: inline-block; background: #fff3e0; color: #e65100;
+font-size: 0.6rem; padding: 1px 5px; border-radius: 6px; margin-left: 4px;
+}
+
+/* 料金表示エリア */
+.price-area {
+padding: 14px 18px 16px; border-top: 1px solid var(–border);
+background: #fafafa;
+}
+.price-row { display: flex; align-items: baseline; gap: 6px; margin-bottom: 6px; }
+.price-main { font-size: 2.2rem; font-weight: bold; color: var(–red); line-height: 1; }
+.price-unit { font-size: 0.82rem; color: var(–muted); }
+.price-note { font-size: 0.75rem; color: var(–muted); }
+.price-original { font-size: 0.78rem; color: var(–muted); text-decoration: line-through; }
+
+/* 決済ボタン */
+.pay-btn {
+display: block; width: calc(100% - 32px); margin: 14px 16px 16px;
+padding: 16px; border: none; border-radius: 12px;
+font-family: inherit; font-size: 1rem; font-weight: bold;
+color: white; cursor: pointer; transition: 0.18s;
+text-decoration: none; text-align: center;
+box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+}
+.pay-btn-stripe { background: linear-gradient(135deg, #635bff 0%, #4f46e5 100%); }
+.pay-btn-stripe:active { background: #4f46e5; transform: scale(0.98); }
+
+.stripe-badge {
+display: flex; align-items: center; justify-content: center; gap: 6px;
+font-size: 0.7rem; color: var(–muted); margin-bottom: 14px; text-align: center;
+}
+
+/* 単発支払い案内 */
+.spot-section { margin: 0 16px 20px; background: var(–beige); border-radius: 14px; padding: 18px; border: 1px solid var(–border); }
+.spot-title { font-size: 0.9rem; font-weight: bold; color: var(–navy); margin-bottom: 12px; }
+.spot-methods { display: flex; gap: 10px; flex-wrap: wrap; }
+.spot-method { display: flex; align-items: center; gap: 8px; background: white; border-radius: 10px; padding: 10px 14px; font-size: 0.82rem; font-weight: bold; color: var(–navy); border: 1px solid var(–border); flex: 1; min-width: 120px; }
+.spot-method .m-icon { font-size: 1.3rem; }
+
+/* よくある質問 */
+.faq-wrap { margin: 0 16px; }
+.faq-item { border-bottom: 1px solid var(–border); }
+.faq-q {
+padding: 14px 0; font-size: 0.88rem; font-weight: bold; color: var(–navy);
+display: flex; align-items: flex-start; gap: 8px; cursor: pointer;
+}
+.faq-q::before { content: ‘Q’; color: var(–teal); flex-shrink: 0; }
+.faq-a { display: none; padding: 0 0 14px 22px; font-size: 0.82rem; color: var(–muted); line-height: 1.7; }
+.faq-a.open { display: block; }
+
+/* フッター */
+.footer { padding: 24px 20px; text-align: center; font-size: 0.72rem; color: var(–muted); border-top: 1px solid var(–border); margin-top: 20px; }
+</style>
+
+</head>
+<body>
+<div class="container">
+
+  <!-- ヘッダー -->
+
+  <div class="header">
+    <div class="header-badge">⭐ かかりつけ登録</div>
+    <h1>スマホの顧問契約</h1>
+    <p>いつでも気軽に相談できる<br>スマホのかかりつけ医を持ちませんか？</p>
+  </div>
+
+  <!-- ベネフィット -->
+
+  <div class="benefits">
+    <div class="benefits-title">📋 会員様の特典</div>
+    <div class="benefit-item"><span class="icon">🚗</span><div>吉田町内の<strong>出張費がいつでも無料</strong></div></div>
+    <div class="benefit-item"><span class="icon">💬</span><div>LINEでの操作質問・相談が<strong>無料</strong></div></div>
+    <div class="benefit-item"><span class="icon">📋</span><div>年1回のスマホ健康診断（カルテ更新）</div></div>
+    <div class="benefit-item"><span class="icon">🎁</span><div>スポットメニューがすべて<strong>20%OFF</strong></div></div>
+  </div>
+
+  <!-- おすすめバナー -->
+
+  <div class="recommend-banner">
+    💳 クレジットカードで登録するのが一番かんたんです！
+  </div>
+
+  <!-- STEP 1: プラン選択・決済 -->
+
+  <div class="section-label">STEP 1 　プランを選んで登録する</div>
+  <div class="plan-wrap">
+
+```
+<!-- 個人プラン -->
+<div class="plan-card recommended" id="card-kojin">
+  <div class="plan-card-header">
+    <div class="plan-title">👤 個人プラン<small>ご本人1名様</small></div>
+    <span class="plan-rec-badge">おすすめ</span>
+  </div>
+  <div class="cycle-tabs">
+    <button class="cycle-btn active" id="kojin-monthly-btn" onclick="switchCycle('kojin','monthly')">
+      月払い
+    </button>
+    <button class="cycle-btn" id="kojin-yearly-btn" onclick="switchCycle('kojin','yearly')">
+      年払い <span class="saving-tag">2ヶ月お得</span>
+    </button>
+  </div>
+  <div class="price-area" id="kojin-price-area">
+    <div class="price-row">
+      <span class="price-main" id="kojin-price-main">¥440</span>
+      <span class="price-unit" id="kojin-price-unit">/月（税込）</span>
+    </div>
+    <div class="price-note" id="kojin-price-note"></div>
+  </div>
+  <a class="pay-btn pay-btn-stripe" id="kojin-pay-btn"
+     href="https://buy.stripe.com/fZu6oJ3BydxB0xe7JXgfu02"
+     target="_blank" rel="noopener">
+    💳 クレジットカードで登録する
+  </a>
+  <div class="stripe-badge">
+    🔒 Stripe による安全な決済　カード情報は当サービスに届きません
+  </div>
+</div>
+
+<!-- 家族プラン -->
+<div class="plan-card" id="card-kazoku">
+  <div class="plan-card-header">
+    <div class="plan-title">👨‍👩‍👧‍👦 ご家族プラン<small>同居家族4名様まで</small></div>
+  </div>
+  <div class="cycle-tabs">
+    <button class="cycle-btn active" id="kazoku-monthly-btn" onclick="switchCycle('kazoku','monthly')">
+      月払い
+    </button>
+    <button class="cycle-btn" id="kazoku-yearly-btn" onclick="switchCycle('kazoku','yearly')">
+      年払い <span class="saving-tag">2ヶ月お得</span>
+    </button>
+  </div>
+  <div class="price-area" id="kazoku-price-area">
+    <div class="price-row">
+      <span class="price-main" id="kazoku-price-main">¥980</span>
+      <span class="price-unit" id="kazoku-price-unit">/月（税込）</span>
+    </div>
+    <div class="price-note" id="kazoku-price-note"></div>
+  </div>
+  <a class="pay-btn pay-btn-stripe" id="kazoku-pay-btn"
+     href="https://buy.stripe.com/8x2eVf1tq3X15Ry0hvgfu01"
+     target="_blank" rel="noopener">
+    💳 クレジットカードで登録する
+  </a>
+  <div class="stripe-badge">
+    🔒 Stripe による安全な決済　カード情報は当サービスに届きません
+  </div>
+</div>
+```
+
+  </div><!-- /plan-wrap -->
+
+  <!-- STEP 2: 単発支払い案内 -->
+
+  <div class="section-label">スポット（1回のみ）のお支払い方法</div>
+  <div class="spot-section">
+    <div class="spot-title">ご訪問・ご来店時は以下の方法でお支払いいただけます</div>
+    <div class="spot-methods">
+      <div class="spot-method"><span class="m-icon">💴</span>現金</div>
+      <div class="spot-method"><span class="m-icon">🟡</span>PayPay</div>
+      <div class="spot-method"><span class="m-icon">💳</span>カード（タッチ決済）</div>
+    </div>
+    <p style="font-size:0.75rem;color:var(--muted);margin-top:12px;line-height:1.6;">
+      ※カード端末（Square）をご持参します。Visa・Mastercard・JCB・American Expressに対応しています。
+    </p>
+  </div>
+
+  <!-- よくある質問 -->
+
+  <div class="section-label">よくあるご質問</div>
+  <div class="faq-wrap">
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">クレジットカードは安全ですか？</div>
+      <div class="faq-a">はい。決済はStripe（世界最大級の決済サービス）が処理します。カード番号は当サービスには届きません。登録後は毎月自動で引き落とされます。</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">登録後すぐに使えますか？</div>
+      <div class="faq-a">お支払い完了後、西舘よりLINEにて会員パスワードをお送りします（通常当日〜翌営業日）。パスワードが届いたら予約フォームの「かかりつけ会員ログイン」からご利用ください。</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">解約はどうすればいいですか？</div>
+      <div class="faq-a">LINEにて「解約希望」とご連絡ください。翌月以降の請求はございません。年払いの場合は残存期間分の返金はございませんのでご了承ください。</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">クレジットカードを持っていません</div>
+      <div class="faq-a">LINEにてご連絡ください。振込・現金払いでのご対応も承ります。📞 お電話：080-8012-1720</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">年払いはいつから有効ですか？</div>
+      <div class="faq-a">お支払い完了日から12ヶ月間有効です。更新月の1ヶ月前にLINEにてご案内いたします。</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>スマホ相談士　西舘(櫻井)龍之介</p>
+    <p style="margin-top:4px;">📞 080-8012-1720</p>
+    <p style="margin-top:8px;">© 2026 スマホ相談士</p>
+  </div>
+</div>
+
+<script>
+// Payment Links
+const LINKS = {
+  kojin: {
+    monthly: 'https://buy.stripe.com/fZu6oJ3BydxB0xe7JXgfu02',
+    yearly:  'https://buy.stripe.com/eVqeVfegcgJN0xe8O1gfu03'
+  },
+  kazoku: {
+    monthly: 'https://buy.stripe.com/8x2eVf1tq3X15Ry0hvgfu01',
+    yearly:  'https://buy.stripe.com/9B65kF8VSfFJa7O7JXgfu00'
+  }
+};
+
+const PRICES = {
+  kojin:  { monthly: '¥440',    yearly: '¥4,800',  monthlyUnit: '/月（税込）', yearlyUnit: '/年（税込）', yearlyNote: '通常¥5,280 → ¥480お得！' },
+  kazoku: { monthly: '¥980',    yearly: '¥10,800', monthlyUnit: '/月（税込）', yearlyUnit: '/年（税込）', yearlyNote: '通常¥11,760 → ¥960お得！' }
+};
+
+// 現在のサイクル状態
+const cycles = { kojin: 'monthly', kazoku: 'monthly' };
+
+function switchCycle(plan, cycle) {
+  cycles[plan] = cycle;
+
+  // タブの見た目
+  document.getElementById(plan + '-monthly-btn').classList.toggle('active', cycle === 'monthly');
+  document.getElementById(plan + '-yearly-btn').classList.toggle('active',  cycle === 'yearly');
+
+  // 金額更新
+  const p = PRICES[plan];
+  document.getElementById(plan + '-price-main').textContent = p[cycle];
+  document.getElementById(plan + '-price-unit').textContent = p[cycle + 'Unit'];
+  document.getElementById(plan + '-price-note').textContent = cycle === 'yearly' ? p.yearlyNote : '';
+
+  // ボタンのリンク更新
+  document.getElementById(plan + '-pay-btn').href = LINKS[plan][cycle];
+}
+
+// FAQ開閉
+function toggleFaq(el) {
+  const answer = el.nextElementSibling;
+  answer.classList.toggle('open');
+}
+</script>
+
+</body>
+</html>

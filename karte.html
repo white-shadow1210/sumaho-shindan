@@ -24,14 +24,14 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
-  background: var(--beige); color: var(--text); line-height: 1.7;
+  background: #FCFAF5; color: #2a2a2a; line-height: 1.7;
   -webkit-text-size-adjust: 100%;
 }
-.container { max-width: 520px; margin: 0 auto; background: var(--white); min-height: 100vh; padding-bottom: 100px; padding-top: 92px; }
+.container { max-width: 520px; margin: 0 auto; background: #fff; min-height: 100vh; padding-bottom: 100px; padding-top: 92px; }
 
 /* ヘッダー */
 .header {
-background: linear-gradient(135deg, var(–navy) 0%, #243a56 100%);
+background: linear-gradient(135deg, #1a2a40 0%, #243a56 100%);
 color: white; padding: 16px 14px 12px;
 position: fixed; top: 0; left: 50%; transform: translateX(-50%);
 width: 100%; max-width: 520px;
@@ -40,7 +40,7 @@ box-shadow: 0 2px 16px rgba(0,0,0,0.2);
 }
 .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
 .header h1 { font-size: 0.95rem; font-weight: 700; display: flex; align-items: center; gap: 7px; }
-.header-badge { font-size: 0.58rem; background: var(–gold); color: white; padding: 2px 8px; border-radius: 20px; font-weight: bold; }
+.header-badge { font-size: 0.58rem; background: #cba052; color: white; padding: 2px 8px; border-radius: 20px; font-weight: bold; }
 .tab-nav { display: flex; gap: 4px; }
 .tab-btn {
 flex: 1; padding: 6px 2px; border: none; border-radius: 6px;
@@ -48,29 +48,29 @@ font-family: inherit; font-size: 0.6rem; font-weight: bold;
 cursor: pointer; background: rgba(255,255,255,0.22); color: rgba(255,255,255,0.95);
 transition: 0.2s; border: 1px solid rgba(255,255,255,0.3);
 }
-.tab-btn.active { background: var(–primary); color: white; border-color: var(–primary); box-shadow: 0 2px 8px rgba(36,148,150,0.5); }
+.tab-btn.active { background: #249496; color: white; border-color: #249496; box-shadow: 0 2px 8px rgba(36,148,150,0.5); }
 
 /* セクション */
 .section { display: none; padding: 14px 14px 0; }
 .section.active { display: block; }
 .sec-title {
-font-size: 0.78rem; font-weight: bold; color: var(–navy);
-padding: 7px 12px; background: var(–beige-d);
-border-left: 4px solid var(–primary); border-radius: 0 6px 6px 0;
+font-size: 0.78rem; font-weight: bold; color: #1a2a40;
+padding: 7px 12px; background: #f0ece0;
+border-left: 4px solid #249496; border-radius: 0 6px 6px 0;
 margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
 }
 
 /* フォーム */
 .form-group { margin-bottom: 12px; }
-.form-label { display: block; font-size: 0.72rem; font-weight: bold; color: var(–navy); margin-bottom: 4px; }
-.form-label .req { color: var(–red); font-size: 0.62rem; margin-left: 3px; }
+.form-label { display: block; font-size: 0.72rem; font-weight: bold; color: #1a2a40; margin-bottom: 4px; }
+.form-label .req { color: #d32f2f; font-size: 0.62rem; margin-left: 3px; }
 .form-input {
-width: 100%; padding: 9px 11px; border: 1.5px solid var(–border);
+width: 100%; padding: 9px 11px; border: 1.5px solid #e0ddd6;
 border-radius: 8px; font-family: inherit; font-size: 0.88rem;
-color: var(–text); background: var(–white); outline: none;
+color: #2a2a2a; background: #fff; outline: none;
 transition: border-color 0.2s;
 }
-.form-input:focus { border-color: var(–primary); box-shadow: 0 0 0 3px rgba(36,148,150,0.1); }
+.form-input:focus { border-color: #249496; box-shadow: 0 0 0 3px rgba(36,148,150,0.1); }
 textarea.form-input { resize: vertical; min-height: 70px; }
 
 /* ★ 2カラム - 購入時期はみ出し対策 */
@@ -80,12 +80,12 @@ textarea.form-input { resize: vertical; min-height: 70px; }
 /* ラジオ */
 .radio-group { display: flex; gap: 6px; flex-wrap: wrap; }
 .r-btn {
-padding: 6px 13px; border: 1.5px solid var(–border); border-radius: 20px;
+padding: 6px 13px; border: 1.5px solid #e0ddd6; border-radius: 20px;
 font-size: 0.75rem; font-weight: bold; cursor: pointer;
-background: white; color: var(–muted); transition: 0.18s; user-select: none;
+background: white; color: #777; transition: 0.18s; user-select: none;
 }
 .r-btn.active {
-background: var(–primary); color: white; border-color: var(–primary);
+background: #249496; color: white; border-color: #249496;
 box-shadow: 0 2px 8px rgba(36,148,150,0.35);
 transform: scale(1.05);
 }
@@ -93,100 +93,100 @@ transform: scale(1.05);
 /* チェック */
 .check-group { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
 .c-btn {
-padding: 8px 8px; border: 1.5px solid var(–border); border-radius: 7px;
+padding: 8px 8px; border: 1.5px solid #e0ddd6; border-radius: 7px;
 font-size: 0.72rem; font-weight: bold; cursor: pointer; background: white;
-color: var(–muted); transition: 0.18s; text-align: center; user-select: none;
+color: #777; transition: 0.18s; text-align: center; user-select: none;
 position: relative;
 }
 .c-btn.active {
-background: var(–primary); color: white; border-color: var(–primary);
+background: #249496; color: white; border-color: #249496;
 box-shadow: 0 2px 8px rgba(36,148,150,0.35);
 }
 .c-btn.active::before { content: ’✓ ’; font-size: 0.8rem; }
 
 /* 料金カード */
 .cost-card {
-border: 1.5px solid var(–border); border-radius: 12px; padding: 14px; margin-bottom: 12px;
+border: 1.5px solid #e0ddd6; border-radius: 12px; padding: 14px; margin-bottom: 12px;
 background: #fafaf8;
 }
 .cost-card.cur-card { background: #fff8f0; border-color: #ffd08a; }
 .cost-card.prop-card { background: #f0fafa; border-color: #82c4c3; }
-.cost-card-title { font-size: 0.8rem; font-weight: bold; color: var(–navy); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.cost-card-title { font-size: 0.8rem; font-weight: bold; color: #1a2a40; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
 
 /* キャリア・プラン選択エリア（料金タブ内） */
-.plan-area { background: white; border: 1px solid var(–border); border-radius: 8px; padding: 10px; margin-bottom: 10px; }
-.plan-area-label { font-size: 0.68rem; font-weight: bold; color: var(–muted); margin-bottom: 6px; }
-.plan-result-box { background: var(–beige-d); border-radius: 6px; padding: 8px 10px; font-size: 0.75rem; color: var(–navy); margin-top: 6px; min-height: 32px; }
-.plan-result-box strong { color: var(–primary); font-size: 0.95rem; }
+.plan-area { background: white; border: 1px solid #e0ddd6; border-radius: 8px; padding: 10px; margin-bottom: 10px; }
+.plan-area-label { font-size: 0.68rem; font-weight: bold; color: #777; margin-bottom: 6px; }
+.plan-result-box { background: #f0ece0; border-radius: 6px; padding: 8px 10px; font-size: 0.75rem; color: #1a2a40; margin-top: 6px; min-height: 32px; }
+.plan-result-box strong { color: #249496; font-size: 0.95rem; }
 
 /* 割引チェックエリア */
-.discount-area { background: #f9f9f7; border: 1px solid var(–border); border-radius: 8px; padding: 10px; margin-bottom: 10px; }
-.discount-title { font-size: 0.68rem; font-weight: bold; color: var(–muted); margin-bottom: 7px; }
+.discount-area { background: #f9f9f7; border: 1px solid #e0ddd6; border-radius: 8px; padding: 10px; margin-bottom: 10px; }
+.discount-title { font-size: 0.68rem; font-weight: bold; color: #777; margin-bottom: 7px; }
 .discount-grid { display: flex; flex-direction: column; gap: 5px; }
 .discount-row {
 display: flex; align-items: center; justify-content: space-between;
-padding: 6px 8px; border-radius: 6px; border: 1.5px solid var(–border);
+padding: 6px 8px; border-radius: 6px; border: 1.5px solid #e0ddd6;
 background: white; cursor: pointer; transition: 0.18s;
 }
-.discount-row.active { background: #e8f7f7; border-color: var(–primary); }
-.discount-row-label { font-size: 0.72rem; font-weight: bold; color: var(–muted); }
-.discount-row.active .discount-row-label { color: var(–primary); }
-.discount-row-price { font-size: 0.75rem; font-weight: bold; color: var(–red); }
-.discount-row.active .discount-row-price { color: var(–green); }
+.discount-row.active { background: #e8f7f7; border-color: #249496; }
+.discount-row-label { font-size: 0.72rem; font-weight: bold; color: #777; }
+.discount-row.active .discount-row-label { color: #249496; }
+.discount-row-price { font-size: 0.75rem; font-weight: bold; color: #d32f2f; }
+.discount-row.active .discount-row-price { color: #27ae60; }
 
 /* 合計・節約表示 */
 .cost-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-.cost-row label { font-size: 0.72rem; color: var(–muted); flex: 0 0 75px; }
-.cost-row input { flex: 1; padding: 7px 10px; border: 1.5px solid var(–border); border-radius: 6px; font-size: 0.88rem; text-align: right; font-family: inherit; min-width: 0; }
-.cost-row input:focus { outline: none; border-color: var(–primary); }
-.cost-row span { font-size: 0.72rem; color: var(–muted); flex: 0 0 20px; }
+.cost-row label { font-size: 0.72rem; color: #777; flex: 0 0 75px; }
+.cost-row input { flex: 1; padding: 7px 10px; border: 1.5px solid #e0ddd6; border-radius: 6px; font-size: 0.88rem; text-align: right; font-family: inherit; min-width: 0; }
+.cost-row input:focus { outline: none; border-color: #249496; }
+.cost-row span { font-size: 0.72rem; color: #777; flex: 0 0 20px; }
 .cost-total-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: white; border-radius: 7px; margin-top: 4px; }
-.cost-total-label { font-size: 0.78rem; font-weight: bold; color: var(–navy); }
-.cost-total-value { font-size: 1.1rem; font-weight: bold; color: var(–red); }
-.prop-total-value { color: var(–primary); }
+.cost-total-label { font-size: 0.78rem; font-weight: bold; color: #1a2a40; }
+.cost-total-value { font-size: 1.1rem; font-weight: bold; color: #d32f2f; }
+.prop-total-value { color: #249496; }
 
 .saving-display {
-background: var(–primary); color: white; border-radius: 8px;
+background: #249496; color: white; border-radius: 8px;
 padding: 10px 14px; text-align: center; font-weight: bold; font-size: 0.88rem;
 margin-top: 8px;
 }
 .saving-display small { font-size: 0.68rem; opacity: 0.85; display: block; }
 
 /* バッテリーゲージ */
-.battery-gauge { height: 14px; background: var(–border); border-radius: 7px; overflow: hidden; margin-top: 5px; }
-.battery-fill { height: 100%; border-radius: 7px; transition: width 0.5s, background 0.3s; background: var(–green); }
+.battery-gauge { height: 14px; background: #e0ddd6; border-radius: 7px; overflow: hidden; margin-top: 5px; }
+.battery-fill { height: 100%; border-radius: 7px; transition: width 0.5s, background 0.3s; background: #27ae60; }
 
 /* タイムライン */
 .timeline { position: relative; padding-left: 24px; margin-top: 8px; }
-.timeline::before { content: ‘’; position: absolute; left: 9px; top: 0; bottom: 0; width: 2px; background: var(–border); }
+.timeline::before { content: ‘’; position: absolute; left: 9px; top: 0; bottom: 0; width: 2px; background: #e0ddd6; }
 .tl-item { position: relative; margin-bottom: 12px; }
-.tl-dot { position: absolute; left: -20px; top: 6px; width: 12px; height: 12px; border-radius: 50%; background: var(–primary); border: 2px solid white; box-shadow: 0 0 0 2px var(–primary); }
-.tl-dot.current { background: var(–red); box-shadow: 0 0 0 2px var(–red); }
+.tl-dot { position: absolute; left: -20px; top: 6px; width: 12px; height: 12px; border-radius: 50%; background: #249496; border: 2px solid white; box-shadow: 0 0 0 2px #249496; }
+.tl-dot.current { background: #d32f2f; box-shadow: 0 0 0 2px #d32f2f; }
 .tl-inputs { display: grid; grid-template-columns: 80px 1fr; gap: 6px; }
 .tl-inputs input { min-width: 0; }
 
 /* 区切り */
-.divider { height: 1px; background: var(–border); margin: 14px 0; }
+.divider { height: 1px; background: #e0ddd6; margin: 14px 0; }
 
 /* 警告 */
-.warn-box { background: #fff0f0; border: 1px solid #ffcccc; border-radius: 8px; padding: 9px 12px; font-size: 0.7rem; color: var(–red); font-weight: bold; margin-bottom: 12px; }
+.warn-box { background: #fff0f0; border: 1px solid #ffcccc; border-radius: 8px; padding: 9px 12px; font-size: 0.7rem; color: #d32f2f; font-weight: bold; margin-bottom: 12px; }
 
 /* 送信バー */
 .submit-bar {
 position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
 width: 100%; max-width: 520px; background: white;
-border-top: 1px solid var(–border); padding: 10px 14px;
+border-top: 1px solid #e0ddd6; padding: 10px 14px;
 padding-bottom: max(10px, env(safe-area-inset-bottom));
 box-shadow: 0 -4px 20px rgba(0,0,0,0.08); z-index: 200;
 }
 .submit-btn {
 width: 100%; padding: 14px; border: none; border-radius: 10px;
 font-family: inherit; font-size: 0.9rem; font-weight: bold;
-cursor: pointer; transition: 0.2s; background: var(–navy); color: white;
+cursor: pointer; transition: 0.2s; background: #1a2a40; color: white;
 box-shadow: 0 3px 12px rgba(26,42,64,0.28);
 }
 .submit-btn:active { background: #0f1e30; transform: scale(0.98); }
-.submit-btn:disabled { background: var(–muted); box-shadow: none; }
+.submit-btn:disabled { background: #777; box-shadow: none; }
 
 /* 成功オーバーレイ */
 .success-overlay {
@@ -200,7 +200,7 @@ align-items: center; justify-content: center; color: white; text-align: center; 
 .sov-title { font-size: 1.2rem; font-weight: 900; margin-bottom: 6px; }
 .sov-sub { font-size: 0.82rem; opacity: 0.9; margin-bottom: 18px; line-height: 1.6; }
 .sov-summary { background: rgba(255,255,255,0.15); border-radius: 10px; padding: 12px 16px; width: 100%; max-width: 320px; font-size: 0.76rem; text-align: left; line-height: 1.9; margin-bottom: 18px; }
-.sov-close { background: white; color: var(–primary); border: none; border-radius: 10px; padding: 11px 32px; font-family: inherit; font-size: 0.9rem; font-weight: 700; cursor: pointer; }
+.sov-close { background: white; color: #249496; border: none; border-radius: 10px; padding: 11px 32px; font-family: inherit; font-size: 0.9rem; font-weight: 700; cursor: pointer; }
 </style>
 
 </head>
@@ -498,10 +498,10 @@ align-items: center; justify-content: center; color: white; text-align: center; 
 
   <div class="section" id="tab3">
     <div class="sec-title">📦 主要アプリ・引き継ぎ状況</div>
-    <p style="font-size:0.7rem;color:var(--muted);margin-bottom:10px;">機種変更・乗換時に必要なアプリを確認してください</p>
+    <p style="font-size:0.7rem;color:#777;margin-bottom:10px;">機種変更・乗換時に必要なアプリを確認してください</p>
     <table style="width:100%;border-collapse:collapse;font-size:0.75rem;margin-bottom:14px;">
       <thead>
-        <tr style="background:var(--navy);color:white;">
+        <tr style="background:#1a2a40;color:white;">
           <th style="padding:7px 8px;text-align:left;border-radius:6px 0 0 0;">アプリ</th>
           <th style="padding:7px 5px;text-align:center;">利用中</th>
           <th style="padding:7px 5px;text-align:center;">移行必須</th>
@@ -547,10 +547,10 @@ align-items: center; justify-content: center; color: white; text-align: center; 
 
   <div class="section" id="tab4">
     <div class="sec-title">📅 スマホ遍歴タイムライン</div>
-    <p style="font-size:0.7rem;color:var(--muted);margin-bottom:12px;">これまでの利用履歴を記録。マイページで確認できます。</p>
+    <p style="font-size:0.7rem;color:#777;margin-bottom:12px;">これまでの利用履歴を記録。マイページで確認できます。</p>
     <div class="timeline" id="timeline-wrap"></div>
     <div style="text-align:center;margin:10px 0 14px;">
-      <button onclick="addTimelineItem()" style="padding:7px 18px;border:1.5px dashed var(--primary);background:none;color:var(--primary);border-radius:20px;font-size:0.78rem;font-weight:bold;cursor:pointer;">＋ 遍歴を追加</button>
+      <button onclick="addTimelineItem()" style="padding:7px 18px;border:1.5px dashed #249496;background:none;color:#249496;border-radius:20px;font-size:0.78rem;font-weight:bold;cursor:pointer;">＋ 遍歴を追加</button>
     </div>
     <div class="divider"></div>
     <div class="sec-title">📋 本日の対応まとめ</div>
@@ -1006,7 +1006,7 @@ function buildDiscounts(side, planName, cd) {
     var row = document.createElement('div');
     row.className = 'discount-row';
     var sign = d.amount < 0 ? '-¥' + Math.abs(d.amount).toLocaleString() : '+¥' + d.amount.toLocaleString();
-    var color = d.amount < 0 ? 'color:var(--green)' : 'color:var(--orange)';
+    var color = d.amount < 0 ? 'color:#27ae60' : 'color:#e67e22';
     row.innerHTML =
       '<span class="discount-row-label">' + d.label + '</span>' +
       '<span class="discount-row-price" style="' + color + '">' + sign + '</span>';
@@ -1048,17 +1048,17 @@ function calcAll() {
   var el   = document.getElementById('saving-display');
   if (curTotal === 0 && propTotal === 0) {
     el.innerHTML = '節約額を計算中...<small>プランと割引を選択してください</small>';
-    el.style.background = 'var(--primary)';
+    el.style.background = '#249496';
   } else if (save > 0) {
     el.innerHTML = '💰 月額 <strong style="font-size:1.2rem">¥' + save.toLocaleString() + '</strong> の節約！' +
       '<small>年間：¥' + (save*12).toLocaleString() + '　2年間：¥' + (save*24).toLocaleString() + '</small>';
     el.style.background = 'linear-gradient(135deg,#27ae60,#1e8449)';
   } else if (save === 0 && curTotal > 0) {
     el.innerHTML = '同額です <small>より良いサービスへの乗換えを検討しましょう</small>';
-    el.style.background = 'var(--muted)';
+    el.style.background = '#777';
   } else if (save < 0) {
     el.innerHTML = '⚠️ 月額 ¥' + Math.abs(save).toLocaleString() + ' 増加 <small>特典・端末性能との比較を検討</small>';
-    el.style.background = 'var(--orange)';
+    el.style.background = '#e67e22';
   }
 }
 

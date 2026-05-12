@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -55,6 +54,46 @@
         .member-mode .menu-price { color: var(--member-gold); }
         .price-original { display: none; text-decoration: line-through; color: #999; font-size: 0.8rem; font-weight: normal; }
         .member-mode .price-original { display: block; }
+
+        /* ★ v2: 無料枠バッジ */
+        .free-slot-badge {
+            margin-top: 8px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            padding: 4px 10px;
+            border-radius: 12px;
+            display: inline-block;
+            line-height: 1.4;
+        }
+        .free-slot-badge.available { background: #e8f5f5; color: #1b7a7c; border: 1px solid #82c4c3; }
+        .free-slot-badge.few       { background: #fff3e0; color: #d35400; border: 1px solid #ffc080; }
+        .free-slot-badge.full      { background: #fce4e4; color: #c0392b; border: 1px solid #e8a8a8; }
+        .free-slot-badge.loading   { background: #f4f4f4; color: #888;    border: 1px solid #ddd; }
+
+        /* ★ v2: 満枠ロック状態 */
+        .menu-card.locked {
+            opacity: 0.55;
+            cursor: not-allowed;
+            background: #fafafa;
+        }
+        .menu-card.locked:hover { border-color: var(--border-color); background: #fafafa; }
+
+        /* ★ v2: 会員限定メニュー（非会員時の表示） */
+        .menu-card.member-only {
+            background: linear-gradient(to right, #fdfaf2 0%, #fff 100%);
+            border-color: #e8d8a8;
+        }
+        .menu-card.member-only .menu-title::after {
+            content: ' 🔒';
+            font-size: 0.9rem;
+            color: var(--member-gold);
+        }
+        .member-mode .menu-card.member-only .menu-title::after { content: ' ✨'; }
+        .member-mode .menu-card.member-only {
+            background: #fdfaf2;
+            border-color: var(--member-gold);
+        }
+
         .calendar-wrap { overflow-x: auto; margin-bottom: 20px; border: 1px solid var(--border-color); border-radius: 8px; }
         .calendar-table { width: 100%; border-collapse: collapse; min-width: 1000px; background: #fff; table-layout: fixed; }
         .calendar-table th, .calendar-table td { border: 1px solid var(--border-color); text-align: center; padding: 12px 5px; vertical-align: middle; width: 80px; }
@@ -124,107 +163,113 @@
         <div class="step-item"        id="nav-step3">情報入力・確認</div>
     </div>
 
-```
-<!-- STEP 1 -->
-<div id="step1" class="form-section active">
-    <div class="subscriber-login" id="login-box">
-        <p><strong>すでにサブスク会員（かかりつけ登録）の方はこちら</strong><br>ご登録情報と紐づけて、会員限定価格でスムーズに予約が可能です。</p>
-        <button class="btn-line" type="button" onclick="tryMemberLogin()">パスワードを入力してログイン</button>
-    </div>
-    <h2 class="section-title">ご希望のメニュー</h2>
-    <label class="menu-card" onclick="selectMenu('menu1','スマホ健康診断（まずは無料診断）',0,30)">
-        <input type="radio" name="menu" id="menu1">
-        <div class="menu-content"><div class="menu-title">スマホ健康診断（まずは無料診断）</div><div class="menu-desc">料金プランの見直し等、現状のカルテを作成します。</div></div>
-        <div class="menu-price">¥0<br><span style="font-size:0.8rem;font-weight:normal;">(30分)</span></div>
-    </label>
-    <label class="menu-card" onclick="selectMenu('menu2','スマホ整理・お悩み相談',3300,60)">
-        <input type="radio" name="menu" id="menu2">
-        <div class="menu-content"><div class="menu-title">スマホ整理・お悩み相談</div><div class="menu-desc">写真整理や操作方法の疑問などあらゆるお悩みを解決します。</div><div class="subs-upsell">★サブスク会員様は20%割引！</div></div>
-        <div class="menu-price"><span class="price-original">通常: ¥3,300</span><span class="price-display">¥3,300</span><br><span style="font-size:0.8rem;font-weight:normal;">(60分)</span></div>
-    </label>
-    <label class="menu-card" onclick="selectMenu('menu3','プラン見直し・最適化診断',5500,60)">
-        <input type="radio" name="menu" id="menu3">
-        <div class="menu-content"><div class="menu-title">プラン見直し・最適化診断</div><div class="menu-desc">各社プランを比較し、最適な通信費削減をご提案します。</div><div class="subs-upsell">★サブスク会員様は20%割引！</div></div>
-        <div class="menu-price"><span class="price-original">通常: ¥5,500</span><span class="price-display">¥5,500</span><br><span style="font-size:0.8rem;font-weight:normal;">(60分)</span></div>
-    </label>
-    <label class="menu-card" onclick="selectMenu('menu4','完全データ移行パック',11000,120)">
-        <input type="radio" name="menu" id="menu4">
-        <div class="menu-content"><div class="menu-title">完全データ移行パック</div><div class="menu-desc">機種変更時のデータ移行、LINE引継ぎ等を全て代行します。</div><div class="subs-upsell">★サブスク会員様は20%割引！</div></div>
-        <div class="menu-price"><span class="price-original">通常: ¥11,000</span><span class="price-display">¥11,000</span><br><span style="font-size:0.8rem;font-weight:normal;">(120分)</span></div>
-    </label>
-    <label class="menu-card" onclick="selectMenu('menu5','【会員限定】定期点検サポート',0,45)">
-        <input type="radio" name="menu" id="menu5">
-        <div class="menu-content"><div class="menu-title">【会員限定】定期点検サポート</div><div class="menu-desc">サブスク会員様向けの定期メンテナンス枠です。</div></div>
-        <div class="menu-price">¥0<br><span style="font-size:0.8rem;font-weight:normal;">(会員限定/45分)</span></div>
-    </label>
-</div>
+    <!-- STEP 1 -->
+    <div id="step1" class="form-section active">
+        <div class="subscriber-login" id="login-box">
+            <p><strong>すでにサブスク会員（かかりつけ登録）の方はこちら</strong><br>ご登録情報と紐づけて、会員限定価格でスムーズに予約が可能です。</p>
+            <button class="btn-line" type="button" onclick="tryMemberLogin()">パスワードを入力してログイン</button>
+        </div>
+        <h2 class="section-title">ご希望のメニュー</h2>
 
-<!-- STEP 2 -->
-<div id="step2" class="form-section">
-    <h2 class="section-title">日時の指定</h2>
-    <p style="font-size:0.9rem;margin-bottom:5px;">ご希望の日時の「◎」をタップしてください。</p>
-    <p style="font-size:0.8rem;color:#888;margin-bottom:10px;">※横にスクロールして日程を確認できます。</p>
-    <p style="font-size:0.8rem;color:#888;margin-bottom:15px;">※メニューの所要時間（<span id="display-duration"></span>分）を自動で確保します。</p>
-    <div class="calendar-wrap">
-        <table class="calendar-table">
-            <thead id="calendar-head"></thead>
-            <tbody id="calendar-body"></tbody>
-        </table>
-    </div>
-</div>
+        <!-- ★ menu1: スマホ健康診断（無料・残枠表示付き） -->
+        <label class="menu-card" id="card-menu1" onclick="handleFreeSlotClick(event)">
+            <input type="radio" name="menu" id="menu1">
+            <div class="menu-content">
+                <div class="menu-title">スマホ健康診断（まずは無料診断）</div>
+                <div class="menu-desc">料金プランの見直し等、現状のカルテを作成します。</div>
+                <div class="free-slot-badge loading" id="free-slot-badge">⏳ 枠数を確認中...</div>
+            </div>
+            <div class="menu-price">¥0<br><span style="font-size:0.8rem;font-weight:normal;">(30分)</span></div>
+        </label>
 
-<!-- STEP 3 -->
-<div id="step3" class="form-section">
-    <h2 class="section-title">ご予約内容の確認</h2>
-    <div class="summary-box">
-        <div class="summary-item"><span>メニュー:</span><strong id="summary-menu">-</strong></div>
-        <div class="summary-item"><span>目安時間:</span><strong id="summary-time">-</strong></div>
-        <div class="summary-item"><span>日時:</span><strong id="summary-datetime">-</strong></div>
-        <div class="summary-item total-price-row"><span>お支払い予定額:</span><strong id="summary-price">-</strong></div>
-    </div>
-    <h2 class="section-title">お客様情報の入力</h2>
-    <div class="form-group">
-        <label>お名前<span>(必須)</span></label>
-        <input type="text"  class="form-control" id="input-name"  placeholder="例：山田 太郎">
-    </div>
-    <div class="form-group">
-        <label>電話番号<span>(必須)</span></label>
-        <input type="tel"   class="form-control" id="input-tel"   placeholder="例：090-1234-5678">
-    </div>
-    <div class="form-group">
-        <label>メールアドレス<span>(必須)</span></label>
-        <input type="email" class="form-control" id="input-email" placeholder="例：example@mail.com">
-    </div>
-    <div class="privacy-policy">
-        <strong>【セキュリティと個人情報の取扱いについて】</strong><br>
-        ご入力いただいたお名前・電話番号等の個人情報は、予約の管理および当日のご本人様確認・ご相談対応のためにのみ使用し、適切かつ安全に管理いたします。
-    </div>
-    <div class="subscriber-login" id="subs-promo-box" style="background:#fffaf0;border-color:#ffe0b2;margin-top:20px;">
-        <p style="color:#d35400;font-weight:bold;">💡 サブスク会員（かかりつけ登録）について</p>
-        <p style="text-align:left;font-size:0.85rem;color:#555;">月額定額でサポートが受けられるお得なプラン。当日加入も可能です。</p>
-        <label style="display:flex;align-items:center;justify-content:center;margin-top:10px;cursor:pointer;">
-            <input type="checkbox" id="check-promo" style="transform:scale(1.3);margin-right:10px;">
-            <strong>当日に詳しい説明を聞きたい</strong>
+        <label class="menu-card" onclick="selectMenu('menu2','スマホ整理・お悩み相談',3300,60)">
+            <input type="radio" name="menu" id="menu2">
+            <div class="menu-content"><div class="menu-title">スマホ整理・お悩み相談</div><div class="menu-desc">写真整理や操作方法の疑問などあらゆるお悩みを解決します。</div><div class="subs-upsell">★サブスク会員様は20%割引！</div></div>
+            <div class="menu-price"><span class="price-original">通常: ¥3,300</span><span class="price-display">¥3,300</span><br><span style="font-size:0.8rem;font-weight:normal;">(60分)</span></div>
+        </label>
+        <label class="menu-card" onclick="selectMenu('menu3','プラン見直し・最適化診断',5500,60)">
+            <input type="radio" name="menu" id="menu3">
+            <div class="menu-content"><div class="menu-title">プラン見直し・最適化診断</div><div class="menu-desc">各社プランを比較し、最適な通信費削減をご提案します。</div><div class="subs-upsell">★サブスク会員様は20%割引！</div></div>
+            <div class="menu-price"><span class="price-original">通常: ¥5,500</span><span class="price-display">¥5,500</span><br><span style="font-size:0.8rem;font-weight:normal;">(60分)</span></div>
+        </label>
+        <label class="menu-card" onclick="selectMenu('menu4','完全データ移行パック',11000,120)">
+            <input type="radio" name="menu" id="menu4">
+            <div class="menu-content"><div class="menu-title">完全データ移行パック</div><div class="menu-desc">機種変更時のデータ移行、LINE引継ぎ等を全て代行します。</div><div class="subs-upsell">★サブスク会員様は20%割引！</div></div>
+            <div class="menu-price"><span class="price-original">通常: ¥11,000</span><span class="price-display">¥11,000</span><br><span style="font-size:0.8rem;font-weight:normal;">(120分)</span></div>
+        </label>
+
+        <!-- ★ menu5: 会員限定 定期点検（非会員はSwal警告） -->
+        <label class="menu-card member-only" id="card-menu5" onclick="handleMemberMenuClick(event)">
+            <input type="radio" name="menu" id="menu5">
+            <div class="menu-content"><div class="menu-title">【会員限定】定期点検サポート</div><div class="menu-desc">サブスク会員様向けの定期メンテナンス枠です。</div></div>
+            <div class="menu-price">¥0<br><span style="font-size:0.8rem;font-weight:normal;">(会員限定/45分)</span></div>
         </label>
     </div>
-</div>
 
-<div class="bottom-nav">
-    <button class="btn btn-back" id="btn-back" style="display:none;" onclick="goBack()">戻る</button>
-    <button class="btn btn-next" id="btn-next" onclick="goNext()">次へ (日時を指定)</button>
-</div>
-```
+    <!-- STEP 2 -->
+    <div id="step2" class="form-section">
+        <h2 class="section-title">日時の指定</h2>
+        <p style="font-size:0.9rem;margin-bottom:5px;">ご希望の日時の「◎」をタップしてください。</p>
+        <p style="font-size:0.8rem;color:#888;margin-bottom:10px;">※横にスクロールして日程を確認できます。</p>
+        <p style="font-size:0.8rem;color:#888;margin-bottom:15px;">※メニューの所要時間（<span id="display-duration"></span>分）を自動で確保します。</p>
+        <div class="calendar-wrap">
+            <table class="calendar-table">
+                <thead id="calendar-head"></thead>
+                <tbody id="calendar-body"></tbody>
+            </table>
+        </div>
+    </div>
 
+    <!-- STEP 3 -->
+    <div id="step3" class="form-section">
+        <h2 class="section-title">ご予約内容の確認</h2>
+        <div class="summary-box">
+            <div class="summary-item"><span>メニュー:</span><strong id="summary-menu">-</strong></div>
+            <div class="summary-item"><span>目安時間:</span><strong id="summary-time">-</strong></div>
+            <div class="summary-item"><span>日時:</span><strong id="summary-datetime">-</strong></div>
+            <div class="summary-item total-price-row"><span>お支払い予定額:</span><strong id="summary-price">-</strong></div>
+        </div>
+        <h2 class="section-title">お客様情報の入力</h2>
+        <div class="form-group">
+            <label>お名前<span>(必須)</span></label>
+            <input type="text"  class="form-control" id="input-name"  placeholder="例：山田 太郎">
+        </div>
+        <div class="form-group">
+            <label>電話番号<span>(必須)</span></label>
+            <input type="tel"   class="form-control" id="input-tel"   placeholder="例：090-1234-5678">
+        </div>
+        <div class="form-group">
+            <label>メールアドレス<span>(必須)</span></label>
+            <input type="email" class="form-control" id="input-email" placeholder="例：example@mail.com">
+        </div>
+        <div class="privacy-policy">
+            <strong>【セキュリティと個人情報の取扱いについて】</strong><br>
+            ご入力いただいたお名前・電話番号等の個人情報は、予約の管理および当日のご本人様確認・ご相談対応のためにのみ使用し、適切かつ安全に管理いたします。
+        </div>
+        <div class="subscriber-login" id="subs-promo-box" style="background:#fffaf0;border-color:#ffe0b2;margin-top:20px;">
+            <p style="color:#d35400;font-weight:bold;">💡 サブスク会員（かかりつけ登録）について</p>
+            <p style="text-align:left;font-size:0.85rem;color:#555;">月額定額でサポートが受けられるお得なプラン。当日加入も可能です。</p>
+            <label style="display:flex;align-items:center;justify-content:center;margin-top:10px;cursor:pointer;">
+                <input type="checkbox" id="check-promo" style="transform:scale(1.3);margin-right:10px;">
+                <strong>当日に詳しい説明を聞きたい</strong>
+            </label>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <button class="btn btn-back" id="btn-back" style="display:none;" onclick="goBack()">戻る</button>
+        <button class="btn btn-next" id="btn-next" onclick="goNext()">次へ (日時を指定)</button>
+    </div>
 </div>
 
 <script>
     // ============================================================
-    // ★ 設定（GAS URL最新デプロイ・LIFF追加）
+    // ★ 設定
     // ============================================================
     const GAS_URL  = "https://script.google.com/macros/s/AKfycbyX_iaLnrh8BCCCjsqWT5m3KRmUDzHPaxqtMhXJcOc9Ws9t252VmVPxWEOvMP5BskU/exec";
     const LIFF_ID  = "2009944467-lN8yixTk";
 
-    // ★ LIFF初期化（バックグラウンドで実行）
+    // ★ LIFF初期化（バックグラウンド）
     let liffUserId = '', liffDisplayName = '';
     (async function initLiff() {
         try {
@@ -244,6 +289,7 @@
     let currentStep  = 1;
     let isMemberMode = false;
     let selected     = { id:'', name:'', price:0, duration:0, dateRaw:'', time:'' };
+    let freeSlotRemaining = null; // ★ v2: 無料枠の残り（null=未取得）
     const START_MIN  = 570;
     const END_MIN    = 1260;
     const INTERVAL   = 30;
@@ -251,7 +297,8 @@
     // ============================================================
     // 初期化
     // ============================================================
-    window.onload = function() {
+    window.onload = async function() {
+        // 前回予約バナー
         const lastBooking = localStorage.getItem('nishidate_last_booking');
         if (lastBooking) {
             try {
@@ -261,7 +308,87 @@
                 banner.innerHTML = '🔔 <b>前回の予約内容:</b> ' + d.date + ' ' + d.time + '〜 (' + d.menu + ')';
             } catch(e) {}
         }
+        // ★ v2: 無料枠の残数を取得
+        await loadFreeSlotCount();
     };
+
+    // ============================================================
+    // ★ v2: 無料枠カウント取得
+    // ============================================================
+    async function loadFreeSlotCount() {
+        const badge = document.getElementById('free-slot-badge');
+        const card  = document.getElementById('card-menu1');
+        try {
+            const res  = await fetch(GAS_URL + '?action=getFreeSlot');
+            const slot = await res.json();
+            freeSlotRemaining = (typeof slot.remaining === 'number') ? slot.remaining : null;
+
+            if (freeSlotRemaining === null) {
+                badge.className   = 'free-slot-badge available';
+                badge.innerHTML   = '✅ 今月の無料枠 受付中';
+                return;
+            }
+            if (freeSlotRemaining <= 0) {
+                // 満枠
+                badge.className   = 'free-slot-badge full';
+                badge.innerHTML   = '❌ 今月の無料枠は満枠です（来月またお申込みください）';
+                card.classList.add('locked');
+            } else if (freeSlotRemaining === 1) {
+                badge.className   = 'free-slot-badge few';
+                badge.innerHTML   = '⚠️ 今月の無料枠 <strong>残り1名</strong>（先着' + slot.max + '名限定）';
+            } else {
+                badge.className   = 'free-slot-badge available';
+                badge.innerHTML   = '✅ 今月の無料枠 残り <strong>' + freeSlotRemaining + ' 名</strong>（先着' + slot.max + '名限定）';
+            }
+        } catch(e) {
+            console.warn('[free-slot] 取得エラー:', e);
+            badge.className = 'free-slot-badge available';
+            badge.innerHTML = '✅ 今月の無料枠 受付中';
+        }
+    }
+
+    // ============================================================
+    // ★ v2: 無料枠カードのクリック処理
+    // ============================================================
+    function handleFreeSlotClick(e) {
+        const card = document.getElementById('card-menu1');
+        if (card.classList.contains('locked')) {
+            e.preventDefault();
+            Swal.fire({
+                title: '今月の無料枠は満枠です',
+                html: '今月のスマホ健康診断（無料枠）は<strong>満枠</strong>のため、新規のお申込みを締め切らせていただきました。<br><br>来月1日にリセットされますので、改めてお申込みください🙇<br><br>有料の「スマホ整理・お悩み相談」もご検討ください😊',
+                icon: 'info',
+                confirmButtonText: '閉じる',
+                confirmButtonColor: '#249496'
+            });
+            return;
+        }
+        selectMenu('menu1', 'スマホ健康診断（まずは無料診断）', 0, 30);
+    }
+
+    // ============================================================
+    // ★ v2: 会員限定メニューのクリック処理
+    // ============================================================
+    function handleMemberMenuClick(e) {
+        if (isMemberMode) {
+            // 会員モードなら通常選択
+            selectMenu('menu5', '【会員限定】定期点検サポート', 0, 45);
+            return;
+        }
+        // 非会員 → 警告して進めない
+        e.preventDefault();
+        Swal.fire({
+            title: '会員限定メニューです',
+            html: 'こちらは<strong>サブスク会員（かかりつけ登録）</strong>の方専用のメニューです。<br><br>会員の方は上部の「<strong>パスワードを入力してログイン</strong>」からお進みください。<br><br>まだ会員でない方は<a href="https://white-shadow1210.github.io/sumaho-shindan/prices.html" style="color:#249496;font-weight:bold;">こちらから登録</a>できます。',
+            icon: 'info',
+            confirmButtonText: 'ログイン画面へ',
+            confirmButtonColor: '#cba052',
+            showCancelButton: true,
+            cancelButtonText: '別のメニューを選ぶ'
+        }).then(function(result) {
+            if (result.isConfirmed) tryMemberLogin();
+        });
+    }
 
     // ============================================================
     // 会員ログイン
@@ -457,6 +584,10 @@
 
     function goNext() {
         if (currentStep === 1 && !selected.id) return Swal.fire("確認", "メニューを選択してください", "warning");
+        // ★ v2: 念のため、満枠状態でmenu1が選ばれていたら阻止
+        if (currentStep === 1 && selected.id === 'menu1' && freeSlotRemaining !== null && freeSlotRemaining <= 0) {
+            return Swal.fire("今月の無料枠は満枠です", "別のメニューをお選びください。", "warning");
+        }
         if (currentStep === 2 && !selected.dateRaw) return Swal.fire("確認", "日時を選択してください", "warning");
         if (currentStep === 3) {
             const name  = document.getElementById('input-name').value.trim();
@@ -477,7 +608,7 @@
     }
 
     // ============================================================
-    // ★ GAS送信（LIFF情報を追加）
+    // ★ GAS送信
     // ============================================================
     function submitToGAS() {
         const btnNext = document.getElementById('btn-next');
@@ -495,7 +626,6 @@
             time:            selected.time,
             price:           selected.price,
             promoInfo:       document.getElementById('check-promo').checked ? "説明希望" : "希望なし",
-            // ★ LIFF情報を追加（ポイント付与・顧客マスター紐付けに使用）
             lineUserId:      liffUserId,
             lineDisplayName: liffDisplayName
         };

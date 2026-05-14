@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>料金メニュー | スマホ相談士</title>
+    <!-- ★ v2: LIFF SDK追加 -->
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
         body { 
             font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; 
@@ -15,141 +16,155 @@
         }
         .container { max-width: 500px; margin: 0 auto; background: #fff; min-height: 100vh; padding-bottom: 60px; }
 
-```
-    .header { background: #1a2a40; color: white; padding: 40px 20px; text-align: center; }
-    .header h1 { margin: 0; font-size: 26px; letter-spacing: 1px; }
-    
-    .section-title { 
-        background: #f4eade; color: #5d4a26; 
-        padding: 12px 20px; font-weight: bold; 
-        border-left: 6px solid #8a6d3b; 
-        margin: 30px 0 15px 0; 
-        display: flex; align-items: center; font-size: 19px;
-    }
-    
-    .card { margin: 20px; border: 1px solid #ddd; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.08); }
-    .card-body { padding: 20px; }
-    
-    .time-badge { 
-        display: inline-flex; align-items: center; 
-        font-size: 14px; background: #eee; color: #333; 
-        padding: 4px 12px; border-radius: 15px; 
-        margin-bottom: 10px; font-weight: bold;
-    }
-    .time-badge::before { content: '⏱'; margin-right: 6px; }
-    .menu-name  { font-weight: bold; font-size: 19px; color: #1a2a40; display: block; margin-bottom: 5px; }
-    .menu-price { font-size: 24px; font-weight: bold; color: #d32f2f; display: block; margin-bottom: 10px; }
-    .menu-desc  { font-size: 16px; color: #444; margin-bottom: 15px; }
+        .header { background: #1a2a40; color: white; padding: 40px 20px; text-align: center; }
+        .header h1 { margin: 0; font-size: 26px; letter-spacing: 1px; }
+        
+        .section-title { 
+            background: #f4eade; color: #5d4a26; 
+            padding: 12px 20px; font-weight: bold; 
+            border-left: 6px solid #8a6d3b; 
+            margin: 30px 0 15px 0; 
+            display: flex; align-items: center; font-size: 19px;
+        }
+        
+        .card { margin: 20px; border: 1px solid #ddd; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.08); }
+        .card-body { padding: 20px; }
+        
+        .time-badge { 
+            display: inline-flex; align-items: center; 
+            font-size: 14px; background: #eee; color: #333; 
+            padding: 4px 12px; border-radius: 15px; 
+            margin-bottom: 10px; font-weight: bold;
+        }
+        .time-badge::before { content: '⏱'; margin-right: 6px; }
+        .menu-name  { font-weight: bold; font-size: 19px; color: #1a2a40; display: block; margin-bottom: 5px; }
+        .menu-price { font-size: 24px; font-weight: bold; color: #d32f2f; display: block; margin-bottom: 10px; }
+        .menu-desc  { font-size: 16px; color: #444; margin-bottom: 15px; }
 
-    /* ==========================================
-       ★ サブスクエリア（Stripe決済ボタン付き）
-    ========================================== */
-    .sub-container {
-        margin: 20px;
-        padding: 22px 18px 18px;
-        border: 3px solid #82c4c3;
-        border-radius: 15px;
-        background: #f0f8ff;
-    }
-    .sub-title {
-        color: #1a2a40; font-weight: bold; font-size: 20px;
-        text-align: center; margin-bottom: 18px;
-        border-bottom: 2px solid #82c4c3; padding-bottom: 10px;
-    }
+        .sub-container {
+            margin: 20px;
+            padding: 22px 18px 18px;
+            border: 3px solid #82c4c3;
+            border-radius: 15px;
+            background: #f0f8ff;
+        }
+        .sub-title {
+            color: #1a2a40; font-weight: bold; font-size: 20px;
+            text-align: center; margin-bottom: 18px;
+            border-bottom: 2px solid #82c4c3; padding-bottom: 10px;
+        }
 
-    /* おすすめ帯 */
-    .sub-recommend {
-        background: linear-gradient(90deg, #249496, #1b7a7c);
-        color: white; text-align: center;
-        padding: 8px 14px; border-radius: 8px;
-        font-size: 13px; font-weight: bold;
-        margin-bottom: 14px;
-    }
+        .sub-recommend {
+            background: linear-gradient(90deg, #249496, #1b7a7c);
+            color: white; text-align: center;
+            padding: 8px 14px; border-radius: 8px;
+            font-size: 13px; font-weight: bold;
+            margin-bottom: 14px;
+        }
 
-    /* プランカード */
-    .sub-plan-card {
-        background: white; border-radius: 12px;
-        border: 2px solid #82c4c3;
-        margin-bottom: 14px; overflow: hidden;
-    }
-    .sub-plan-card.recommended { border-color: #249496; box-shadow: 0 0 0 3px rgba(36,148,150,0.1); }
+        /* ★ v2: LINE連携ステータス表示 */
+        .line-status {
+            background: white;
+            border: 2px solid #06C755;
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-bottom: 14px;
+            font-size: 13px;
+            text-align: center;
+            color: #1a2a40;
+        }
+        .line-status.ok { background: #f0faf0; }
+        .line-status.warning { 
+            background: #fff8e1; 
+            border-color: #ffa726; 
+            color: #e65100;
+        }
+        .line-status-icon { font-size: 16px; margin-right: 4px; }
 
-    .sub-plan-header {
-        display: flex; justify-content: space-between; align-items: center;
-        padding: 14px 16px 10px;
-    }
-    .sub-plan-name  { font-weight: bold; font-size: 17px; line-height: 1.4; color: #1a2a40; }
-    .sub-plan-price { font-size: 22px; font-weight: bold; color: #d32f2f; white-space: nowrap; }
-    .sub-plan-price small { font-size: 13px; font-weight: normal; color: #666; }
+        .sub-plan-card {
+            background: white; border-radius: 12px;
+            border: 2px solid #82c4c3;
+            margin-bottom: 14px; overflow: hidden;
+        }
+        .sub-plan-card.recommended { border-color: #249496; box-shadow: 0 0 0 3px rgba(36,148,150,0.1); }
 
-    /* 月払い・年払い切り替えタブ */
-    .cycle-tabs {
-        display: flex;
-        border-top: 1px solid #e0e0e0;
-    }
-    .cycle-btn {
-        flex: 1; padding: 10px 6px; border: none;
-        background: #f5f5f5; font-family: inherit;
-        font-size: 13px; font-weight: bold; color: #888;
-        cursor: pointer; transition: 0.2s;
-        border-right: 1px solid #e0e0e0;
-    }
-    .cycle-btn:last-child { border-right: none; }
-    .cycle-btn.active { background: white; color: #249496; }
-    .cycle-btn .tag {
-        display: inline-block; background: #fff3e0; color: #e65100;
-        font-size: 10px; padding: 1px 5px; border-radius: 5px; margin-left: 3px;
-    }
+        .sub-plan-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 14px 16px 10px;
+        }
+        .sub-plan-name  { font-weight: bold; font-size: 17px; line-height: 1.4; color: #1a2a40; }
+        .sub-plan-price { font-size: 22px; font-weight: bold; color: #d32f2f; white-space: nowrap; }
+        .sub-plan-price small { font-size: 13px; font-weight: normal; color: #666; }
 
-    /* 料金表示 */
-    .plan-price-area {
-        padding: 10px 16px 12px;
-        border-top: 1px solid #f0f0f0;
-        background: #fafafa;
-    }
-    .plan-price-row { display: flex; align-items: baseline; gap: 6px; }
-    .plan-price-main { font-size: 26px; font-weight: bold; color: #d32f2f; line-height: 1; }
-    .plan-price-unit { font-size: 13px; color: #666; }
-    .plan-price-note { font-size: 12px; color: #e65100; margin-top: 3px; font-weight: bold; }
+        .cycle-tabs {
+            display: flex;
+            border-top: 1px solid #e0e0e0;
+        }
+        .cycle-btn {
+            flex: 1; padding: 10px 6px; border: none;
+            background: #f5f5f5; font-family: inherit;
+            font-size: 13px; font-weight: bold; color: #888;
+            cursor: pointer; transition: 0.2s;
+            border-right: 1px solid #e0e0e0;
+        }
+        .cycle-btn:last-child { border-right: none; }
+        .cycle-btn.active { background: white; color: #249496; }
+        .cycle-btn .tag {
+            display: inline-block; background: #fff3e0; color: #e65100;
+            font-size: 10px; padding: 1px 5px; border-radius: 5px; margin-left: 3px;
+        }
 
-    /* Stripe決済ボタン */
-    .btn-stripe {
-        display: block;
-        background: linear-gradient(135deg, #635bff 0%, #4f46e5 100%);
-        color: white; text-align: center; text-decoration: none;
-        padding: 14px; margin: 0 16px 14px;
-        border-radius: 10px; font-size: 15px; font-weight: bold;
-        box-shadow: 0 3px 10px rgba(99,91,255,0.3);
-        transition: 0.2s;
-    }
-    .btn-stripe:active { opacity: 0.85; transform: scale(0.98); }
-    .stripe-note {
-        text-align: center; font-size: 11px; color: #999;
-        padding: 0 16px 14px; line-height: 1.5;
-    }
+        .plan-price-area {
+            padding: 10px 16px 12px;
+            border-top: 1px solid #f0f0f0;
+            background: #fafafa;
+        }
+        .plan-price-row { display: flex; align-items: baseline; gap: 6px; }
+        .plan-price-main { font-size: 26px; font-weight: bold; color: #d32f2f; line-height: 1; }
+        .plan-price-unit { font-size: 13px; color: #666; }
+        .plan-price-note { font-size: 12px; color: #e65100; margin-top: 3px; font-weight: bold; }
 
-    /* 特典リスト */
-    .benefit-list { font-size: 16px; padding-left: 18px; margin: 16px 0 4px; color: #333; }
-    .benefit-list li { margin-bottom: 10px; list-style-type: '✅ '; }
+        .btn-stripe {
+            display: block;
+            background: linear-gradient(135deg, #635bff 0%, #4f46e5 100%);
+            color: white; text-align: center; text-decoration: none;
+            padding: 14px; margin: 0 16px 14px;
+            border-radius: 10px; font-size: 15px; font-weight: bold;
+            box-shadow: 0 3px 10px rgba(99,91,255,0.3);
+            transition: 0.2s;
+            cursor: pointer;
+            border: none;
+            width: calc(100% - 32px);
+            font-family: inherit;
+        }
+        .btn-stripe:active { opacity: 0.85; transform: scale(0.98); }
+        .btn-stripe:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .stripe-note {
+            text-align: center; font-size: 11px; color: #999;
+            padding: 0 16px 14px; line-height: 1.5;
+        }
 
-    /* 予約ボタン */
-    .btn-reserve {
-        display: block; background: #1a2a40; color: white;
-        text-align: center; text-decoration: none;
-        padding: 18px; margin: 20px;
-        border-radius: 35px; font-size: 20px; font-weight: bold;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    }
+        .benefit-list { font-size: 16px; padding-left: 18px; margin: 16px 0 4px; color: #333; }
+        .benefit-list li { margin-bottom: 10px; list-style-type: '✅ '; }
 
-    /* フッター */
-    .footer-note { font-size: 15px; color: #444; padding: 30px 20px; text-align: left; background: #f0f0f0; border-top: 1px solid #ddd; }
-    .privacy-note { 
-        font-size: 13px; color: #666; margin-top: 20px; padding: 15px; 
-        border: 1px solid #ccc; border-radius: 8px; background: #fff; line-height: 1.6;
-    }
-</style>
-```
+        .btn-reserve {
+            display: block; background: #1a2a40; color: white;
+            text-align: center; text-decoration: none;
+            padding: 18px; margin: 20px;
+            border-radius: 35px; font-size: 20px; font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
 
+        .footer-note { font-size: 15px; color: #444; padding: 30px 20px; text-align: left; background: #f0f0f0; border-top: 1px solid #ddd; }
+        .privacy-note { 
+            font-size: 13px; color: #666; margin-top: 20px; padding: 15px; 
+            border: 1px solid #ccc; border-radius: 8px; background: #fff; line-height: 1.6;
+        }
+    </style>
 </head>
 <body>
 <div class="container">
@@ -158,144 +173,218 @@
         <p style="font-size: 16px; opacity: 0.9; margin-top:10px;">あなたのスマホライフに「安心」をプラス</p>
     </div>
 
-```
-<div class="section-title">📍 スポットサポート</div>
+    <div class="section-title">📍 スポットサポート</div>
 
-<div class="card">
-    <div class="card-body">
-        <div class="time-badge">目安：60分〜90分</div>
-        <span class="menu-name">📱 プラン見直し・最適化診断</span>
-        <span class="menu-price">¥5,500 <span style="font-size:14px; color:#666; font-weight:normal;">(税込)</span></span>
-        <div class="menu-desc">現状の固定費を分析し、最適なプランのご提案。契約のサポートをします。</div>
-    </div>
-</div>
-
-<div class="card">
-    <div class="card-body">
-        <div class="time-badge">目安：90分〜120分</div>
-        <span class="menu-name">📦 完全データ移行パック</span>
-        <span class="menu-price">¥11,000 <span style="font-size:14px; color:#666; font-weight:normal;">(税込)</span></span>
-        <div class="menu-desc">端末選びのアドバイス、購入手続き同行、キャリアがやらない全アプリのログイン確認、初期設定まで丸ごと代行します。</div>
-    </div>
-</div>
-
-<div class="card">
-    <div class="card-body">
-        <div class="time-badge">目安：45分〜60分</div>
-        <span class="menu-name">🔍 スマホの整理・お悩み相談</span>
-        <span class="menu-price">¥3,300 <span style="font-size:14px; color:#666; font-weight:normal;">(税込)</span></span>
-        <div class="menu-desc">「動きが遅い」「写真がいっぱい」「変な通知が来る」など、日々の小さなお悩みをスッキリ解決します。</div>
-    </div>
-</div>
-
-<!-- ==========================================
-     ★ サブスクセクション（Stripe決済ボタン付き）
-=========================================== -->
-<div class="section-title">⭐ スマホの顧問料（月額）</div>
-<div class="sub-container">
-    <div class="sub-title">継続サポートプラン</div>
-    <div class="sub-recommend">💳 クレジットカードで今すぐ登録できます</div>
-
-    <!-- 個人プラン -->
-    <div class="sub-plan-card recommended">
-        <div class="sub-plan-header">
-            <span class="sub-plan-name">👤 個人プラン</span>
-            <span style="background:#249496;color:white;font-size:11px;font-weight:bold;padding:3px 10px;border-radius:10px;">おすすめ</span>
+    <div class="card">
+        <div class="card-body">
+            <div class="time-badge">目安：60分〜90分</div>
+            <span class="menu-name">📱 プラン見直し・最適化診断</span>
+            <span class="menu-price">¥5,500 <span style="font-size:14px; color:#666; font-weight:normal;">(税込)</span></span>
+            <div class="menu-desc">現状の固定費を分析し、最適なプランのご提案。契約のサポートをします。</div>
         </div>
-        <div class="cycle-tabs">
-            <button class="cycle-btn active" id="kojin-m-btn" onclick="switchCycle('kojin','monthly')">月払い</button>
-            <button class="cycle-btn"        id="kojin-y-btn" onclick="switchCycle('kojin','yearly')">年払い <span class="tag">2ヶ月お得</span></button>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="time-badge">目安：90分〜120分</div>
+            <span class="menu-name">📦 完全データ移行パック</span>
+            <span class="menu-price">¥11,000 <span style="font-size:14px; color:#666; font-weight:normal;">(税込)</span></span>
+            <div class="menu-desc">端末選びのアドバイス、購入手続き同行、キャリアがやらない全アプリのログイン確認、初期設定まで丸ごと代行します。</div>
         </div>
-        <div class="plan-price-area">
-            <div class="plan-price-row">
-                <span class="plan-price-main" id="kojin-price">¥440</span>
-                <span class="plan-price-unit" id="kojin-unit">/月（税込）</span>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="time-badge">目安：45分〜60分</div>
+            <span class="menu-name">🔍 スマホの整理・お悩み相談</span>
+            <span class="menu-price">¥3,300 <span style="font-size:14px; color:#666; font-weight:normal;">(税込)</span></span>
+            <div class="menu-desc">「動きが遅い」「写真がいっぱい」「変な通知が来る」など、日々の小さなお悩みをスッキリ解決します。</div>
+        </div>
+    </div>
+
+    <div class="section-title">⭐ スマホの顧問料（月額）</div>
+    <div class="sub-container">
+        <div class="sub-title">継続サポートプラン</div>
+        <div class="sub-recommend">💳 クレジットカードで今すぐ登録できます</div>
+
+        <!-- ★ v2: LINE連携ステータス -->
+        <div class="line-status" id="line-status">
+            <span class="line-status-icon">⏳</span>
+            <span id="line-status-text">LINEアカウントを確認中...</span>
+        </div>
+
+        <!-- 個人プラン -->
+        <div class="sub-plan-card recommended">
+            <div class="sub-plan-header">
+                <span class="sub-plan-name">👤 個人プラン</span>
+                <span style="background:#249496;color:white;font-size:11px;font-weight:bold;padding:3px 10px;border-radius:10px;">おすすめ</span>
             </div>
-            <div class="plan-price-note" id="kojin-note"></div>
-        </div>
-        <a class="btn-stripe" id="kojin-btn"
-           href="https://buy.stripe.com/fZu6oJ3BydxB0xe7JXgfu02"
-           target="_blank" rel="noopener">
-            💳 クレジットカードで登録する
-        </a>
-        <div class="stripe-note">🔒 Stripeによる安全な決済<br>カード情報は当サービスに届きません</div>
-    </div>
-
-    <!-- 家族プラン -->
-    <div class="sub-plan-card">
-        <div class="sub-plan-header">
-            <span class="sub-plan-name">👨‍👩‍👧‍👦 ご家族プラン<br><small style="font-weight:normal;color:#666;font-size:13px;">(同居家族4名様まで)</small></span>
-        </div>
-        <div class="cycle-tabs">
-            <button class="cycle-btn active" id="kazoku-m-btn" onclick="switchCycle('kazoku','monthly')">月払い</button>
-            <button class="cycle-btn"        id="kazoku-y-btn" onclick="switchCycle('kazoku','yearly')">年払い <span class="tag">2ヶ月お得</span></button>
-        </div>
-        <div class="plan-price-area">
-            <div class="plan-price-row">
-                <span class="plan-price-main" id="kazoku-price">¥980</span>
-                <span class="plan-price-unit" id="kazoku-unit">/月（税込）</span>
+            <div class="cycle-tabs">
+                <button class="cycle-btn active" id="kojin-m-btn" onclick="switchCycle('kojin','monthly')">月払い</button>
+                <button class="cycle-btn"        id="kojin-y-btn" onclick="switchCycle('kojin','yearly')">年払い <span class="tag">2ヶ月お得</span></button>
             </div>
-            <div class="plan-price-note" id="kazoku-note"></div>
+            <div class="plan-price-area">
+                <div class="plan-price-row">
+                    <span class="plan-price-main" id="kojin-price">¥440</span>
+                    <span class="plan-price-unit" id="kojin-unit">/月（税込）</span>
+                </div>
+                <div class="plan-price-note" id="kojin-note"></div>
+            </div>
+            <button class="btn-stripe" id="kojin-btn" onclick="goStripe('kojin')">
+                💳 クレジットカードで登録する
+            </button>
+            <div class="stripe-note">🔒 Stripeによる安全な決済<br>カード情報は当サービスに届きません</div>
         </div>
-        <a class="btn-stripe" id="kazoku-btn"
-           href="https://buy.stripe.com/8x2eVf1tq3X15Ry0hvgfu01"
-           target="_blank" rel="noopener">
-            💳 クレジットカードで登録する
-        </a>
-        <div class="stripe-note">🔒 Stripeによる安全な決済<br>カード情報は当サービスに届きません</div>
+
+        <!-- 家族プラン -->
+        <div class="sub-plan-card">
+            <div class="sub-plan-header">
+                <span class="sub-plan-name">👨‍👩‍👧‍👦 ご家族プラン<br><small style="font-weight:normal;color:#666;font-size:13px;">(同居家族4名様まで)</small></span>
+            </div>
+            <div class="cycle-tabs">
+                <button class="cycle-btn active" id="kazoku-m-btn" onclick="switchCycle('kazoku','monthly')">月払い</button>
+                <button class="cycle-btn"        id="kazoku-y-btn" onclick="switchCycle('kazoku','yearly')">年払い <span class="tag">2ヶ月お得</span></button>
+            </div>
+            <div class="plan-price-area">
+                <div class="plan-price-row">
+                    <span class="plan-price-main" id="kazoku-price">¥980</span>
+                    <span class="plan-price-unit" id="kazoku-unit">/月（税込）</span>
+                </div>
+                <div class="plan-price-note" id="kazoku-note"></div>
+            </div>
+            <button class="btn-stripe" id="kazoku-btn" onclick="goStripe('kazoku')">
+                💳 クレジットカードで登録する
+            </button>
+            <div class="stripe-note">🔒 Stripeによる安全な決済<br>カード情報は当サービスに届きません</div>
+        </div>
+
+        <ul class="benefit-list">
+            <li><b>吉田町内：出張費がいつでも無料</b></li>
+            <li>LINEでの操作質問・相談が無料</li>
+            <li>年1回のスマホ健康診断（カルテ更新）</li>
+            <li>スポットメニューがすべて<b>20%OFF</b></li>
+        </ul>
+
+        <p style="font-size:12px;color:#888;text-align:center;margin-top:8px;">
+            クレカをお持ちでない方は<a href="https://line.me/R/oaMessage/@281jfkpu/" style="color:#249496;">LINEにてご相談ください</a>
+        </p>
     </div>
 
-    <!-- 特典リスト -->
-    <ul class="benefit-list">
-        <li><b>吉田町内：出張費がいつでも無料</b></li>
-        <li>LINEでの操作質問・相談が無料</li>
-        <li>年1回のスマホ健康診断（カルテ更新）</li>
-        <li>スポットメニューがすべて<b>20%OFF</b></li>
-    </ul>
+    <a href="https://white-shadow1210.github.io/sumaho-shindan/reserve.html" class="btn-reserve">WEB予約・空き状況確認</a>
 
-    <p style="font-size:12px;color:#888;text-align:center;margin-top:8px;">
-        クレカをお持ちでない方は<a href="https://line.me/R/oaMessage/@281jfkpu/" style="color:#249496;">LINEにてご相談ください</a>
-    </p>
-</div>
-
-<a href="https://white-shadow1210.github.io/sumaho-shindan/reserve.html" class="btn-reserve">WEB予約・空き状況確認</a>
-
-<div class="footer-note">
-    <p><b>【出張エリア】</b><br>吉田町・牧之原市周辺</p>
-    <p>吉田町以外への出張：1,000円<br>（会員様：550円）</p>
-    <p style="font-size: 13px; color: #777;">※作業時間はあくまで目安です。状況により前後する場合がございます。</p>
-    <div class="privacy-note">
-        <b>【安心のお約束・個人情報の取り扱い】</b><br>
-        ・お客様のデータ（写真・連絡先等）を閲覧・保存・外部へ送信することは一切ございません。<br>
-        ・ご入力いただいた内容は、適切なアドバイスおよびサービス提供のみに利用し、第三者への提供は行いません。
+    <div class="footer-note">
+        <p><b>【出張エリア】</b><br>吉田町・牧之原市周辺</p>
+        <p>吉田町以外への出張：1,000円<br>（会員様：550円）</p>
+        <p style="font-size: 13px; color: #777;">※作業時間はあくまで目安です。状況により前後する場合がございます。</p>
+        <div class="privacy-note">
+            <b>【安心のお約束・個人情報の取り扱い】</b><br>
+            ・お客様のデータ（写真・連絡先等）を閲覧・保存・外部へ送信することは一切ございません。<br>
+            ・ご入力いただいた内容は、適切なアドバイスおよびサービス提供のみに利用し、第三者への提供は行いません。
+        </div>
+        <p style="text-align: center; font-size: 12px; margin-top: 20px;">© 2026 スマホ相談士 西舘</p>
     </div>
-    <p style="text-align: center; font-size: 12px; margin-top: 20px;">© 2026 スマホ相談士 西舘</p>
-</div>
-```
-
 </div>
 
 <script>
+// ============================================================
+// ★ v2: LIFF設定
+// ============================================================
+const LIFF_ID = "2009944467-lN8yixTk";
+let liffUserId = '';
+let liffDisplayName = '';
+let liffReady = false;
+let currentCycle = { kojin: 'monthly', kazoku: 'monthly' };
+
 const LINKS = {
-    kojin:  { monthly: 'https://buy.stripe.com/fZu6oJ3BydxB0xe7JXgfu02', yearly: 'https://buy.stripe.com/eVqeVfegcgJN0xe8O1gfu03' },
-    kazoku: { monthly: 'https://buy.stripe.com/8x2eVf1tq3X15Ry0hvgfu01', yearly: 'https://buy.stripe.com/9B65kF8VSfFJa7O7JXgfu00' }
+    kojin:  { 
+        monthly: 'https://buy.stripe.com/fZu6oJ3BydxB0xe7JXgfu02', 
+        yearly:  'https://buy.stripe.com/eVqeVfegcgJN0xe8O1gfu03' 
+    },
+    kazoku: { 
+        monthly: 'https://buy.stripe.com/8x2eVf1tq3X15Ry0hvgfu01', 
+        yearly:  'https://buy.stripe.com/9B65kF8VSfFJa7O7JXgfu00' 
+    }
 };
 const PRICES = {
     kojin:  { monthly: '¥440', yearly: '¥4,800', monthlyUnit: '/月（税込）', yearlyUnit: '/年（税込）', yearlyNote: '通常¥5,280 → 2ヶ月分お得！' },
     kazoku: { monthly: '¥980', yearly: '¥10,800', monthlyUnit: '/月（税込）', yearlyUnit: '/年（税込）', yearlyNote: '通常¥11,760 → 約2ヶ月分お得！' }
 };
 
+// ============================================================
+// ★ v2: LIFF初期化
+// ============================================================
+async function initLiff() {
+    try {
+        await liff.init({ liffId: LIFF_ID });
+        if (liff.isLoggedIn()) {
+            const profile = await liff.getProfile();
+            liffUserId = profile.userId;
+            liffDisplayName = profile.displayName;
+            liffReady = true;
+            updateLineStatus(true, profile.displayName);
+            console.log('[LIFF prices] 初期化完了:', liffDisplayName);
+        } else {
+            if (liff.isInClient()) {
+                liff.login();
+            } else {
+                updateLineStatus(false, 'LINE外ブラウザでお開きください');
+            }
+        }
+    } catch(e) {
+        console.warn('[LIFF prices] 初期化エラー:', e);
+        updateLineStatus(false, 'LINE情報を取得できませんでした');
+    }
+}
+
+function updateLineStatus(ok, name) {
+    const statusEl = document.getElementById('line-status');
+    const iconEl = statusEl.querySelector('.line-status-icon');
+    const textEl = document.getElementById('line-status-text');
+    if (ok) {
+        statusEl.classList.add('ok');
+        statusEl.classList.remove('warning');
+        iconEl.textContent = '✅';
+        textEl.innerHTML = '<b>' + name + '</b>さんとして登録します<br><span style="font-size:11px;color:#888;">決済後、自動的に会員フラグがONになります</span>';
+    } else {
+        statusEl.classList.add('warning');
+        statusEl.classList.remove('ok');
+        iconEl.textContent = '⚠️';
+        textEl.textContent = name;
+    }
+}
+
+// 起動時に初期化
+initLiff();
+
+// ============================================================
+// ★ v2: 決済ボタンクリック処理（client_reference_id付与）
+// ============================================================
+function goStripe(plan) {
+    const cycle = currentCycle[plan];
+    let url = LINKS[plan][cycle];
+    
+    // ★ LINE userIdをclient_reference_idとして付与
+    if (liffReady && liffUserId) {
+        url += (url.indexOf('?') === -1 ? '?' : '&') + 'client_reference_id=' + encodeURIComponent(liffUserId);
+        console.log('[Stripe] client_reference_id 付与:', liffUserId);
+    } else {
+        // LIFF未取得時の警告
+        if (!confirm('LINE情報を取得できていません。\n決済後に手動で会員紐付けが必要になります。\n\nこのまま進みますか？')) {
+            return;
+        }
+    }
+    
+    window.open(url, '_blank');
+}
+
 function switchCycle(plan, cycle) {
-    // タブ切り替え
+    currentCycle[plan] = cycle;
     document.getElementById(plan + '-m-btn').classList.toggle('active', cycle === 'monthly');
     document.getElementById(plan + '-y-btn').classList.toggle('active', cycle === 'yearly');
-    // 金額更新
     const p = PRICES[plan];
     document.getElementById(plan + '-price').textContent = p[cycle];
     document.getElementById(plan + '-unit').textContent  = p[cycle + 'Unit'];
     document.getElementById(plan + '-note').textContent  = cycle === 'yearly' ? p.yearlyNote : '';
-    // ボタンリンク更新
-    document.getElementById(plan + '-btn').href = LINKS[plan][cycle];
 }
 </script>
 

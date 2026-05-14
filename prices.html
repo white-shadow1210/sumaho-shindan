@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>料金メニュー | スマホ相談士</title>
-    <!-- ★ v2: LIFF SDK追加 -->
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
         body { 
@@ -62,9 +61,9 @@
             margin-bottom: 14px;
         }
 
-        /* ★ v2: LINE連携ステータス表示 */
+        /* ★ v3: LINE連携ステータス表示（OKの時のみ表示。警告は出さない） */
         .line-status {
-            background: white;
+            background: #f0faf0;
             border: 2px solid #06C755;
             border-radius: 8px;
             padding: 10px 14px;
@@ -72,13 +71,9 @@
             font-size: 13px;
             text-align: center;
             color: #1a2a40;
+            display: none;  /* ★ デフォルト非表示。LIFF取得成功時のみ表示 */
         }
-        .line-status.ok { background: #f0faf0; }
-        .line-status.warning { 
-            background: #fff8e1; 
-            border-color: #ffa726; 
-            color: #e65100;
-        }
+        .line-status.show { display: block; }
         .line-status-icon { font-size: 16px; margin-right: 4px; }
 
         .sub-plan-card {
@@ -138,11 +133,6 @@
             font-family: inherit;
         }
         .btn-stripe:active { opacity: 0.85; transform: scale(0.98); }
-        .btn-stripe:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            box-shadow: none;
-        }
         .stripe-note {
             text-align: center; font-size: 11px; color: #999;
             padding: 0 16px 14px; line-height: 1.5;
@@ -207,10 +197,10 @@
         <div class="sub-title">継続サポートプラン</div>
         <div class="sub-recommend">💳 クレジットカードで今すぐ登録できます</div>
 
-        <!-- ★ v2: LINE連携ステータス -->
+        <!-- ★ v3: LINE連携ステータス（OK時のみ表示） -->
         <div class="line-status" id="line-status">
-            <span class="line-status-icon">⏳</span>
-            <span id="line-status-text">LINEアカウントを確認中...</span>
+            <span class="line-status-icon">✅</span>
+            <span id="line-status-text">LINE連携済み</span>
         </div>
 
         <!-- 個人プラン -->
@@ -287,7 +277,7 @@
 
 <script>
 // ============================================================
-// ★ v2: LIFF設定
+// ★ v3: LIFF設定（警告ロジック修正版）
 // ============================================================
 const LIFF_ID = "2009944467-lN8yixTk";
 let liffUserId = '';
@@ -311,68 +301,60 @@ const PRICES = {
 };
 
 // ============================================================
-// ★ v2: LIFF初期化
+// ★ v3: LIFF初期化（成功時のみ通知を出す。失敗は静かに）
 // ============================================================
 async function initLiff() {
     try {
         await liff.init({ liffId: LIFF_ID });
+        
+        // LINE内ブラウザでログイン済みの場合
         if (liff.isLoggedIn()) {
             const profile = await liff.getProfile();
             liffUserId = profile.userId;
             liffDisplayName = profile.displayName;
             liffReady = true;
-            updateLineStatus(true, profile.displayName);
+            showLineStatusOK(profile.displayName);
             console.log('[LIFF prices] 初期化完了:', liffDisplayName);
-        } else {
-            if (liff.isInClient()) {
-                liff.login();
-            } else {
-                updateLineStatus(false, 'LINE外ブラウザでお開きください');
-            }
+            return;
         }
+        
+        // LINE内ブラウザだがログイン未済 → 自動ログイン
+        if (liff.isInClient()) {
+            liff.login();
+            return;
+        }
+        
+        // 外部ブラウザでログイン未済 → ログインを促す（が、強制はしない）
+        console.log('[LIFF prices] 外部ブラウザ、未ログイン状態');
+        
     } catch(e) {
         console.warn('[LIFF prices] 初期化エラー:', e);
-        updateLineStatus(false, 'LINE情報を取得できませんでした');
     }
 }
 
-function updateLineStatus(ok, name) {
+function showLineStatusOK(name) {
     const statusEl = document.getElementById('line-status');
-    const iconEl = statusEl.querySelector('.line-status-icon');
     const textEl = document.getElementById('line-status-text');
-    if (ok) {
-        statusEl.classList.add('ok');
-        statusEl.classList.remove('warning');
-        iconEl.textContent = '✅';
-        textEl.innerHTML = '<b>' + name + '</b>さんとして登録します<br><span style="font-size:11px;color:#888;">決済後、自動的に会員フラグがONになります</span>';
-    } else {
-        statusEl.classList.add('warning');
-        statusEl.classList.remove('ok');
-        iconEl.textContent = '⚠️';
-        textEl.textContent = name;
-    }
+    textEl.innerHTML = '<b>' + name + '</b>さんとして登録します<br><span style="font-size:11px;color:#888;">決済時に自動で会員紐付けされます</span>';
+    statusEl.classList.add('show');
 }
 
 // 起動時に初期化
 initLiff();
 
 // ============================================================
-// ★ v2: 決済ボタンクリック処理（client_reference_id付与）
+// ★ v3: 決済ボタンクリック処理
 // ============================================================
 function goStripe(plan) {
     const cycle = currentCycle[plan];
     let url = LINKS[plan][cycle];
     
-    // ★ LINE userIdをclient_reference_idとして付与
+    // LINE userIdが取得できていればclient_reference_idを付与
     if (liffReady && liffUserId) {
         url += (url.indexOf('?') === -1 ? '?' : '&') + 'client_reference_id=' + encodeURIComponent(liffUserId);
         console.log('[Stripe] client_reference_id 付与:', liffUserId);
-    } else {
-        // LIFF未取得時の警告
-        if (!confirm('LINE情報を取得できていません。\n決済後に手動で会員紐付けが必要になります。\n\nこのまま進みますか？')) {
-            return;
-        }
     }
+    // LINE未取得の場合も警告を出さずに進める（メール通知で対応可能なため）
     
     window.open(url, '_blank');
 }

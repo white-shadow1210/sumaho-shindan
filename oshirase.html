@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -7,6 +6,7 @@
 <title>街のお知らせ | 吉田町まちなかLINE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <style>
 :root {
   --primary:   #249496;
@@ -19,88 +19,143 @@
   --muted:     #8a8a8a;
   --border:    rgba(0,0,0,0.08);
   --r:         16px;
-
-/* カテゴリ別カラー */
-–col-event:   #9B59B6;
-–col-news:    #249496;
-–col-shop:    #e8850a;
-–col-welfare: #27AE60;
-–col-alert:   #E74C3C;
+  --col-event:   #9B59B6;
+  --col-news:    #249496;
+  --col-shop:    #e8850a;
+  --col-welfare: #27AE60;
+  --col-alert:   #E74C3C;
 }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'Noto Sans JP', sans-serif; background: var(--beige); color: var(--text); height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
 
-- { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  body { font-family: ‘Noto Sans JP’, sans-serif; background: var(–beige); color: var(–text); height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+.app-header { background: var(--white); border-bottom: 1px solid var(--border); padding: 0 16px; height: 56px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; position: relative; z-index: 100; }
+.app-logo { font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 1.05rem; color: var(--primary); letter-spacing: -0.03em; }
+.app-logo span { color: var(--navy); }
+.header-subtitle { font-size: 0.58rem; color: var(--muted); position: absolute; left: 50%; transform: translateX(-50%); white-space: nowrap; }
+.header-refresh { background: none; border: none; color: var(--muted); font-size: 1.1rem; cursor: pointer; padding: 8px; }
 
-/* ヘッダー */
-.app-header { background: var(–white); border-bottom: 1px solid var(–border); padding: 0 16px; height: 56px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; position: relative; z-index: 100; }
-.app-logo { font-family: ‘DM Sans’, sans-serif; font-weight: 700; font-size: 1.05rem; color: var(–primary); letter-spacing: -0.03em; }
-.app-logo span { color: var(–navy); }
-.header-subtitle { font-size: 0.58rem; color: var(–muted); position: absolute; left: 50%; transform: translateX(-50%); white-space: nowrap; }
-.header-refresh { background: none; border: none; color: var(–muted); font-size: 1.1rem; cursor: pointer; padding: 8px; }
-
-/* カテゴリフィルター */
-.cat-filter { display: flex; gap: 7px; padding: 10px 14px; overflow-x: auto; background: var(–white); border-bottom: 1px solid var(–border); flex-shrink: 0; scrollbar-width: none; }
+.cat-filter { display: flex; gap: 7px; padding: 10px 14px; overflow-x: auto; background: var(--white); border-bottom: 1px solid var(--border); flex-shrink: 0; scrollbar-width: none; }
 .cat-filter::-webkit-scrollbar { display: none; }
-.cat-pill { flex-shrink: 0; display: flex; align-items: center; gap: 4px; padding: 5px 12px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; cursor: pointer; border: 1.5px solid var(–border); background: var(–beige); color: var(–muted); transition: 0.18s; white-space: nowrap; }
+.cat-pill { flex-shrink: 0; display: flex; align-items: center; gap: 4px; padding: 5px 12px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; cursor: pointer; border: 1.5px solid var(--border); background: var(--beige); color: var(--muted); transition: 0.18s; white-space: nowrap; }
 .cat-pill.active { color: white; border-color: transparent; }
-.cat-pill[data-cat=“all”].active      { background: var(–navy); }
-.cat-pill[data-cat=“event”].active    { background: var(–col-event); }
-.cat-pill[data-cat=“news”].active     { background: var(–col-news); }
-.cat-pill[data-cat=“shop”].active     { background: var(–col-shop); }
-.cat-pill[data-cat=“welfare”].active  { background: var(–col-welfare); }
-.cat-pill[data-cat=“alert”].active    { background: var(–col-alert); }
+.cat-pill[data-cat="all"].active      { background: var(--navy); }
+.cat-pill[data-cat="event"].active    { background: var(--col-event); }
+.cat-pill[data-cat="news"].active     { background: var(--col-news); }
+.cat-pill[data-cat="shop"].active     { background: var(--col-shop); }
+.cat-pill[data-cat="welfare"].active  { background: var(--col-welfare); }
+.cat-pill[data-cat="alert"].active    { background: var(--col-alert); }
 
-/* メインスクロール */
 .main-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 12px 14px 30px; }
 
-/* ローディング */
-.loading-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; gap: 12px; color: var(–muted); font-size: 0.82rem; }
-.spinner { width: 32px; height: 32px; border: 3px solid var(–beige-d); border-top-color: var(–primary); border-radius: 50%; animation: spin 0.7s linear infinite; }
+.loading-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; gap: 12px; color: var(--muted); font-size: 0.82rem; }
+.spinner { width: 32px; height: 32px; border: 3px solid var(--beige-d); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* お知らせカード */
 .news-card {
-background: var(–white);
-border-radius: var(–r);
-padding: 14px 16px;
-margin-bottom: 10px;
-box-shadow: 0 1px 8px rgba(0,0,0,0.06);
-cursor: pointer;
-transition: transform 0.15s, box-shadow 0.15s;
-display: flex;
-gap: 12px;
-align-items: flex-start;
-text-decoration: none;
-color: inherit;
+  background: var(--white);
+  border-radius: var(--r);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+  transition: transform 0.15s, box-shadow 0.15s;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
 }
-.news-card:active { transform: scale(0.98); box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
 
-/* カテゴリ帯 */
 .news-cat-bar {
-width: 4px;
-border-radius: 4px;
-flex-shrink: 0;
-align-self: stretch;
-min-height: 50px;
+  width: 4px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  align-self: stretch;
+  min-height: 50px;
 }
 
 .news-body { flex: 1; min-width: 0; }
+.news-link-area { 
+  display: block; 
+  text-decoration: none; 
+  color: inherit; 
+  cursor: pointer; 
+}
+.news-link-area:active { opacity: 0.85; }
+
 .news-source-row { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
-.news-source-icon { width: 18px; height: 18px; border-radius: 4px; object-fit: cover; flex-shrink: 0; background: var(–beige-d); }
-.news-source-name { font-size: 0.65rem; color: var(–muted); font-weight: 700; }
+.news-source-icon { width: 18px; height: 18px; border-radius: 4px; object-fit: cover; flex-shrink: 0; background: var(--beige-d); }
+.news-source-name { font-size: 0.65rem; color: var(--muted); font-weight: 700; }
 .news-cat-badge { font-size: 0.6rem; font-weight: 700; color: white; padding: 1px 7px; border-radius: 10px; }
 .news-title { font-size: 0.9rem; font-weight: 700; line-height: 1.4; margin-bottom: 5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.news-desc  { font-size: 0.72rem; color: var(–muted); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 6px; }
-.news-date  { font-size: 0.65rem; color: var(–muted); }
+.news-desc  { font-size: 0.72rem; color: var(--muted); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 6px; }
+.news-date  { font-size: 0.65rem; color: var(--muted); margin-bottom: 10px; }
 
-/* 更新日時バー */
-.last-updated { text-align: center; font-size: 0.65rem; color: var(–muted); padding: 8px 0; }
+/* ★ v2: リアクションボタン */
+.reaction-row {
+  display: flex;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.reaction-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 8px 6px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border);
+  background: var(--beige);
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+  transition: 0.18s;
+  user-select: none;
+}
+.reaction-btn:active { transform: scale(0.95); }
+.reaction-btn .reaction-icon { font-size: 0.9rem; }
+.reaction-btn .reaction-count { 
+  font-size: 0.7rem; 
+  color: var(--muted); 
+  font-weight: 700; 
+  background: var(--beige-d); 
+  padding: 1px 6px; 
+  border-radius: 8px; 
+  min-width: 18px; 
+  text-align: center; 
+}
+.reaction-btn.active.interest {
+  background: #fff0f0;
+  color: #e74c3c;
+  border-color: #f5c0c0;
+}
+.reaction-btn.active.interest .reaction-count {
+  background: #fad7d7;
+  color: #e74c3c;
+}
+.reaction-btn.active.helpful {
+  background: #e8f7ee;
+  color: #27AE60;
+  border-color: #b8e0c5;
+}
+.reaction-btn.active.helpful .reaction-count {
+  background: #d2ecdb;
+  color: #27AE60;
+}
+.reaction-btn.pulsing {
+  animation: reactionPulse 0.4s ease;
+}
+@keyframes reactionPulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.12); }
+}
 
-/* 空状態 */
-.empty-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; gap: 10px; color: var(–muted); text-align: center; }
+.last-updated { text-align: center; font-size: 0.65rem; color: var(--muted); padding: 8px 0; }
+
+.empty-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; gap: 10px; color: var(--muted); text-align: center; }
 .empty-icon { font-size: 2.5rem; }
 </style>
-
 </head>
 <body>
 
@@ -125,6 +180,7 @@ min-height: 50px;
 
 <script>
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbyX_iaLnrh8BCCCjsqWT5m3KRmUDzHPaxqtMhXJcOc9Ws9t252VmVPxWEOvMP5BskU/exec';
+const LIFF_ID = '2009944467-lN8yixTk';
 
 const CAT_COLOR = {
   event:   '#9B59B6',
@@ -143,8 +199,43 @@ const CAT_LABEL = {
   other:   '📋 その他'
 };
 
-let allNews = [], currentCat = 'all';
+// カテゴリ別の主リアクション
+// イベント・お店 → 「興味あり」を強調
+// 行政・福祉・防災 → 「参考になった」を強調
+const PRIMARY_REACTION = {
+  event:   'interest',  // 興味あり
+  shop:    'interest',
+  news:    'helpful',   // 参考になった
+  welfare: 'helpful',
+  alert:   'helpful',
+  other:   'interest'
+};
 
+let allNews = [], currentCat = 'all';
+let reactedItems = JSON.parse(localStorage.getItem('oshirase_reactions') || '{}');
+let liffUserId = '', liffReady = false;
+
+// ============================================================
+// LIFF初期化
+// ============================================================
+async function initLiff() {
+  try {
+    await liff.init({ liffId: LIFF_ID });
+    if (liff.isLoggedIn()) {
+      const profile = await liff.getProfile();
+      liffUserId = profile.userId;
+      liffReady = true;
+      console.log('[LIFF oshirase] 初期化完了:', profile.displayName);
+    }
+  } catch(e) {
+    console.warn('[LIFF oshirase] 初期化エラー:', e);
+  }
+}
+initLiff();
+
+// ============================================================
+// ニュース読み込み
+// ============================================================
 async function loadNews(forceRefresh = false) {
   const wrap = document.getElementById('main-scroll');
   wrap.innerHTML = '<div class="loading-wrap"><div class="spinner"></div><div>お知らせを読み込み中...</div></div>';
@@ -175,6 +266,10 @@ function filterNews(cat) {
   renderNews();
 }
 
+function getReactionKey(item) {
+  return (item.pubDate || '') + '|' + (item.title || '');
+}
+
 function renderNews() {
   const wrap    = document.getElementById('main-scroll');
   const filtered = currentCat === 'all' ? allNews : allNews.filter(n => n.category === currentCat);
@@ -188,7 +283,7 @@ function renderNews() {
     return;
   }
 
-  const cards = filtered.map(item => {
+  const cards = filtered.map((item, idx) => {
     const color = CAT_COLOR[item.category] || CAT_COLOR.other;
     const label = CAT_LABEL[item.category] || CAT_LABEL.other;
     const dateStr = item.pubDate ? new Date(item.pubDate).toLocaleDateString('ja-JP', { month:'numeric', day:'numeric' }) : '';
@@ -196,23 +291,99 @@ function renderNews() {
       ? `<img class="news-source-icon" src="${item.sourceIcon}" alt="" onerror="this.style.display='none'">`
       : `<div class="news-source-icon" style="background:${color};border-radius:4px;"></div>`;
 
-    return `<a class="news-card" href="${item.link || '#'}" target="_blank" rel="noopener">
+    const key = getReactionKey(item);
+    const myReactions = reactedItems[key] || {};
+    const interestCount = item.interestCount || 0;
+    const helpfulCount  = item.helpfulCount || 0;
+    
+    return `<div class="news-card">
       <div class="news-cat-bar" style="background:${color};"></div>
       <div class="news-body">
-        <div class="news-source-row">
-          ${iconHtml}
-          <span class="news-source-name">${item.sourceName || ''}</span>
-          <span class="news-cat-badge" style="background:${color};">${label}</span>
+        <a class="news-link-area" href="${item.link || '#'}" target="_blank" rel="noopener">
+          <div class="news-source-row">
+            ${iconHtml}
+            <span class="news-source-name">${item.sourceName || ''}</span>
+            <span class="news-cat-badge" style="background:${color};">${label}</span>
+          </div>
+          <div class="news-title">${item.title || ''}</div>
+          ${item.description ? `<div class="news-desc">${item.description}</div>` : ''}
+          <div class="news-date">${dateStr}</div>
+        </a>
+        <div class="reaction-row">
+          <button class="reaction-btn interest ${myReactions.interest ? 'active' : ''}" 
+                  id="react-interest-${idx}" 
+                  onclick="toggleReaction(${idx}, 'interest')">
+            <span class="reaction-icon">❤️</span>
+            <span>興味あり</span>
+            <span class="reaction-count" id="count-interest-${idx}">${interestCount}</span>
+          </button>
+          <button class="reaction-btn helpful ${myReactions.helpful ? 'active' : ''}" 
+                  id="react-helpful-${idx}" 
+                  onclick="toggleReaction(${idx}, 'helpful')">
+            <span class="reaction-icon">👀</span>
+            <span>参考になった</span>
+            <span class="reaction-count" id="count-helpful-${idx}">${helpfulCount}</span>
+          </button>
         </div>
-        <div class="news-title">${item.title || ''}</div>
-        ${item.description ? `<div class="news-desc">${item.description}</div>` : ''}
-        <div class="news-date">${dateStr}</div>
       </div>
-    </a>`;
+    </div>`;
   }).join('');
 
   const updatedAt = allNews.length > 0 ? '最終更新：' + new Date().toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'}) : '';
   wrap.innerHTML = `${cards}<div class="last-updated">${updatedAt}</div>`;
+}
+
+// ============================================================
+// ★ リアクション処理
+// ============================================================
+async function toggleReaction(idx, reactionType) {
+  const filtered = currentCat === 'all' ? allNews : allNews.filter(n => n.category === currentCat);
+  const item = filtered[idx];
+  if (!item) return;
+
+  const key = getReactionKey(item);
+  if (!reactedItems[key]) reactedItems[key] = {};
+  
+  const isActive = !!reactedItems[key][reactionType];
+  const btn = document.getElementById(`react-${reactionType}-${idx}`);
+  const countEl = document.getElementById(`count-${reactionType}-${idx}`);
+  
+  // アニメーション
+  btn.classList.add('pulsing');
+  setTimeout(() => btn.classList.remove('pulsing'), 400);
+
+  // ローカル状態の更新
+  let newCount = parseInt(countEl.textContent || 0);
+  if (isActive) {
+    delete reactedItems[key][reactionType];
+    btn.classList.remove('active');
+    newCount = Math.max(0, newCount - 1);
+  } else {
+    reactedItems[key][reactionType] = true;
+    btn.classList.add('active');
+    newCount = newCount + 1;
+  }
+  countEl.textContent = newCount;
+  localStorage.setItem('oshirase_reactions', JSON.stringify(reactedItems));
+
+  // GAS送信
+  try {
+    await fetch(GAS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        formType: 'oshirase_reaction',
+        pubDate: item.pubDate,
+        title: item.title,
+        reactionType: reactionType,
+        userId: liffUserId || '',
+        action: isActive ? 'remove' : 'add'
+      })
+    });
+  } catch(e) {
+    console.warn('リアクション送信エラー:', e);
+  }
 }
 
 // 初回読み込み

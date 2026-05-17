@@ -80,15 +80,48 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--beige); color:
 }
 .news-link-area:active { opacity: 0.85; }
 
-.news-source-row { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
+.news-source-row { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; flex-wrap: wrap; }
 .news-source-icon { width: 18px; height: 18px; border-radius: 4px; object-fit: cover; flex-shrink: 0; background: var(--beige-d); }
 .news-source-name { font-size: 0.65rem; color: var(--muted); font-weight: 700; }
 .news-cat-badge { font-size: 0.6rem; font-weight: 700; color: white; padding: 1px 7px; border-radius: 10px; }
+
+/* ★ v3: 「今度の◯日後」バッジ */
+.news-soon-badge {
+  font-size: 0.6rem;
+  font-weight: 700;
+  background: #fff3e0;
+  color: #e65100;
+  padding: 1px 7px;
+  border-radius: 10px;
+  border: 1px solid #ffcc80;
+}
+.news-soon-badge.urgent {
+  background: #ffebee;
+  color: #c62828;
+  border-color: #ef9a9a;
+}
+
 .news-title { font-size: 0.9rem; font-weight: 700; line-height: 1.4; margin-bottom: 5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .news-desc  { font-size: 0.72rem; color: var(--muted); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 6px; }
-.news-date  { font-size: 0.65rem; color: var(--muted); margin-bottom: 10px; }
 
-/* ★ v2: リアクションボタン */
+/* ★ v3: 日付表示エリア */
+.news-date-area {
+  font-size: 0.7rem;
+  color: var(--text);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.news-date-main {
+  font-weight: 700;
+}
+.news-date-sub {
+  font-size: 0.62rem;
+  color: var(--muted);
+}
+
 .reaction-row {
   display: flex;
   gap: 8px;
@@ -199,25 +232,15 @@ const CAT_LABEL = {
   other:   '📋 その他'
 };
 
-// カテゴリ別の主リアクション
-// イベント・お店 → 「興味あり」を強調
-// 行政・福祉・防災 → 「参考になった」を強調
-const PRIMARY_REACTION = {
-  event:   'interest',  // 興味あり
-  shop:    'interest',
-  news:    'helpful',   // 参考になった
-  welfare: 'helpful',
-  alert:   'helpful',
-  other:   'interest'
-};
+// ★ v3: 投稿日を表示するカテゴリ（行政・福祉・防災は時系列重視）
+const SHOW_PUB_DATE = ['news', 'welfare', 'alert'];
+// 開催日を表示するカテゴリ（イベント・お店は開催日重視）
+const SHOW_EVENT_DATE = ['event', 'shop'];
 
 let allNews = [], currentCat = 'all';
 let reactedItems = JSON.parse(localStorage.getItem('oshirase_reactions') || '{}');
 let liffUserId = '', liffReady = false;
 
-// ============================================================
-// LIFF初期化
-// ============================================================
 async function initLiff() {
   try {
     await liff.init({ liffId: LIFF_ID });
@@ -233,9 +256,6 @@ async function initLiff() {
 }
 initLiff();
 
-// ============================================================
-// ニュース読み込み
-// ============================================================
 async function loadNews(forceRefresh = false) {
   const wrap = document.getElementById('main-scroll');
   wrap.innerHTML = '<div class="loading-wrap"><div class="spinner"></div><div>お知らせを読み込み中...</div></div>';
@@ -270,9 +290,120 @@ function getReactionKey(item) {
   return (item.pubDate || '') + '|' + (item.title || '');
 }
 
+// ============================================================
+// ★ v3: タイトルから開催日を抽出する関数
+// 例：「5月17日(日)」「8月23日（日）開催予定」→ Dateオブジェクト
+// ============================================================
+function extractEventDate(item) {
+  const text = (item.title || '') + ' ' + (item.description || '');
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  
+  // パターン1: 「M月D日」「M月D日(曜日)」「M月D日（曜日）」
+  const match = text.match(/(\d{1,2})月(\d{1,2})日/);
+  if (match) {
+    const month = parseInt(match[1]);
+    const day = parseInt(match[2]);
+    let year = currentYear;
+    
+    // 過去の日付なら来年と判定
+    const candidate = new Date(year, month - 1, day);
+    if (candidate < now && (now - candidate) > (1000 * 60 * 60 * 24 * 30)) {
+      // 30日以上前なら来年扱い
+      year = currentYear + 1;
+    }
+    return new Date(year, month - 1, day);
+  }
+  
+  // パターン2: 「YYYY-MM-DD」
+  const match2 = text.match(/(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);
+  if (match2) {
+    return new Date(parseInt(match2[1]), parseInt(match2[2]) - 1, parseInt(match2[3]));
+  }
+  
+  return null;
+}
+
+// ============================================================
+// ★ v3: 開催日までの日数バッジ
+// ============================================================
+function getDaysUntilBadge(eventDate) {
+  if (!eventDate) return '';
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const target = new Date(eventDate);
+  target.setHours(0, 0, 0, 0);
+  const diffDays = Math.floor((target - now) / (1000 * 60 * 60 * 24));
+  
+  if (diffDays < 0) return ''; // 過去
+  if (diffDays === 0) return '<span class="news-soon-badge urgent">🔥 本日開催</span>';
+  if (diffDays === 1) return '<span class="news-soon-badge urgent">🔥 明日開催</span>';
+  if (diffDays <= 3) return `<span class="news-soon-badge urgent">⏰ あと${diffDays}日</span>`;
+  if (diffDays <= 7) return `<span class="news-soon-badge">📅 あと${diffDays}日</span>`;
+  if (diffDays <= 30) return `<span class="news-soon-badge">📅 今月開催</span>`;
+  return '';
+}
+
+// ============================================================
+// ★ v3: ソート関数
+// イベント・お店：開催日が近い順
+// ニュース・福祉・防災：投稿日新しい順
+// ============================================================
+function sortNews(news) {
+  const now = new Date();
+  
+  // 各アイテムに開催日情報を付与
+  const enriched = news.map(item => {
+    const eventDate = SHOW_EVENT_DATE.includes(item.category) ? extractEventDate(item) : null;
+    return { ...item, _eventDate: eventDate };
+  });
+  
+  // 過ぎたイベントは除外
+  const filtered = enriched.filter(item => {
+    if (SHOW_EVENT_DATE.includes(item.category) && item._eventDate) {
+      const target = new Date(item._eventDate);
+      target.setHours(23, 59, 59, 999);
+      if (target < now) return false; // 開催日終了済み
+    }
+    return true;
+  });
+  
+  // カテゴリ別ソートロジック
+  return filtered.sort((a, b) => {
+    const aIsEvent = SHOW_EVENT_DATE.includes(a.category);
+    const bIsEvent = SHOW_EVENT_DATE.includes(b.category);
+    
+    // 両方イベント系 → 開催日近い順
+    if (aIsEvent && bIsEvent) {
+      const aDate = a._eventDate || new Date(8640000000000000);
+      const bDate = b._eventDate || new Date(8640000000000000);
+      return aDate - bDate;
+    }
+    
+    // 両方ニュース系 → 投稿日新しい順
+    if (!aIsEvent && !bIsEvent) {
+      return new Date(b.pubDate || 0) - new Date(a.pubDate || 0);
+    }
+    
+    // 混在の場合：1週間以内のイベントは最優先で上に
+    if (aIsEvent && a._eventDate) {
+      const aDiff = (a._eventDate - now) / (1000 * 60 * 60 * 24);
+      if (aDiff >= 0 && aDiff <= 7) return -1;
+    }
+    if (bIsEvent && b._eventDate) {
+      const bDiff = (b._eventDate - now) / (1000 * 60 * 60 * 24);
+      if (bDiff >= 0 && bDiff <= 7) return 1;
+    }
+    
+    // その他は投稿日新しい順
+    return new Date(b.pubDate || 0) - new Date(a.pubDate || 0);
+  });
+}
+
 function renderNews() {
   const wrap    = document.getElementById('main-scroll');
-  const filtered = currentCat === 'all' ? allNews : allNews.filter(n => n.category === currentCat);
+  const baseList = currentCat === 'all' ? allNews : allNews.filter(n => n.category === currentCat);
+  const filtered = sortNews(baseList);
 
   if (filtered.length === 0) {
     wrap.innerHTML = `
@@ -286,10 +417,24 @@ function renderNews() {
   const cards = filtered.map((item, idx) => {
     const color = CAT_COLOR[item.category] || CAT_COLOR.other;
     const label = CAT_LABEL[item.category] || CAT_LABEL.other;
-    const dateStr = item.pubDate ? new Date(item.pubDate).toLocaleDateString('ja-JP', { month:'numeric', day:'numeric' }) : '';
     const iconHtml = item.sourceIcon
       ? `<img class="news-source-icon" src="${item.sourceIcon}" alt="" onerror="this.style.display='none'">`
       : `<div class="news-source-icon" style="background:${color};border-radius:4px;"></div>`;
+
+    // ★ v3: 日付表示ロジック
+    let dateHtml = '';
+    if (SHOW_EVENT_DATE.includes(item.category)) {
+      // イベント・お店：開催日のみ表示 + 残り日数バッジ
+      const soonBadge = getDaysUntilBadge(item._eventDate);
+      dateHtml = soonBadge ? `<div class="news-date-area">${soonBadge}</div>` : '';
+    } else {
+      // ニュース・福祉・防災：投稿日のみ表示
+      if (item.pubDate) {
+        const d = new Date(item.pubDate);
+        const dateStr = d.toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' });
+        dateHtml = `<div class="news-date-area"><span class="news-date-sub">📅 ${dateStr} 配信</span></div>`;
+      }
+    }
 
     const key = getReactionKey(item);
     const myReactions = reactedItems[key] || {};
@@ -307,7 +452,7 @@ function renderNews() {
           </div>
           <div class="news-title">${item.title || ''}</div>
           ${item.description ? `<div class="news-desc">${item.description}</div>` : ''}
-          <div class="news-date">${dateStr}</div>
+          ${dateHtml}
         </a>
         <div class="reaction-row">
           <button class="reaction-btn interest ${myReactions.interest ? 'active' : ''}" 
@@ -334,10 +479,11 @@ function renderNews() {
 }
 
 // ============================================================
-// ★ リアクション処理
+// リアクション処理（変更なし）
 // ============================================================
 async function toggleReaction(idx, reactionType) {
-  const filtered = currentCat === 'all' ? allNews : allNews.filter(n => n.category === currentCat);
+  const baseList = currentCat === 'all' ? allNews : allNews.filter(n => n.category === currentCat);
+  const filtered = sortNews(baseList);
   const item = filtered[idx];
   if (!item) return;
 
@@ -348,11 +494,9 @@ async function toggleReaction(idx, reactionType) {
   const btn = document.getElementById(`react-${reactionType}-${idx}`);
   const countEl = document.getElementById(`count-${reactionType}-${idx}`);
   
-  // アニメーション
   btn.classList.add('pulsing');
   setTimeout(() => btn.classList.remove('pulsing'), 400);
 
-  // ローカル状態の更新
   let newCount = parseInt(countEl.textContent || 0);
   if (isActive) {
     delete reactedItems[key][reactionType];
@@ -366,7 +510,6 @@ async function toggleReaction(idx, reactionType) {
   countEl.textContent = newCount;
   localStorage.setItem('oshirase_reactions', JSON.stringify(reactedItems));
 
-  // GAS送信
   try {
     await fetch(GAS_URL, {
       method: 'POST',
@@ -386,7 +529,6 @@ async function toggleReaction(idx, reactionType) {
   }
 }
 
-// 初回読み込み
 loadNews();
 </script>
 

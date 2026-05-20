@@ -61,7 +61,6 @@
             margin-bottom: 14px;
         }
 
-        /* ★ v3: LINE連携ステータス表示（OKの時のみ表示。警告は出さない） */
         .line-status {
             background: #f0faf0;
             border: 2px solid #06C755;
@@ -71,7 +70,7 @@
             font-size: 13px;
             text-align: center;
             color: #1a2a40;
-            display: none;  /* ★ デフォルト非表示。LIFF取得成功時のみ表示 */
+            display: none;
         }
         .line-status.show { display: block; }
         .line-status-icon { font-size: 16px; margin-right: 4px; }
@@ -197,13 +196,11 @@
         <div class="sub-title">継続サポートプラン</div>
         <div class="sub-recommend">💳 クレジットカードで今すぐ登録できます</div>
 
-        <!-- ★ v3: LINE連携ステータス（OK時のみ表示） -->
         <div class="line-status" id="line-status">
             <span class="line-status-icon">✅</span>
             <span id="line-status-text">LINE連携済み</span>
         </div>
 
-        <!-- 個人プラン -->
         <div class="sub-plan-card recommended">
             <div class="sub-plan-header">
                 <span class="sub-plan-name">👤 個人プラン</span>
@@ -226,7 +223,6 @@
             <div class="stripe-note">🔒 Stripeによる安全な決済<br>カード情報は当サービスに届きません</div>
         </div>
 
-        <!-- 家族プラン -->
         <div class="sub-plan-card">
             <div class="sub-plan-header">
                 <span class="sub-plan-name">👨‍👩‍👧‍👦 ご家族プラン<br><small style="font-weight:normal;color:#666;font-size:13px;">(同居家族4名様まで)</small></span>
@@ -275,9 +271,51 @@
     </div>
 </div>
 
+<!-- ============================================ -->
+<!-- ★ v6.9.1: 流入トラッキング受信スクリプト    -->
+<!-- ============================================ -->
+<script>
+(function() {
+  function getSourceFromURL() {
+    try {
+      var url = new URL(window.location.href);
+      var src = url.searchParams.get('src');
+      if (src) {
+        return src.replace(/[^a-zA-Z0-9_-]/g, '').substring(0, 50);
+      }
+    } catch(e) {}
+    return null;
+  }
+  function getSourceFromCookie() {
+    try {
+      var match = document.cookie.match(/(?:^|;\s*)sumaho_src=([^;]+)/);
+      if (match && match[1]) {
+        return decodeURIComponent(match[1]).replace(/[^a-zA-Z0-9_-]/g, '').substring(0, 50);
+      }
+    } catch(e) {}
+    return null;
+  }
+  var sourceFromURL    = getSourceFromURL();
+  var sourceFromCookie = getSourceFromCookie();
+  var finalSrc = sourceFromURL || sourceFromCookie;
+
+  if (finalSrc) {
+    try {
+      sessionStorage.setItem('sumaho_src', finalSrc);
+      console.log('[流入トラッキング prices] source=' + finalSrc);
+    } catch(e) {}
+  }
+  window.getSumahoSource = function() {
+    try {
+      return sessionStorage.getItem('sumaho_src') || '';
+    } catch(e) { return ''; }
+  };
+})();
+</script>
+
 <script>
 // ============================================================
-// ★ v3: LIFF設定（警告ロジック修正版）
+// LIFF設定
 // ============================================================
 const LIFF_ID = "2009944467-lN8yixTk";
 let liffUserId = '';
@@ -300,14 +338,9 @@ const PRICES = {
     kazoku: { monthly: '¥980', yearly: '¥10,800', monthlyUnit: '/月（税込）', yearlyUnit: '/年（税込）', yearlyNote: '通常¥11,760 → 約2ヶ月分お得！' }
 };
 
-// ============================================================
-// ★ v3: LIFF初期化（成功時のみ通知を出す。失敗は静かに）
-// ============================================================
 async function initLiff() {
     try {
         await liff.init({ liffId: LIFF_ID });
-        
-        // LINE内ブラウザでログイン済みの場合
         if (liff.isLoggedIn()) {
             const profile = await liff.getProfile();
             liffUserId = profile.userId;
@@ -317,16 +350,11 @@ async function initLiff() {
             console.log('[LIFF prices] 初期化完了:', liffDisplayName);
             return;
         }
-        
-        // LINE内ブラウザだがログイン未済 → 自動ログイン
         if (liff.isInClient()) {
             liff.login();
             return;
         }
-        
-        // 外部ブラウザでログイン未済 → ログインを促す（が、強制はしない）
         console.log('[LIFF prices] 外部ブラウザ、未ログイン状態');
-        
     } catch(e) {
         console.warn('[LIFF prices] 初期化エラー:', e);
     }
@@ -339,22 +367,25 @@ function showLineStatusOK(name) {
     statusEl.classList.add('show');
 }
 
-// 起動時に初期化
 initLiff();
 
-// ============================================================
-// ★ v3: 決済ボタンクリック処理
-// ============================================================
 function goStripe(plan) {
     const cycle = currentCycle[plan];
     let url = LINKS[plan][cycle];
     
-    // LINE userIdが取得できていればclient_reference_idを付与
+    // LINE userId付与
     if (liffReady && liffUserId) {
         url += (url.indexOf('?') === -1 ? '?' : '&') + 'client_reference_id=' + encodeURIComponent(liffUserId);
         console.log('[Stripe] client_reference_id 付与:', liffUserId);
     }
-    // LINE未取得の場合も警告を出さずに進める（メール通知で対応可能なため）
+    
+    // ★ v6.9.1: 流入経路もStripeのメタデータとして付与（オプション）
+    var sourceVal = (window.getSumahoSource && window.getSumahoSource()) || '';
+    if (sourceVal) {
+        // Stripeのclient_reference_idはuserIdが優先。sourceは別途sessionStorageに残るので
+        // 決済完了後の遷移先（あれば）で取得・GASに別送できる
+        console.log('[流入トラッキング] サブスク申込時のsource=' + sourceVal);
+    }
     
     window.open(url, '_blank');
 }

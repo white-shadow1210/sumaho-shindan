@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -31,22 +30,22 @@ body {
 
 /* ヘッダー */
 .header {
-background: linear-gradient(135deg, #1a2a40 0%, #243a56 100%);
-color: white; padding: 16px 14px 12px;
-position: fixed; top: 0; left: 50%; transform: translateX(-50%);
-width: 100%; max-width: 520px;
-z-index: 100;
-box-shadow: 0 2px 16px rgba(0,0,0,0.2);
+  background: linear-gradient(135deg, #1a2a40 0%, #243a56 100%);
+  color: white; padding: 16px 14px 12px;
+  position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 520px;
+  z-index: 100;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.2);
 }
 .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
 .header h1 { font-size: 0.95rem; font-weight: 700; display: flex; align-items: center; gap: 7px; }
 .header-badge { font-size: 0.58rem; background: #cba052; color: white; padding: 2px 8px; border-radius: 20px; font-weight: bold; }
 .tab-nav { display: flex; gap: 4px; }
 .tab-btn {
-flex: 1; padding: 6px 2px; border: none; border-radius: 6px;
-font-family: inherit; font-size: 0.6rem; font-weight: bold;
-cursor: pointer; background: rgba(255,255,255,0.22); color: rgba(255,255,255,0.95);
-transition: 0.2s; border: 1px solid rgba(255,255,255,0.3);
+  flex: 1; padding: 6px 2px; border: none; border-radius: 6px;
+  font-family: inherit; font-size: 0.6rem; font-weight: bold;
+  cursor: pointer; background: rgba(255,255,255,0.22); color: rgba(255,255,255,0.95);
+  transition: 0.2s; border: 1px solid rgba(255,255,255,0.3);
 }
 .tab-btn.active { background: #249496; color: white; border-color: #249496; box-shadow: 0 2px 8px rgba(36,148,150,0.5); }
 
@@ -54,10 +53,10 @@ transition: 0.2s; border: 1px solid rgba(255,255,255,0.3);
 .section { display: none; padding: 14px 14px 0; }
 .section.active { display: block; }
 .sec-title {
-font-size: 0.78rem; font-weight: bold; color: #1a2a40;
-padding: 7px 12px; background: #f0ece0;
-border-left: 4px solid #249496; border-radius: 0 6px 6px 0;
-margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
+  font-size: 0.78rem; font-weight: bold; color: #1a2a40;
+  padding: 7px 12px; background: #f0ece0;
+  border-left: 4px solid #249496; border-radius: 0 6px 6px 0;
+  margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
 }
 
 /* フォーム */
@@ -65,68 +64,65 @@ margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
 .form-label { display: block; font-size: 0.72rem; font-weight: bold; color: #1a2a40; margin-bottom: 4px; }
 .form-label .req { color: #d32f2f; font-size: 0.62rem; margin-left: 3px; }
 .form-input {
-width: 100%; padding: 9px 11px; border: 1.5px solid #e0ddd6;
-border-radius: 8px; font-family: inherit; font-size: 0.88rem;
-color: #2a2a2a; background: #fff; outline: none;
-transition: border-color 0.2s;
+  width: 100%; padding: 9px 11px; border: 1.5px solid #e0ddd6;
+  border-radius: 8px; font-family: inherit; font-size: 0.88rem;
+  color: #2a2a2a; background: #fff; outline: none;
+  transition: border-color 0.2s;
 }
 .form-input:focus { border-color: #249496; box-shadow: 0 0 0 3px rgba(36,148,150,0.1); }
 textarea.form-input { resize: vertical; min-height: 70px; }
 
-/* ★ 2カラム - 購入時期はみ出し対策 */
 .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .row2 .form-input { min-width: 0; width: 100%; }
 
 /* ラジオ */
 .radio-group { display: flex; gap: 6px; flex-wrap: wrap; }
 .r-btn {
-padding: 6px 13px; border: 1.5px solid #e0ddd6; border-radius: 20px;
-font-size: 0.75rem; font-weight: bold; cursor: pointer;
-background: white; color: #777; transition: 0.18s; user-select: none;
+  padding: 6px 13px; border: 1.5px solid #e0ddd6; border-radius: 20px;
+  font-size: 0.75rem; font-weight: bold; cursor: pointer;
+  background: white; color: #777; transition: 0.18s; user-select: none;
 }
 .r-btn.active {
-background: #249496; color: white; border-color: #249496;
-box-shadow: 0 2px 8px rgba(36,148,150,0.35);
-transform: scale(1.05);
+  background: #249496; color: white; border-color: #249496;
+  box-shadow: 0 2px 8px rgba(36,148,150,0.35);
+  transform: scale(1.05);
 }
 
 /* チェック */
 .check-group { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
 .c-btn {
-padding: 8px 8px; border: 1.5px solid #e0ddd6; border-radius: 7px;
-font-size: 0.72rem; font-weight: bold; cursor: pointer; background: white;
-color: #777; transition: 0.18s; text-align: center; user-select: none;
-position: relative;
+  padding: 8px 8px; border: 1.5px solid #e0ddd6; border-radius: 7px;
+  font-size: 0.72rem; font-weight: bold; cursor: pointer; background: white;
+  color: #777; transition: 0.18s; text-align: center; user-select: none;
+  position: relative;
 }
 .c-btn.active {
-background: #249496; color: white; border-color: #249496;
-box-shadow: 0 2px 8px rgba(36,148,150,0.35);
+  background: #249496; color: white; border-color: #249496;
+  box-shadow: 0 2px 8px rgba(36,148,150,0.35);
 }
-.c-btn.active::before { content: ’✓ ’; font-size: 0.8rem; }
+.c-btn.active::before { content: '✓ '; font-size: 0.8rem; }
 
 /* 料金カード */
 .cost-card {
-border: 1.5px solid #e0ddd6; border-radius: 12px; padding: 14px; margin-bottom: 12px;
-background: #fafaf8;
+  border: 1.5px solid #e0ddd6; border-radius: 12px; padding: 14px; margin-bottom: 12px;
+  background: #fafaf8;
 }
 .cost-card.cur-card { background: #fff8f0; border-color: #ffd08a; }
 .cost-card.prop-card { background: #f0fafa; border-color: #82c4c3; }
 .cost-card-title { font-size: 0.8rem; font-weight: bold; color: #1a2a40; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
 
-/* キャリア・プラン選択エリア（料金タブ内） */
 .plan-area { background: white; border: 1px solid #e0ddd6; border-radius: 8px; padding: 10px; margin-bottom: 10px; }
 .plan-area-label { font-size: 0.68rem; font-weight: bold; color: #777; margin-bottom: 6px; }
 .plan-result-box { background: #f0ece0; border-radius: 6px; padding: 8px 10px; font-size: 0.75rem; color: #1a2a40; margin-top: 6px; min-height: 32px; }
 .plan-result-box strong { color: #249496; font-size: 0.95rem; }
 
-/* 割引チェックエリア */
 .discount-area { background: #f9f9f7; border: 1px solid #e0ddd6; border-radius: 8px; padding: 10px; margin-bottom: 10px; }
 .discount-title { font-size: 0.68rem; font-weight: bold; color: #777; margin-bottom: 7px; }
 .discount-grid { display: flex; flex-direction: column; gap: 5px; }
 .discount-row {
-display: flex; align-items: center; justify-content: space-between;
-padding: 6px 8px; border-radius: 6px; border: 1.5px solid #e0ddd6;
-background: white; cursor: pointer; transition: 0.18s;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 8px; border-radius: 6px; border: 1.5px solid #e0ddd6;
+  background: white; cursor: pointer; transition: 0.18s;
 }
 .discount-row.active { background: #e8f7f7; border-color: #249496; }
 .discount-row-label { font-size: 0.72rem; font-weight: bold; color: #777; }
@@ -134,7 +130,6 @@ background: white; cursor: pointer; transition: 0.18s;
 .discount-row-price { font-size: 0.75rem; font-weight: bold; color: #d32f2f; }
 .discount-row.active .discount-row-price { color: #27ae60; }
 
-/* 合計・節約表示 */
 .cost-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .cost-row label { font-size: 0.72rem; color: #777; flex: 0 0 75px; }
 .cost-row input { flex: 1; padding: 7px 10px; border: 1.5px solid #e0ddd6; border-radius: 6px; font-size: 0.88rem; text-align: right; font-family: inherit; min-width: 0; }
@@ -146,53 +141,47 @@ background: white; cursor: pointer; transition: 0.18s;
 .prop-total-value { color: #249496; }
 
 .saving-display {
-background: #249496; color: white; border-radius: 8px;
-padding: 10px 14px; text-align: center; font-weight: bold; font-size: 0.88rem;
-margin-top: 8px;
+  background: #249496; color: white; border-radius: 8px;
+  padding: 10px 14px; text-align: center; font-weight: bold; font-size: 0.88rem;
+  margin-top: 8px;
 }
 .saving-display small { font-size: 0.68rem; opacity: 0.85; display: block; }
 
-/* バッテリーゲージ */
 .battery-gauge { height: 14px; background: #e0ddd6; border-radius: 7px; overflow: hidden; margin-top: 5px; }
 .battery-fill { height: 100%; border-radius: 7px; transition: width 0.5s, background 0.3s; background: #27ae60; }
 
-/* タイムライン */
 .timeline { position: relative; padding-left: 24px; margin-top: 8px; }
-.timeline::before { content: ‘’; position: absolute; left: 9px; top: 0; bottom: 0; width: 2px; background: #e0ddd6; }
+.timeline::before { content: ''; position: absolute; left: 9px; top: 0; bottom: 0; width: 2px; background: #e0ddd6; }
 .tl-item { position: relative; margin-bottom: 12px; }
 .tl-dot { position: absolute; left: -20px; top: 6px; width: 12px; height: 12px; border-radius: 50%; background: #249496; border: 2px solid white; box-shadow: 0 0 0 2px #249496; }
 .tl-dot.current { background: #d32f2f; box-shadow: 0 0 0 2px #d32f2f; }
 .tl-inputs { display: grid; grid-template-columns: 80px 1fr; gap: 6px; }
 .tl-inputs input { min-width: 0; }
 
-/* 区切り */
 .divider { height: 1px; background: #e0ddd6; margin: 14px 0; }
 
-/* 警告 */
 .warn-box { background: #fff0f0; border: 1px solid #ffcccc; border-radius: 8px; padding: 9px 12px; font-size: 0.7rem; color: #d32f2f; font-weight: bold; margin-bottom: 12px; }
 
-/* 送信バー */
 .submit-bar {
-position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
-width: 100%; max-width: 520px; background: white;
-border-top: 1px solid #e0ddd6; padding: 10px 14px;
-padding-bottom: max(10px, env(safe-area-inset-bottom));
-box-shadow: 0 -4px 20px rgba(0,0,0,0.08); z-index: 200;
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 520px; background: white;
+  border-top: 1px solid #e0ddd6; padding: 10px 14px;
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.08); z-index: 200;
 }
 .submit-btn {
-width: 100%; padding: 14px; border: none; border-radius: 10px;
-font-family: inherit; font-size: 0.9rem; font-weight: bold;
-cursor: pointer; transition: 0.2s; background: #1a2a40; color: white;
-box-shadow: 0 3px 12px rgba(26,42,64,0.28);
+  width: 100%; padding: 14px; border: none; border-radius: 10px;
+  font-family: inherit; font-size: 0.9rem; font-weight: bold;
+  cursor: pointer; transition: 0.2s; background: #1a2a40; color: white;
+  box-shadow: 0 3px 12px rgba(26,42,64,0.28);
 }
 .submit-btn:active { background: #0f1e30; transform: scale(0.98); }
 .submit-btn:disabled { background: #777; box-shadow: none; }
 
-/* 成功オーバーレイ */
 .success-overlay {
-display: none; position: fixed; inset: 0; z-index: 999;
-background: rgba(36,148,150,0.94); flex-direction: column;
-align-items: center; justify-content: center; color: white; text-align: center; padding: 24px;
+  display: none; position: fixed; inset: 0; z-index: 999;
+  background: rgba(36,148,150,0.94); flex-direction: column;
+  align-items: center; justify-content: center; color: white; text-align: center; padding: 24px;
 }
 .success-overlay.show { display: flex; animation: fadeIn 0.3s; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -202,13 +191,11 @@ align-items: center; justify-content: center; color: white; text-align: center; 
 .sov-summary { background: rgba(255,255,255,0.15); border-radius: 10px; padding: 12px 16px; width: 100%; max-width: 320px; font-size: 0.76rem; text-align: left; line-height: 1.9; margin-bottom: 18px; }
 .sov-close { background: white; color: #249496; border: none; border-radius: 10px; padding: 11px 32px; font-family: inherit; font-size: 0.9rem; font-weight: 700; cursor: pointer; }
 </style>
-
 </head>
 <body>
 <div class="container">
 
   <!-- ヘッダー -->
-
   <div class="header">
     <div class="header-top">
       <h1>🩺 スマホカルテ <span class="header-badge">内部ツール</span></h1>
@@ -224,7 +211,6 @@ align-items: center; justify-content: center; color: white; text-align: center; 
   </div>
 
   <!-- ========== Tab0: 基本情報 ========== -->
-
   <div class="section active" id="tab0">
     <div class="sec-title">👤 お客様基本情報</div>
     <div class="warn-box">⚠️ ID・パスワードなどの暗証番号はここに入力しないでください</div>
@@ -303,8 +289,7 @@ align-items: center; justify-content: center; color: white; text-align: center; 
     </div>
   </div>
 
-  <!-- ========== Tab1: 端末（プラン選択なし） ========== -->
-
+  <!-- ========== Tab1: 端末 ========== -->
   <div class="section" id="tab1">
     <div class="sec-title">📱 端末・キャリア情報</div>
     <div class="form-group">
@@ -321,181 +306,165 @@ align-items: center; justify-content: center; color: white; text-align: center; 
       </div>
     </div>
 
-```
-<!-- ★ 購入時期はみ出し修正：全幅で1列ずつ配置 -->
-<div class="form-group">
-  <label class="form-label">利用端末</label>
-  <input type="text" class="form-input" id="device" placeholder="例：iPhone 13">
-</div>
-<div class="form-group">
-  <label class="form-label">購入時期</label>
-  <input type="month" class="form-input" id="purchaseDate">
-</div>
+    <div class="form-group">
+      <label class="form-label">利用端末</label>
+      <input type="text" class="form-input" id="device" placeholder="例：iPhone 13">
+    </div>
+    <div class="form-group">
+      <label class="form-label">購入時期</label>
+      <input type="month" class="form-input" id="purchaseDate">
+    </div>
 
-<div class="form-group">
-  <label class="form-label">申込区分</label>
-  <div class="radio-group" id="contract-group">
-    <div class="r-btn" onclick="selectRadio('contract-group',this)">新規契約</div>
-    <div class="r-btn" onclick="selectRadio('contract-group',this)">MNP乗換</div>
-    <div class="r-btn" onclick="selectRadio('contract-group',this)">プラン変更</div>
-    <div class="r-btn" onclick="selectRadio('contract-group',this)">機種変更</div>
-  </div>
-</div>
+    <div class="form-group">
+      <label class="form-label">申込区分</label>
+      <div class="radio-group" id="contract-group">
+        <div class="r-btn" onclick="selectRadio('contract-group',this)">新規契約</div>
+        <div class="r-btn" onclick="selectRadio('contract-group',this)">MNP乗換</div>
+        <div class="r-btn" onclick="selectRadio('contract-group',this)">プラン変更</div>
+        <div class="r-btn" onclick="selectRadio('contract-group',this)">機種変更</div>
+      </div>
+    </div>
 
-<div class="divider"></div>
-<div class="sec-title">🩺 スマホ健康診断</div>
-<div class="form-group">
-  <label class="form-label">バッテリー状態</label>
-  <input type="text" class="form-input" id="battery" placeholder="例：85%" oninput="updateBattery()">
-  <div class="battery-gauge"><div class="battery-fill" id="battery-fill" style="width:0%"></div></div>
-</div>
-<div class="form-group">
-  <label class="form-label">ストレージ空き</label>
-  <input type="text" class="form-input" id="storage" placeholder="例：20GB / 128GB">
-</div>
-<div class="form-group">
-  <label class="form-label">買い替え時期の目安</label>
-  <div class="radio-group" id="buytime-group">
-    <div class="r-btn" onclick="selectRadio('buytime-group',this)">２年以内</div>
-    <div class="r-btn" onclick="selectRadio('buytime-group',this)">２〜４年以内</div>
-    <div class="r-btn" onclick="selectRadio('buytime-group',this)">⚠️ ４年以上</div>
-    <div class="r-btn" onclick="selectRadio('buytime-group',this)">わからない</div>
-  </div>
-</div>
-<div class="form-group">
-  <label class="form-label">OSアカウント状況</label>
-  <div class="check-group">
-    <div class="c-btn" onclick="toggleMulti(this)">🍎 AppleID把握</div>
-    <div class="c-btn" onclick="toggleMulti(this)">🔵 GoogleID把握</div>
-    <div class="c-btn" onclick="toggleMulti(this)">🔑 PW把握（Apple）</div>
-    <div class="c-btn" onclick="toggleMulti(this)">🔑 PW把握（Google）</div>
-  </div>
-</div>
-<div class="form-group">
-  <label class="form-label">キャリアメール</label>
-  <div class="radio-group" id="carrier-mail-group">
-    <div class="r-btn" onclick="selectRadio('carrier-mail-group',this)">解約済み</div>
-    <div class="r-btn" onclick="selectRadio('carrier-mail-group',this)">持ち運び中</div>
-    <div class="r-btn" onclick="selectRadio('carrier-mail-group',this)">現役利用中</div>
-    <div class="r-btn" onclick="selectRadio('carrier-mail-group',this)">不明</div>
-  </div>
-</div>
-<div class="form-group">
-  <label class="form-label">端末メモ</label>
-  <textarea class="form-input" id="device-memo" placeholder="動作が遅い、充電の減りが早いなど"></textarea>
-</div>
-```
-
+    <div class="divider"></div>
+    <div class="sec-title">🩺 スマホ健康診断</div>
+    <div class="form-group">
+      <label class="form-label">バッテリー状態</label>
+      <input type="text" class="form-input" id="battery" placeholder="例：85%" oninput="updateBattery()">
+      <div class="battery-gauge"><div class="battery-fill" id="battery-fill" style="width:0%"></div></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">ストレージ空き</label>
+      <input type="text" class="form-input" id="storage" placeholder="例：20GB / 128GB">
+    </div>
+    <div class="form-group">
+      <label class="form-label">買い替え時期の目安</label>
+      <div class="radio-group" id="buytime-group">
+        <div class="r-btn" onclick="selectRadio('buytime-group',this)">２年以内</div>
+        <div class="r-btn" onclick="selectRadio('buytime-group',this)">２〜４年以内</div>
+        <div class="r-btn" onclick="selectRadio('buytime-group',this)">⚠️ ４年以上</div>
+        <div class="r-btn" onclick="selectRadio('buytime-group',this)">わからない</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">OSアカウント状況</label>
+      <div class="check-group">
+        <div class="c-btn" onclick="toggleMulti(this)">🍎 AppleID把握</div>
+        <div class="c-btn" onclick="toggleMulti(this)">🔵 GoogleID把握</div>
+        <div class="c-btn" onclick="toggleMulti(this)">🔑 PW把握（Apple）</div>
+        <div class="c-btn" onclick="toggleMulti(this)">🔑 PW把握（Google）</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">キャリアメール</label>
+      <div class="radio-group" id="carrier-mail-group">
+        <div class="r-btn" onclick="selectRadio('carrier-mail-group',this)">解約済み</div>
+        <div class="r-btn" onclick="selectRadio('carrier-mail-group',this)">持ち運び中</div>
+        <div class="r-btn" onclick="selectRadio('carrier-mail-group',this)">現役利用中</div>
+        <div class="r-btn" onclick="selectRadio('carrier-mail-group',this)">不明</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">端末メモ</label>
+      <textarea class="form-input" id="device-memo" placeholder="動作が遅い、充電の減りが早いなど"></textarea>
+    </div>
   </div>
 
   <!-- ========== Tab2: 料金シミュレーション ========== -->
-
   <div class="section" id="tab2">
     <div class="sec-title">💰 現在の料金</div>
 
-```
-<!-- 現在：キャリア選択→プラン選択 -->
-<div class="cost-card cur-card">
-  <div class="cost-card-title">📋 現在のプラン</div>
-  <div class="plan-area">
-    <div class="plan-area-label">キャリア</div>
-    <div class="radio-group" id="cur-carrier-group" style="margin-bottom:8px;">
-      <div class="r-btn" onclick="selectCurCarrier(this,'docomo')">docomo</div>
-      <div class="r-btn" onclick="selectCurCarrier(this,'SoftBank')">SoftBank</div>
-      <div class="r-btn" onclick="selectCurCarrier(this,'au')">au</div>
-      <div class="r-btn" onclick="selectCurCarrier(this,'Rakuten Mobile')">楽天</div>
-      <div class="r-btn" onclick="selectCurCarrier(this,'Y mobile')">Y!mobile</div>
-      <div class="r-btn" onclick="selectCurCarrier(this,'UQ mobile')">UQ mobile</div>
-      <div class="r-btn" onclick="selectCurCarrier(this,'その他')">その他</div>
+    <div class="cost-card cur-card">
+      <div class="cost-card-title">📋 現在のプラン</div>
+      <div class="plan-area">
+        <div class="plan-area-label">キャリア</div>
+        <div class="radio-group" id="cur-carrier-group" style="margin-bottom:8px;">
+          <div class="r-btn" onclick="selectCurCarrier(this,'docomo')">docomo</div>
+          <div class="r-btn" onclick="selectCurCarrier(this,'SoftBank')">SoftBank</div>
+          <div class="r-btn" onclick="selectCurCarrier(this,'au')">au</div>
+          <div class="r-btn" onclick="selectCurCarrier(this,'Rakuten Mobile')">楽天</div>
+          <div class="r-btn" onclick="selectCurCarrier(this,'Y mobile')">Y!mobile</div>
+          <div class="r-btn" onclick="selectCurCarrier(this,'UQ mobile')">UQ mobile</div>
+          <div class="r-btn" onclick="selectCurCarrier(this,'その他')">その他</div>
+        </div>
+        <div class="plan-area-label">料金プラン</div>
+        <select class="form-input" id="cur-plan-select" onchange="onCurPlanSelect()" style="margin-bottom:6px;">
+          <option value="">▶ キャリアを先に選択してください</option>
+        </select>
+        <div class="plan-result-box" id="cur-plan-result">キャリアとプランを選択すると基本料が自動入力されます</div>
+      </div>
+      <div class="discount-area" id="cur-discount-area" style="display:none;">
+        <div class="discount-title">✅ 適用中の割引（タップで即時反映）</div>
+        <div class="discount-grid" id="cur-discount-list"></div>
+      </div>
+      <div class="cost-row" style="margin-top:8px;">
+        <label>端末分割代</label>
+        <input type="number" id="cur-device" placeholder="0" oninput="calcAll()">
+        <span>円</span>
+      </div>
+      <div class="cost-row">
+        <label>その他</label>
+        <input type="number" id="cur-other" placeholder="0" oninput="calcAll()">
+        <span>円</span>
+      </div>
+      <div class="cost-total-row">
+        <span class="cost-total-label">現在の合計月額</span>
+        <span class="cost-total-value" id="cur-total-display">¥0</span>
+      </div>
     </div>
-    <div class="plan-area-label">料金プラン</div>
-    <select class="form-input" id="cur-plan-select" onchange="onCurPlanSelect()" style="margin-bottom:6px;">
-      <option value="">▶ キャリアを先に選択してください</option>
-    </select>
-    <div class="plan-result-box" id="cur-plan-result">キャリアとプランを選択すると基本料が自動入力されます</div>
-  </div>
-  <!-- 割引チェック -->
-  <div class="discount-area" id="cur-discount-area" style="display:none;">
-    <div class="discount-title">✅ 適用中の割引（タップで即時反映）</div>
-    <div class="discount-grid" id="cur-discount-list"></div>
-  </div>
-  <!-- 手入力項目 -->
-  <div class="cost-row" style="margin-top:8px;">
-    <label>端末分割代</label>
-    <input type="number" id="cur-device" placeholder="0" oninput="calcAll()">
-    <span>円</span>
-  </div>
-  <div class="cost-row">
-    <label>その他</label>
-    <input type="number" id="cur-other" placeholder="0" oninput="calcAll()">
-    <span>円</span>
-  </div>
-  <div class="cost-total-row">
-    <span class="cost-total-label">現在の合計月額</span>
-    <span class="cost-total-value" id="cur-total-display">¥0</span>
-  </div>
-</div>
 
-<div class="sec-title">✨ 提案後の料金</div>
+    <div class="sec-title">✨ 提案後の料金</div>
 
-<!-- 提案後：キャリア選択→プラン選択 -->
-<div class="cost-card prop-card">
-  <div class="cost-card-title">📋 提案プラン</div>
-  <div class="plan-area">
-    <div class="plan-area-label">提案キャリア</div>
-    <div class="radio-group" id="prop-carrier-group" style="margin-bottom:8px;">
-      <div class="r-btn" onclick="selectPropCarrier(this,'docomo')">docomo</div>
-      <div class="r-btn" onclick="selectPropCarrier(this,'SoftBank')">SoftBank</div>
-      <div class="r-btn" onclick="selectPropCarrier(this,'au')">au</div>
-      <div class="r-btn" onclick="selectPropCarrier(this,'Rakuten Mobile')">楽天</div>
-      <div class="r-btn" onclick="selectPropCarrier(this,'Y mobile')">Y!mobile</div>
-      <div class="r-btn" onclick="selectPropCarrier(this,'UQ mobile')">UQ mobile</div>
-      <div class="r-btn" onclick="selectPropCarrier(this,'現状維持')">現状維持</div>
+    <div class="cost-card prop-card">
+      <div class="cost-card-title">📋 提案プラン</div>
+      <div class="plan-area">
+        <div class="plan-area-label">提案キャリア</div>
+        <div class="radio-group" id="prop-carrier-group" style="margin-bottom:8px;">
+          <div class="r-btn" onclick="selectPropCarrier(this,'docomo')">docomo</div>
+          <div class="r-btn" onclick="selectPropCarrier(this,'SoftBank')">SoftBank</div>
+          <div class="r-btn" onclick="selectPropCarrier(this,'au')">au</div>
+          <div class="r-btn" onclick="selectPropCarrier(this,'Rakuten Mobile')">楽天</div>
+          <div class="r-btn" onclick="selectPropCarrier(this,'Y mobile')">Y!mobile</div>
+          <div class="r-btn" onclick="selectPropCarrier(this,'UQ mobile')">UQ mobile</div>
+          <div class="r-btn" onclick="selectPropCarrier(this,'現状維持')">現状維持</div>
+        </div>
+        <div class="plan-area-label">提案プラン</div>
+        <select class="form-input" id="prop-plan-select" onchange="onPropPlanSelect()" style="margin-bottom:6px;">
+          <option value="">▶ キャリアを先に選択してください</option>
+        </select>
+        <div class="plan-result-box" id="prop-plan-result">キャリアとプランを選択すると基本料が自動入力されます</div>
+      </div>
+      <div class="discount-area" id="prop-discount-area" style="display:none;">
+        <div class="discount-title">✅ 適用予定の割引（タップで即時反映）</div>
+        <div class="discount-grid" id="prop-discount-list"></div>
+      </div>
+      <div class="cost-row" style="margin-top:8px;">
+        <label>端末分割代</label>
+        <input type="number" id="prop-device" placeholder="0" oninput="calcAll()">
+        <span>円</span>
+      </div>
+      <div class="cost-row">
+        <label>その他</label>
+        <input type="number" id="prop-other" placeholder="0" oninput="calcAll()">
+        <span>円</span>
+      </div>
+      <div class="cost-total-row">
+        <span class="cost-total-label">提案後の合計月額</span>
+        <span class="cost-total-value prop-total-value" id="prop-total-display">¥0</span>
+      </div>
     </div>
-    <div class="plan-area-label">提案プラン</div>
-    <select class="form-input" id="prop-plan-select" onchange="onPropPlanSelect()" style="margin-bottom:6px;">
-      <option value="">▶ キャリアを先に選択してください</option>
-    </select>
-    <div class="plan-result-box" id="prop-plan-result">キャリアとプランを選択すると基本料が自動入力されます</div>
-  </div>
-  <!-- 割引チェック -->
-  <div class="discount-area" id="prop-discount-area" style="display:none;">
-    <div class="discount-title">✅ 適用予定の割引（タップで即時反映）</div>
-    <div class="discount-grid" id="prop-discount-list"></div>
-  </div>
-  <!-- 手入力項目 -->
-  <div class="cost-row" style="margin-top:8px;">
-    <label>端末分割代</label>
-    <input type="number" id="prop-device" placeholder="0" oninput="calcAll()">
-    <span>円</span>
-  </div>
-  <div class="cost-row">
-    <label>その他</label>
-    <input type="number" id="prop-other" placeholder="0" oninput="calcAll()">
-    <span>円</span>
-  </div>
-  <div class="cost-total-row">
-    <span class="cost-total-label">提案後の合計月額</span>
-    <span class="cost-total-value prop-total-value" id="prop-total-display">¥0</span>
-  </div>
-</div>
 
-<!-- 節約額表示 -->
-<div class="saving-display" id="saving-display">
-  節約額を計算中...
-  <small>現在と提案後の金額を入力してください</small>
-</div>
+    <div class="saving-display" id="saving-display">
+      節約額を計算中...
+      <small>現在と提案後の金額を入力してください</small>
+    </div>
 
-<div class="form-group" style="margin-top:12px;">
-  <label class="form-label">シミュレーションメモ</label>
-  <textarea class="form-input" id="sim-memo" placeholder="提案の根拠、キャンペーン内容、注意事項など"></textarea>
-</div>
-```
-
+    <div class="form-group" style="margin-top:12px;">
+      <label class="form-label">シミュレーションメモ</label>
+      <textarea class="form-input" id="sim-memo" placeholder="提案の根拠、キャンペーン内容、注意事項など"></textarea>
+    </div>
   </div>
 
   <!-- ========== Tab3: アプリ ========== -->
-
   <div class="section" id="tab3">
     <div class="sec-title">📦 主要アプリ・引き継ぎ状況</div>
     <p style="font-size:0.7rem;color:#777;margin-bottom:10px;">機種変更・乗換時に必要なアプリを確認してください</p>
@@ -544,7 +513,6 @@ align-items: center; justify-content: center; color: white; text-align: center; 
   </div>
 
   <!-- ========== Tab4: 遍歴 ========== -->
-
   <div class="section" id="tab4">
     <div class="sec-title">📅 スマホ遍歴タイムライン</div>
     <p style="font-size:0.7rem;color:#777;margin-bottom:12px;">これまでの利用履歴を記録。マイページで確認できます。</p>
@@ -564,7 +532,7 @@ align-items: center; justify-content: center; color: white; text-align: center; 
     </div>
   </div>
 
-</div><!-- /container -->
+</div>
 
 <div class="submit-bar">
   <button class="submit-btn" id="submit-btn" onclick="submitKarte()">
@@ -580,12 +548,53 @@ align-items: center; justify-content: center; color: white; text-align: center; 
   <button class="sov-close" onclick="closeOverlay()">閉じる</button>
 </div>
 
+<!-- ============================================ -->
+<!-- ★ v6.9.1: 流入トラッキング受信スクリプト    -->
+<!-- ============================================ -->
+<script>
+(function() {
+  function getSourceFromURL() {
+    try {
+      var url = new URL(window.location.href);
+      var src = url.searchParams.get('src');
+      if (src) {
+        return src.replace(/[^a-zA-Z0-9_-]/g, '').substring(0, 50);
+      }
+    } catch(e) {}
+    return null;
+  }
+  function getSourceFromCookie() {
+    try {
+      var match = document.cookie.match(/(?:^|;\s*)sumaho_src=([^;]+)/);
+      if (match && match[1]) {
+        return decodeURIComponent(match[1]).replace(/[^a-zA-Z0-9_-]/g, '').substring(0, 50);
+      }
+    } catch(e) {}
+    return null;
+  }
+  var sourceFromURL    = getSourceFromURL();
+  var sourceFromCookie = getSourceFromCookie();
+  var finalSrc = sourceFromURL || sourceFromCookie;
+
+  if (finalSrc) {
+    try {
+      sessionStorage.setItem('sumaho_src', finalSrc);
+      console.log('[流入トラッキング karte] source=' + finalSrc);
+    } catch(e) {}
+  }
+  window.getSumahoSource = function() {
+    try {
+      return sessionStorage.getItem('sumaho_src') || '';
+    } catch(e) { return ''; }
+  };
+})();
+</script>
+
 <script>
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbyX_iaLnrh8BCCCjsqWT5m3KRmUDzHPaxqtMhXJcOc9Ws9t252VmVPxWEOvMP5BskU/exec';
 
 // ==========================================
 // CSVデータ連動キャリアプラン
-// discount は「サなし」を除いた実際の割引のみ
 // ==========================================
 const CARRIER_DATA = {
   'docomo': {
@@ -605,8 +614,6 @@ const CARRIER_DATA = {
       { name:'ahamo大盛り（110GB）',        base:4950,  data:'110GB' },
       { name:'ケータイプラン',              base:1507,  data:'100MB' },
     ],
-    // ドコモMAX系・ポイ活系の割引（家族割・カード割・ネット割・でんき割）
-    // プランごとに割引が異なるため、選択後に動的に生成
     discountsByPlan: {
       'ドコモMAX（無制限）': [
         { label:'家族割（3人以上）', amount:-1210 },
@@ -654,7 +661,6 @@ const CARRIER_DATA = {
         { label:'はじめてスマホ割（最大12ヶ月）', amount:-550 },
       ],
     },
-    // プラン名がdiscountsByPlanにない場合のデフォルト割引
     defaultDiscounts: [],
   },
   'SoftBank': {
@@ -839,9 +845,6 @@ const CARRIER_DATA = {
   },
 };
 
-// ==========================================
-// アプリリスト
-// ==========================================
 const APP_LIST = [
   { name:'🟩 LINE',         key:'line' },
   { name:'🟥 PayPay',       key:'paypay' },
@@ -859,17 +862,11 @@ const APP_LIST = [
   { name:'🏥 医療・健康',   key:'health' },
 ];
 
-// ==========================================
-// 状態
-// ==========================================
 var curCarrier = '', propCarrier = '';
 var curBaseFee = 0, propBaseFee = 0;
 var curDiscountTotal = 0, propDiscountTotal = 0;
 var appData = {};
 
-// ==========================================
-// 初期化
-// ==========================================
 document.addEventListener('DOMContentLoaded', function() {
   var now = new Date();
   document.getElementById('today-label').textContent =
@@ -879,33 +876,21 @@ document.addEventListener('DOMContentLoaded', function() {
   calcAll();
 });
 
-// ==========================================
-// タブ
-// ==========================================
 function switchTab(idx) {
   document.querySelectorAll('.section').forEach(function(s,i) { s.classList.toggle('active', i===idx); });
   document.querySelectorAll('.tab-btn').forEach(function(b,i) { b.classList.toggle('active', i===idx); });
   window.scrollTo({ top:0, behavior:'smooth' });
 }
 
-// ==========================================
-// ラジオ・チェック
-// ==========================================
 function selectRadio(groupId, el) {
   document.getElementById(groupId).querySelectorAll('.r-btn').forEach(function(b){ b.classList.remove('active'); });
   el.classList.add('active');
 }
-
 function toggleMulti(el) { el.classList.toggle('active'); }
-
 function selectCarrierDevice(el, carrier) {
   document.getElementById('carrier-group').querySelectorAll('.r-btn').forEach(function(b){ b.classList.remove('active'); });
   el.classList.add('active');
 }
-
-// ==========================================
-// 現在キャリア選択（③料金タブ）
-// ==========================================
 function selectCurCarrier(el, carrier) {
   document.getElementById('cur-carrier-group').querySelectorAll('.r-btn').forEach(function(b){ b.classList.remove('active'); });
   el.classList.add('active');
@@ -917,10 +902,6 @@ function selectCurCarrier(el, carrier) {
   document.getElementById('cur-plan-result').textContent = 'プランを選択してください';
   calcAll();
 }
-
-// ==========================================
-// 提案キャリア選択（③料金タブ）
-// ==========================================
 function selectPropCarrier(el, carrier) {
   document.getElementById('prop-carrier-group').querySelectorAll('.r-btn').forEach(function(b){ b.classList.remove('active'); });
   el.classList.add('active');
@@ -932,10 +913,6 @@ function selectPropCarrier(el, carrier) {
   document.getElementById('prop-plan-result').textContent = 'プランを選択してください';
   calcAll();
 }
-
-// ==========================================
-// プランセレクト更新
-// ==========================================
 function updatePlanSelect(side, carrier) {
   var sel = document.getElementById(side + '-plan-select');
   sel.innerHTML = '<option value="">プランを選択してください</option>';
@@ -948,10 +925,6 @@ function updatePlanSelect(side, carrier) {
     sel.appendChild(opt);
   });
 }
-
-// ==========================================
-// 現在プラン選択
-// ==========================================
 function onCurPlanSelect() {
   var carrier = curCarrier;
   var cd = CARRIER_DATA[carrier];
@@ -966,10 +939,6 @@ function onCurPlanSelect() {
   buildDiscounts('cur', plan.name, cd);
   calcAll();
 }
-
-// ==========================================
-// 提案プラン選択
-// ==========================================
 function onPropPlanSelect() {
   var carrier = propCarrier;
   var cd = CARRIER_DATA[carrier];
@@ -984,24 +953,17 @@ function onPropPlanSelect() {
   buildDiscounts('prop', plan.name, cd);
   calcAll();
 }
-
-// ==========================================
-// 割引チェックボックス生成（CSVデータ連動）
-// ==========================================
 function buildDiscounts(side, planName, cd) {
   var discounts = (cd.discountsByPlan && cd.discountsByPlan[planName])
     ? cd.discountsByPlan[planName]
     : (cd.defaultDiscounts || []);
-
   var area = document.getElementById(side + '-discount-area');
   var list = document.getElementById(side + '-discount-list');
   list.innerHTML = '';
-
   if (discounts.length === 0) {
     area.style.display = 'none';
     return;
   }
-
   discounts.forEach(function(d, i) {
     var row = document.createElement('div');
     row.className = 'discount-row';
@@ -1023,27 +985,19 @@ function buildDiscounts(side, planName, cd) {
     })(row, d.amount, side);
     list.appendChild(row);
   });
-
   area.style.display = 'block';
 }
-
-// ==========================================
-// 合計計算
-// ==========================================
 function calcAll() {
   var curDevice = parseInt(document.getElementById('cur-device').value) || 0;
   var curOther  = parseInt(document.getElementById('cur-other').value)  || 0;
   var curTotal  = curBaseFee + curDiscountTotal + curDevice + curOther;
   if (curTotal < 0) curTotal = 0;
-
   var propDevice = parseInt(document.getElementById('prop-device').value) || 0;
   var propOther  = parseInt(document.getElementById('prop-other').value)  || 0;
   var propTotal  = propBaseFee + propDiscountTotal + propDevice + propOther;
   if (propTotal < 0) propTotal = 0;
-
   document.getElementById('cur-total-display').textContent  = '¥' + curTotal.toLocaleString();
   document.getElementById('prop-total-display').textContent = '¥' + propTotal.toLocaleString();
-
   var save = curTotal - propTotal;
   var el   = document.getElementById('saving-display');
   if (curTotal === 0 && propTotal === 0) {
@@ -1061,20 +1015,12 @@ function calcAll() {
     el.style.background = '#e67e22';
   }
 }
-
-// ==========================================
-// バッテリーゲージ
-// ==========================================
 function updateBattery() {
   var val  = parseInt(document.getElementById('battery').value) || 0;
   var fill = document.getElementById('battery-fill');
   fill.style.width = Math.min(val,100) + '%';
   fill.style.background = val>=80 ? '#27ae60' : val>=50 ? '#f39c12' : val>=20 ? '#e67e22' : '#d32f2f';
 }
-
-// ==========================================
-// アプリテーブル
-// ==========================================
 function buildAppTable() {
   var tbody = document.getElementById('app-table');
   APP_LIST.forEach(function(app) {
@@ -1089,21 +1035,15 @@ function buildAppTable() {
     tbody.appendChild(tr);
   });
 }
-
 function onAppCheck(key, field, el) {
   if (appData[key]) appData[key][field] = el.checked;
 }
-
-// ==========================================
-// タイムライン
-// ==========================================
 var tlCount = 0;
 function buildTimeline() {
   addTimelineItem('2022年', '機種変更前の端末・キャリア', false);
   addTimelineItem('現在', '今回の対応内容', true);
   addTimelineItem('今後', '次回更新・乗換予定', false);
 }
-
 function addTimelineItem(year, memo, isCurrent) {
   tlCount++;
   var wrap = document.getElementById('timeline-wrap');
@@ -1117,7 +1057,6 @@ function addTimelineItem(year, memo, isCurrent) {
     '</div>';
   wrap.appendChild(item);
 }
-
 function getTimelineData() {
   var items = [];
   document.querySelectorAll('#timeline-wrap .tl-item').forEach(function(item) {
@@ -1126,17 +1065,12 @@ function getTimelineData() {
   });
   return items;
 }
-
-// ==========================================
-// 選択値を収集
-// ==========================================
 function getRadioVal(groupId) {
   var el = document.getElementById(groupId);
   if (!el) return '';
   var active = el.querySelector('.r-btn.active');
   return active ? active.textContent.trim() : '';
 }
-
 function getMultiVals(groupId) {
   var el = document.getElementById(groupId);
   if (!el) return [];
@@ -1144,7 +1078,6 @@ function getMultiVals(groupId) {
   el.querySelectorAll('.c-btn.active').forEach(function(b){ vals.push(b.textContent.trim()); });
   return vals;
 }
-
 function getAppSummary() {
   var used = [], transfer = [];
   APP_LIST.forEach(function(app) {
@@ -1156,14 +1089,12 @@ function getAppSummary() {
   });
   return { used: used.join('、'), transfer: transfer.join('、') };
 }
-
 function getActiveCurDiscounts() {
   var rows = document.querySelectorAll('#cur-discount-list .discount-row.active');
   var labels = [];
   rows.forEach(function(r){ labels.push(r.querySelector('.discount-row-label').textContent.trim()); });
   return labels.join('、');
 }
-
 function getActivePropDiscounts() {
   var rows = document.querySelectorAll('#prop-discount-list .discount-row.active');
   var labels = [];
@@ -1171,9 +1102,6 @@ function getActivePropDiscounts() {
   return labels.join('、');
 }
 
-// ==========================================
-// Notion送信
-// ==========================================
 async function submitKarte() {
   var name = document.getElementById('name').value.trim();
   var tel  = document.getElementById('tel').value.trim();
@@ -1181,11 +1109,9 @@ async function submitKarte() {
     alert('①基本タブの「お名前」と「電話番号」は必須です。');
     switchTab(0); return;
   }
-
   var btn = document.getElementById('submit-btn');
   btn.disabled = true;
   btn.textContent = '保存中...';
-
   var curDevice  = parseInt(document.getElementById('cur-device').value)  || 0;
   var curOther   = parseInt(document.getElementById('cur-other').value)   || 0;
   var propDevice = parseInt(document.getElementById('prop-device').value) || 0;
@@ -1194,16 +1120,13 @@ async function submitKarte() {
   var propTotal  = propBaseFee + propDiscountTotal + propDevice + propOther;
   if (curTotal  < 0) curTotal  = 0;
   if (propTotal < 0) propTotal = 0;
-
   var apps  = getAppSummary();
   var tl    = getTimelineData();
   var tlTxt = tl.map(function(t){ return t.year+'：'+t.memo; }).join(' / ');
-
   var curPlanSel  = document.getElementById('cur-plan-select');
   var propPlanSel = document.getElementById('prop-plan-select');
   var curPlanName  = curPlanSel.options[curPlanSel.selectedIndex]   ? curPlanSel.options[curPlanSel.selectedIndex].text   : '';
   var propPlanName = propPlanSel.options[propPlanSel.selectedIndex] ? propPlanSel.options[propPlanSel.selectedIndex].text : '';
-
   var memoArr = [
     document.getElementById('memo-basic').value.trim(),
     document.getElementById('device-memo').value.trim(),
@@ -1213,6 +1136,9 @@ async function submitKarte() {
     getActiveCurDiscounts()  ? '現在割引：'+getActiveCurDiscounts()  : '',
     getActivePropDiscounts() ? '提案割引：'+getActivePropDiscounts() : '',
   ];
+
+  // ★ v6.9.1: 流入経路を取得
+  var sourceVal = (window.getSumahoSource && window.getSumahoSource()) || '';
 
   var karteData = {
     token:        'smaho2026sakurai',
@@ -1226,16 +1152,24 @@ async function submitKarte() {
     battery:      document.getElementById('battery').value.trim(),
     storage:      document.getElementById('storage').value.trim(),
     buyTime:      getRadioVal('buytime-group'),
+    target:       getRadioVal('target-group'),
+    wifi:         getRadioVal('wifi-group'),
+    simConfig:    getRadioVal('sim-group'),
+    contractType: getRadioVal('contract-group'),
+    propCarrier:  propCarrier,
+    propPlanName: propPlanName,
+    discounts:    getActivePropDiscounts(),
+    nextFollow:   document.getElementById('next-follow').value.trim(),
     currentCost:  curTotal,
     proposedCost: propTotal,
     savingCost:   curTotal - propTotal,
     appUsed:      apps.used,
     appTransfer:  apps.transfer,
-    memo:         memoArr.filter(Boolean).join(' | ')
+    purpose:      getMultiVals('purpose-group').join('、'),
+    memo:         memoArr.filter(Boolean).join(' | '),
+    source:       sourceVal  // ★ v6.9.1: 流入経路
   };
-
   var simData = Object.assign({}, karteData, { formType:'simulation' });
-
   try {
     await fetch(GAS_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'}, body: JSON.stringify(karteData) });
     await fetch(GAS_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'}, body: JSON.stringify(simData) });
@@ -1243,7 +1177,6 @@ async function submitKarte() {
       var appReq = Object.assign({}, karteData, { formType:'app_check', appUsed:apps.used, appTransfer:apps.transfer });
       await fetch(GAS_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'}, body: JSON.stringify(appReq) });
     }
-
     var save = curTotal - propTotal;
     document.getElementById('sov-summary').innerHTML =
       '<b>お名前：</b>' + name + '<br>' +
@@ -1255,7 +1188,6 @@ async function submitKarte() {
       '<b>提案後月額：</b>¥' + propTotal.toLocaleString() + '<br>' +
       '<b>月額節約額：</b>¥' + save.toLocaleString() + '<br>' +
       '<b>移行必須アプリ：</b>' + (apps.transfer||'なし');
-
     document.getElementById('success-ov').classList.add('show');
     btn.textContent = '✅ 保存完了';
   } catch(e) {
@@ -1264,7 +1196,6 @@ async function submitKarte() {
     btn.textContent = '📋 Notionに保存してマイページに反映する';
   }
 }
-
 function closeOverlay() {
   document.getElementById('success-ov').classList.remove('show');
   var btn = document.getElementById('submit-btn');
@@ -1272,6 +1203,5 @@ function closeOverlay() {
   btn.textContent = '📋 Notionに保存してマイページに反映する';
 }
 </script>
-
 </body>
 </html>

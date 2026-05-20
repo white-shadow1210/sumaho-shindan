@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -40,20 +39,19 @@
   .back-btn { display: block; margin: 30px auto 0; color: #666; text-decoration: underline; background: none; border: none; font-size: 0.9rem; cursor: pointer; }
   #loading { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 100; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; color: #1a2a40; }
 
-/* ★ 電話番号入力欄スタイル */
-.tel-input-wrap { width: 100%; margin-bottom: 16px; }
-.tel-input-label { font-size: 0.9rem; color: #1a2a40; font-weight: bold; margin-bottom: 6px; display: block; }
-.tel-input-sub { font-size: 0.75rem; color: #888; margin-bottom: 8px; }
-.tel-input { width: 100%; padding: 14px; border: 2px solid #82c4c3; border-radius: 8px; font-size: 1.1rem; text-align: center; letter-spacing: 0.05em; }
-.tel-input:focus { outline: none; border-color: #249496; box-shadow: 0 0 0 3px rgba(130,196,195,0.2); }
-.tel-note { font-size: 0.72rem; color: #999; margin-top: 6px; text-align: center; }
+  /* ★ 電話番号入力欄スタイル */
+  .tel-input-wrap { width: 100%; margin-bottom: 16px; }
+  .tel-input-label { font-size: 0.9rem; color: #1a2a40; font-weight: bold; margin-bottom: 6px; display: block; }
+  .tel-input-sub { font-size: 0.75rem; color: #888; margin-bottom: 8px; }
+  .tel-input { width: 100%; padding: 14px; border: 2px solid #82c4c3; border-radius: 8px; font-size: 1.1rem; text-align: center; letter-spacing: 0.05em; }
+  .tel-input:focus { outline: none; border-color: #249496; box-shadow: 0 0 0 3px rgba(130,196,195,0.2); }
+  .tel-note { font-size: 0.72rem; color: #999; margin-top: 6px; text-align: center; }
 
-/* ★ LIFF取得状況バッジ */
-.liff-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem; padding: 4px 10px; border-radius: 20px; margin-bottom: 10px; }
-.liff-badge.ok  { background: #e8f7f7; color: #249496; border: 1px solid #82c4c3; }
-.liff-badge.ng  { background: #fff0f0; color: #888; border: 1px solid #ddd; }
+  /* ★ LIFF取得状況バッジ */
+  .liff-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem; padding: 4px 10px; border-radius: 20px; margin-bottom: 10px; }
+  .liff-badge.ok  { background: #e8f7f7; color: #249496; border: 1px solid #82c4c3; }
+  .liff-badge.ng  { background: #fff0f0; color: #888; border: 1px solid #ddd; }
 </style>
-
 </head>
 <body>
 <div class="container">
@@ -159,8 +157,7 @@
     <button class="back-btn" onclick="prevStep(6,5)">← 前に戻る</button>
   </div>
 
-  <!-- ★ Step7: 気になること + 電話番号（新規追加） -->
-
+  <!-- Step7: 気になること -->
   <div id="step7" class="step-container">
     <div class="step-badge">Step 7 / 8</div><span class="step-icon">📋</span>
     <div class="question-title">買い替え・見直しで気になることは？<br><span style="font-size:0.9rem;font-weight:normal;">（複数選択可）</span></div>
@@ -175,15 +172,11 @@
       <label class="checkbox-label" onclick="toggleCheck(this,'q7','手続きの手間')"><input type="checkbox">手続きの手間</label>
     </div>
 
-```
-<button class="next-btn" onclick="nextStep(7,8)">次の質問へ</button>
-<button class="back-btn" onclick="prevStep(7,6)">← 前に戻る</button>
-```
-
+    <button class="next-btn" onclick="nextStep(7,8)">次の質問へ</button>
+    <button class="back-btn" onclick="prevStep(7,6)">← 前に戻る</button>
   </div>
 
   <!-- Step8: 相談内容・お名前 -->
-
   <div id="step8" class="step-container">
     <div class="step-badge">Step 8 / 8</div><span class="step-icon">✍️</span>
     <div class="question-title">具体的なご相談内容を<br>お聞かせください</div>
@@ -196,31 +189,85 @@
     <div style="padding:20px;background-color:#f0f8f8;border-radius:10px;width:100%;text-align:left;border:1px solid #82c4c3;">
       <p style="margin:0 0 10px 0;font-weight:bold;color:#1a2a40;font-size:0.95rem;">【最後にお願い】</p>
       <p style="margin:0 0 15px 0;font-size:0.85rem;color:#555;line-height:1.4;">LINEであなた専用の『スマホカルテ』とご案内をお送りします。<strong>お名前（フルネーム）</strong>を教えてください。</p>
-      <input type="text" id="name" placeholder="例：山田　太郎（フルネームでご入力ください）" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:6px;font-size:1rem;">
+      <input type="text" id="name" placeholder="例：山田　太郎(フルネームでご入力ください)" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:6px;font-size:1rem;">
     </div>
 
-```
-<!-- ★ 電話番号入力欄（Step8） -->
-<div class="tel-input-wrap" style="margin-top:20px;">
-  <label class="tel-input-label">📞 電話番号（任意）</label>
-  <p class="tel-input-sub">マイページへの反映・ご連絡に使用します。後でLINEからでも教えていただけます。</p>
-  <input type="tel" id="tel-input" class="tel-input" placeholder="例：090-1234-5678" maxlength="13"
-    oninput="this.value=this.value.replace(/[^0-9\-]/g,'')">
-  <p class="tel-note">※ 入力いただくとマイページに診断結果が即時反映されます</p>
-</div>
+    <!-- ★ 電話番号入力欄 -->
+    <div class="tel-input-wrap" style="margin-top:20px;">
+      <label class="tel-input-label">📞 電話番号(任意)</label>
+      <p class="tel-input-sub">マイページへの反映・ご連絡に使用します。後でLINEからでも教えていただけます。</p>
+      <input type="tel" id="tel-input" class="tel-input" placeholder="例：090-1234-5678" maxlength="13"
+        oninput="this.value=this.value.replace(/[^0-9\-]/g,'')">
+      <p class="tel-note">※ 入力いただくとマイページに診断結果が即時反映されます</p>
+    </div>
 
-<!-- ★ LIFF取得状況バッジ -->
-<div id="liff-status-badge" class="liff-badge ng" style="margin-top:6px;margin-bottom:4px;">
-  <span id="liff-status-icon">⏳</span>
-  <span id="liff-status-text">LINE情報を確認中...</span>
-</div>
+    <!-- ★ LIFF取得状況バッジ -->
+    <div id="liff-status-badge" class="liff-badge ng" style="margin-top:6px;margin-bottom:4px;">
+      <span id="liff-status-icon">⏳</span>
+      <span id="liff-status-text">LINE情報を確認中...</span>
+    </div>
 
-<button class="finish-btn" onclick="finish()">カルテを作成して相談に進む</button>
-<button class="back-btn" onclick="prevStep(8,7)">← 前に戻る</button>
-```
-
+    <button class="finish-btn" onclick="finish()">カルテを作成して相談に進む</button>
+    <button class="back-btn" onclick="prevStep(8,7)">← 前に戻る</button>
   </div>
 </div>
+
+<!-- ============================================ -->
+<!-- ★ 流入トラッキング受信スクリプト (v6.9.1) -->
+<!-- ============================================ -->
+<script>
+(function() {
+  // === 1. URLパラメータから src を取得 ===
+  function getSourceFromURL() {
+    try {
+      var url = new URL(window.location.href);
+      var src = url.searchParams.get('src');
+      if (src) {
+        return src.replace(/[^a-zA-Z0-9_-]/g, '').substring(0, 50);
+      }
+    } catch(e) {}
+    return null;
+  }
+
+  // === 2. Cookieからsrcを復元（r.htmlリダイレクタ経由用） ===
+  function getSourceFromCookie() {
+    try {
+      var match = document.cookie.match(/(?:^|;\s*)sumaho_src=([^;]+)/);
+      if (match && match[1]) {
+        return decodeURIComponent(match[1]).replace(/[^a-zA-Z0-9_-]/g, '').substring(0, 50);
+      }
+    } catch(e) {}
+    return null;
+  }
+
+  // === 3. 優先順位: URL > Cookie > sessionStorage ===
+  var sourceFromURL    = getSourceFromURL();
+  var sourceFromCookie = getSourceFromCookie();
+  var finalSrc = sourceFromURL || sourceFromCookie;
+
+  if (finalSrc) {
+    try {
+      sessionStorage.setItem('sumaho_src', finalSrc);
+      console.log('[流入トラッキング] source=' + finalSrc);
+    } catch(e) {}
+  }
+
+  // === 4. グローバルに公開（送信処理から参照） ===
+  window.getSumahoSource = function() {
+    try {
+      return sessionStorage.getItem('sumaho_src') || '';
+    } catch(e) { return ''; }
+  };
+
+  // === 5. デバッグバッジ（本番は false のまま） ===
+  if (finalSrc && false) {
+    var badge = document.createElement('div');
+    badge.style.cssText = 'position:fixed;top:8px;right:8px;background:#249496;color:#fff;padding:4px 10px;border-radius:12px;font-size:11px;z-index:9999;font-family:monospace;';
+    badge.textContent = 'src: ' + finalSrc;
+    document.body.appendChild(badge);
+  }
+})();
+</script>
 
 <script>
   const GAS_URL      = "https://script.google.com/macros/s/AKfycbyX_iaLnrh8BCCCjsqWT5m3KRmUDzHPaxqtMhXJcOc9Ws9t252VmVPxWEOvMP5BskU/exec";
@@ -230,7 +277,7 @@
   const urlParams   = new URLSearchParams(window.location.search);
   const consultType = urlParams.get('type') || 'general';
 
-  // ★ LIFF初期化（強化版）
+  // ★ LIFF初期化(強化版)
   let liffUserId = '', liffDisplayName = '', liffReady = false;
 
   async function initLiff() {
@@ -244,7 +291,6 @@
         updateLiffBadge(true, profile.displayName);
         console.log('[LIFF index] 初期化完了:', liffDisplayName);
       } else {
-        // LINEブラウザ内でログインしていない場合はログインを試みる
         if (liff.isInClient()) {
           liff.login();
         } else {
@@ -265,7 +311,7 @@
     if (ok) {
       badge.className = 'liff-badge ok';
       icon.textContent  = '✅';
-      text.textContent  = 'LINEアカウントを確認しました（' + name + '）';
+      text.textContent  = 'LINEアカウントを確認しました(' + name + ')';
     } else {
       badge.className = 'liff-badge ng';
       icon.textContent  = '⚠️';
@@ -273,14 +319,14 @@
     }
   }
 
-  // ページ読み込み時にLIFF初期化
   initLiff();
 
   let answers = {
     consult_type: consultType,
     q1: "", q2: "", q3: [], q4: "", q5: "", q6: "", q7: [], detail: "", name: "", tel: "",
     token: SECRET_TOKEN,
-    lineUserId: "", lineDisplayName: ""
+    lineUserId: "", lineDisplayName: "",
+    source: ""  // ★ 流入経路
   };
 
   window.onload = function() {
@@ -333,7 +379,6 @@
       if (topMessage) topMessage.style.display = 'none';
       if (glArea)     glArea.style.display     = 'none';
     }
-    // step8に来たタイミングでLIFFバッジを更新
     if (next === 8) {
       if (liffReady) {
         updateLiffBadge(true, liffDisplayName);
@@ -357,13 +402,11 @@
 
   async function finish() {
     const nameInput = document.getElementById('name').value;
-    if (!nameInput) { alert("お名前（LINE名）を入力してください。"); return; }
+    if (!nameInput) { alert("お名前(LINE名)を入力してください。"); return; }
 
-    // 電話番号取得
     const telInput = document.getElementById('tel-input');
     const tel = telInput ? telInput.value.trim() : '';
 
-    // ★ LIFF情報を最終確認・再取得
     if (!liffReady) {
       try {
         await liff.init({ liffId: LIFF_ID });
@@ -382,6 +425,7 @@
     answers.token           = SECRET_TOKEN;
     answers.lineUserId      = liffUserId;
     answers.lineDisplayName = liffDisplayName;
+    answers.source          = window.getSumahoSource();  // ★ 流入経路を取得
 
     const loading = document.getElementById('loading');
     loading.style.display = 'flex';
@@ -417,6 +461,5 @@
     }
   }
 </script>
-
 </body>
 </html>

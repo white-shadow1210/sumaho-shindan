@@ -242,6 +242,30 @@
             <label>メールアドレス<span>(必須)</span></label>
             <input type="email" class="form-control" id="input-email" placeholder="例：example@mail.com">
         </div>
+
+        <!-- ★ プレ会員特典チェックボックス（6/8〜6/10の間だけJSで自動表示） -->
+        <div class="form-group" id="pre-member-benefit-box" style="
+            background: linear-gradient(135deg, #fffde7, #fff8e1);
+            border: 2px solid #f9a825;
+            border-radius: 12px;
+            padding: 16px 18px;
+            margin-top: 18px;
+            display: none;
+        ">
+            <p style="font-size:13px; color:#e65100; font-weight:bold; margin:0 0 10px 0;">
+                🌟 プレ会員限定特典
+            </p>
+            <label style="display:flex; align-items:center; cursor:pointer; gap:12px;">
+                <input type="checkbox" id="check-pre-member" style="transform:scale(1.5); accent-color:#f9a825; flex-shrink:0;">
+                <span style="font-size:15px; color:#1a2a40; font-weight:bold;">
+                    プレ会員特典を使用する（無料相談1回）
+                </span>
+            </label>
+            <p style="font-size:12px; color:#888; margin:8px 0 0 0;">
+                ※6/8〜6/10にご登録いただいた方が対象です。1回のみ有効。
+            </p>
+        </div>
+
         <div class="privacy-policy">
             <strong>【セキュリティと個人情報の取扱いについて】</strong><br>
             ご入力いただいたお名前・電話番号等の個人情報は、予約の管理および当日のご本人様確認・ご相談対応のためにのみ使用し、適切かつ安全に管理いたします。
@@ -627,7 +651,8 @@
             price:           selected.price,
             promoInfo:       document.getElementById('check-promo').checked ? "説明希望" : "希望なし",
             lineUserId:      liffUserId,
-            lineDisplayName: liffDisplayName
+            lineDisplayName: liffDisplayName,
+            usePreMemberBenefit: (document.getElementById('check-pre-member') && document.getElementById('check-pre-member').checked) ? true : false
         };
 
         localStorage.setItem('nishidate_last_booking', JSON.stringify({ menu: data.menu, date: data.date, time: data.time }));
@@ -658,6 +683,19 @@
             btnNext.innerText = 'この内容で予約を確定する';
         });
     }
+</script>
+
+<!-- ★ プレ会員特典ボックスの表示制御（プレローンチ期間中のみ表示） -->
+<script>
+(function() {
+  var now   = new Date();
+  var start = new Date('2026-06-08T21:00:00+09:00');
+  var end   = new Date('2026-06-10T23:59:59+09:00');
+  if (now >= start && now <= end) {
+    var box = document.getElementById('pre-member-benefit-box');
+    if (box) box.style.display = 'block';
+  }
+})();
 </script>
 
 </body>

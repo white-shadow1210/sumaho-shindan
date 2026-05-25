@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -17,6 +16,7 @@
   --muted: #718096;
   --white: #ffffff;
   --border: #e2e8f0;
+  --musubi: #d4a574;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -28,248 +28,290 @@ body {
 }
 
 .header {
-background: var(–navy);
-color: white;
-padding: 20px 20px 24px;
-text-align: center;
+  background: var(--navy);
+  color: white;
+  padding: 20px 20px 24px;
+  text-align: center;
 }
 .header-logo {
-font-size: 0.75rem;
-color: #82c4c3;
-letter-spacing: 0.1em;
-margin-bottom: 6px;
+  font-size: 0.75rem;
+  color: #82c4c3;
+  letter-spacing: 0.1em;
+  margin-bottom: 6px;
 }
 .header h1 {
-font-size: 1.3rem;
-font-weight: 700;
-line-height: 1.4;
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1.4;
 }
 .header-date {
-font-size: 0.7rem;
-color: rgba(255,255,255,0.6);
-margin-top: 8px;
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.6);
+  margin-top: 8px;
 }
 
 .toc {
-background: var(–white);
-border: 1px solid var(–border);
-border-radius: 10px;
-padding: 16px 20px;
-margin: 20px auto;
-max-width: 720px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin: 20px auto;
+  max-width: 720px;
 }
 .toc-title {
-font-size: 0.78rem;
-font-weight: 700;
-color: var(–muted);
-letter-spacing: 0.08em;
-margin-bottom: 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
 }
 .toc a {
-display: block;
-font-size: 0.82rem;
-color: var(–primary);
-text-decoration: none;
-padding: 4px 0;
-border-bottom: 1px dashed var(–border);
+  display: block;
+  font-size: 0.82rem;
+  color: var(--primary);
+  text-decoration: none;
+  padding: 4px 0;
+  border-bottom: 1px dashed var(--border);
 }
 .toc a:last-child { border-bottom: none; }
 
 .content {
-max-width: 720px;
-margin: 0 auto;
-padding: 0 16px 60px;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 16px 60px;
 }
 
 .section {
-background: var(–white);
-border-radius: 12px;
-padding: 24px 20px;
-margin-bottom: 16px;
-border: 1px solid var(–border);
+  background: var(--white);
+  border-radius: 12px;
+  padding: 24px 20px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
 }
 .section-title {
-font-size: 1rem;
-font-weight: 700;
-color: var(–navy);
-border-left: 4px solid var(–primary);
-padding-left: 10px;
-margin-bottom: 14px;
-display: flex;
-align-items: center;
-gap: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--navy);
+  border-left: 4px solid var(--primary);
+  padding-left: 10px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .section-num {
-background: var(–primary);
-color: white;
-font-size: 0.7rem;
-font-weight: 700;
-width: 22px; height: 22px;
-border-radius: 50%;
-display: flex; align-items: center; justify-content: center;
-flex-shrink: 0;
+  background: var(--primary);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
 }
+
+/* Co-Musubi専用セクションスタイル */
+.section.musubi-section .section-title {
+  border-left-color: var(--musubi);
+}
+.section.musubi-section .section-num {
+  background: var(--musubi);
+}
+
 p { margin-bottom: 10px; }
 p:last-child { margin-bottom: 0; }
 
 .important-box {
-background: #fff8f0;
-border: 1px solid #ffcc80;
-border-left: 4px solid #ff9800;
-border-radius: 8px;
-padding: 14px 16px;
-margin: 12px 0;
-font-size: 0.88rem;
+  background: #fff8f0;
+  border: 1px solid #ffcc80;
+  border-left: 4px solid #ff9800;
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin: 12px 0;
+  font-size: 0.88rem;
 }
 .important-box strong {
-display: block;
-color: #e65100;
-margin-bottom: 4px;
-font-size: 0.9rem;
+  display: block;
+  color: #e65100;
+  margin-bottom: 4px;
+  font-size: 0.9rem;
 }
 
-/* 新規追加：情報ボックス（青系） */
 .info-box {
-background: #f0f8ff;
-border: 1px solid #90caf9;
-border-left: 4px solid #1976d2;
-border-radius: 8px;
-padding: 14px 16px;
-margin: 12px 0;
-font-size: 0.88rem;
+  background: #f0f8ff;
+  border: 1px solid #90caf9;
+  border-left: 4px solid #1976d2;
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin: 12px 0;
+  font-size: 0.88rem;
 }
 .info-box strong {
-display: block;
-color: #1565c0;
-margin-bottom: 4px;
-font-size: 0.9rem;
+  display: block;
+  color: #1565c0;
+  margin-bottom: 4px;
+  font-size: 0.9rem;
+}
+
+/* Co-Musubi用ボックス */
+.musubi-box {
+  background: linear-gradient(135deg, #fff8ed 0%, #fdf3e0 100%);
+  border: 1px solid #e8c79a;
+  border-left: 4px solid var(--musubi);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin: 12px 0;
+  font-size: 0.88rem;
+}
+.musubi-box strong {
+  display: block;
+  color: #8b6914;
+  margin-bottom: 4px;
+  font-size: 0.9rem;
 }
 
 .data-table {
-width: 100%;
-border-collapse: collapse;
-font-size: 0.82rem;
-margin: 12px 0;
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  margin: 12px 0;
 }
 .data-table th {
-background: var(–navy);
-color: white;
-padding: 8px 10px;
-text-align: left;
-font-weight: 700;
+  background: var(--navy);
+  color: white;
+  padding: 8px 10px;
+  text-align: left;
+  font-weight: 700;
 }
 .data-table td {
-padding: 8px 10px;
-border-bottom: 1px solid var(–border);
-vertical-align: top;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
 }
 .data-table tr:nth-child(even) td {
-background: var(–beige);
+  background: var(--beige);
 }
 
 .check-list {
-list-style: none;
-padding: 0;
+  list-style: none;
+  padding: 0;
 }
 .check-list li {
-padding: 5px 0 5px 24px;
-position: relative;
-font-size: 0.88rem;
-border-bottom: 1px dashed var(–border);
+  padding: 5px 0 5px 24px;
+  position: relative;
+  font-size: 0.88rem;
+  border-bottom: 1px dashed var(--border);
 }
 .check-list li:last-child { border-bottom: none; }
 .check-list li::before {
-content: ‘✓’;
-position: absolute;
-left: 0;
-color: var(–primary);
-font-weight: 700;
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--primary);
+  font-weight: 700;
 }
 
 .contact-box {
-background: linear-gradient(135deg, var(–navy) 0%, #243a56 100%);
-color: white;
-border-radius: 12px;
-padding: 24px 20px;
-text-align: center;
-margin-top: 20px;
+  background: linear-gradient(135deg, var(--navy) 0%, #243a56 100%);
+  color: white;
+  border-radius: 12px;
+  padding: 24px 20px;
+  text-align: center;
+  margin-top: 20px;
 }
 .contact-box h3 {
-font-size: 1rem;
-margin-bottom: 8px;
-color: #82c4c3;
+  font-size: 1rem;
+  margin-bottom: 8px;
+  color: #82c4c3;
 }
 .contact-box p {
-font-size: 0.85rem;
-opacity: 0.85;
-margin-bottom: 16px;
+  font-size: 0.85rem;
+  opacity: 0.85;
+  margin-bottom: 16px;
 }
 .contact-line-btn {
-display: inline-block;
-background: #06C755;
-color: white;
-padding: 12px 28px;
-border-radius: 25px;
-font-weight: 700;
-font-size: 0.9rem;
-text-decoration: none;
+  display: inline-block;
+  background: #06C755;
+  color: white;
+  padding: 12px 28px;
+  border-radius: 25px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
 }
 
 .history {
-font-size: 0.75rem;
-color: var(–muted);
-text-align: center;
-padding: 16px;
-border-top: 1px solid var(–border);
-margin-top: 8px;
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-align: center;
+  padding: 16px;
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
 }
 
 .back-nav {
-text-align: center;
-padding: 20px;
-background: var(–white);
-border-top: 1px solid var(–border);
-position: sticky;
-bottom: 0;
+  text-align: center;
+  padding: 20px;
+  background: var(--white);
+  border-top: 1px solid var(--border);
+  position: sticky;
+  bottom: 0;
 }
 .back-btn {
-display: inline-block;
-background: var(–primary);
-color: white;
-padding: 10px 28px;
-border-radius: 25px;
-font-weight: 700;
-font-size: 0.85rem;
-text-decoration: none;
-cursor: pointer;
-border: none;
-font-family: inherit;
+  display: inline-block;
+  background: var(--primary);
+  color: white;
+  padding: 10px 28px;
+  border-radius: 25px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
 }
 
-/* 新規追加：バッジ */
 .new-badge {
-display: inline-block;
-background: #e53e3e;
-color: white;
-font-size: 0.6rem;
-font-weight: 700;
-padding: 1px 6px;
-border-radius: 4px;
-margin-left: 6px;
-vertical-align: middle;
+  display: inline-block;
+  background: #e53e3e;
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.musubi-badge {
+  display: inline-block;
+  background: var(--musubi);
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+/* 特商法表記用テーブル */
+.tokushou-table th {
+  width: 35%;
+  background: var(--beige-d);
+  color: var(--navy);
 }
 </style>
-
 </head>
 <body>
 
 <div class="header">
   <div class="header-logo">SUMAHO NO SODAN-SHI</div>
   <h1>利用規約・プライバシーポリシー</h1>
-  <div class="header-date">最終更新日：2026年4月30日</div>
+  <div class="header-date">最終更新日：2026年5月24日</div>
 </div>
 
-<div class="toc" style="max-width:720px; margin:20px auto; padding: 16px 20px;">
+<div class="toc">
   <div class="toc-title">📋 目次</div>
   <a href="#s1">1. サービスの概要と運営者情報</a>
   <a href="#s2">2. 収集する個人情報と利用目的</a>
@@ -278,20 +320,22 @@ vertical-align: middle;
   <a href="#s5">5. 第三者への提供について</a>
   <a href="#s6">6. Cookieおよびアクセス解析について</a>
   <a href="#s7">7. 地域安全マップ（防犯パトロール機能）について</a>
-  <a href="#s7b">8. まちなか発見機能（地域発見投稿）について <span class="new-badge">NEW</span></a>
-  <a href="#s7c">9. LIFFアプリ（LINE連携ウェブ機能）について <span class="new-badge">NEW</span></a>
-  <a href="#s8">10. 免責事項</a>
-  <a href="#s9">11. 利用規約の変更について</a>
-  <a href="#s10">12. お問い合わせ・情報開示請求</a>
+  <a href="#s8">8. まちなか発見機能（地域発見投稿）について</a>
+  <a href="#s9">9. LIFFアプリ（LINE連携ウェブ機能）について</a>
+  <a href="#s10">10. Co-Musubiチケットについて <span class="musubi-badge">NEW</span></a>
+  <a href="#s11">11. サブスクリプションサービス（継続サポートプラン）について <span class="new-badge">NEW</span></a>
+  <a href="#s12">12. 免責事項</a>
+  <a href="#s13">13. 利用規約の変更について</a>
+  <a href="#s14">14. お問い合わせ・情報開示請求</a>
+  <a href="#s15">15. 特定商取引法に基づく表記 <span class="new-badge">NEW</span></a>
 </div>
 
 <div class="content">
 
   <!-- Section 1 -->
-
   <div class="section" id="s1">
     <div class="section-title"><span class="section-num">1</span>サービスの概要と運営者情報</div>
-    <p>「スマホの相談士」（以下「本サービス」）は、吉田町・牧之原市エリアを中心に、スマートフォンの利用相談、料金プランの見直し、機種変更サポート、防犯パトロール活動支援、地域発見情報の共有を提供する個人サービスです。</p>
+    <p>「スマホの相談士」（以下「本サービス」）は、吉田町・牧之原市エリアを中心に、スマートフォンの利用相談、料金プランの見直し、機種変更サポート、防犯パトロール活動支援、地域発見情報の共有、地域貢献活動「Co-Musubi」を提供する個人サービスです。</p>
     <table class="data-table">
       <tr><th>項目</th><th>内容</th></tr>
       <tr><td>運営者名</td><td>西舘 龍之介（櫻井）</td></tr>
@@ -304,7 +348,6 @@ vertical-align: middle;
   </div>
 
   <!-- Section 2 -->
-
   <div class="section" id="s2">
     <div class="section-title"><span class="section-num">2</span>収集する個人情報と利用目的</div>
     <p>本サービスでは、以下の情報をご提供いただく場合があります。いずれも記載された目的のみに使用し、目的外に利用することはありません。</p>
@@ -341,7 +384,7 @@ vertical-align: middle;
         <tr>
           <td>LINEユーザーID・表示名</td>
           <td>LINE公式アカウントとのやり取り・LIFFアプリ</td>
-          <td>防犯パトロール記録への紐付け・顧客管理・まちなか発見投稿の紐付け</td>
+          <td>防犯パトロール記録への紐付け・顧客管理・まちなか発見投稿の紐付け・Co-Musubiチケット管理</td>
         </tr>
         <tr>
           <td>位置情報（GPS）</td>
@@ -353,16 +396,20 @@ vertical-align: middle;
           <td>まちなか発見機能（LIFFアプリ経由）</td>
           <td>まちなか発見フィードへの表示・地域情報の共有</td>
         </tr>
+        <tr>
+          <td>決済情報（カード番号等）</td>
+          <td>Stripe決済（直接当サービスには届きません）</td>
+          <td>サブスクリプション・Co-Musubiチケット購入の決済処理</td>
+        </tr>
       </tbody>
     </table>
     <div class="important-box">
       <strong>⚠️ 機密情報は絶対に入力しないでください</strong>
-      スマホのロック解除PIN、各種サービスのパスワード、クレジットカード番号などの機密情報は、いかなるフォームにも入力しないでください。本サービスがこれらの情報をお尋ねすることはありません。
+      スマホのロック解除PIN、各種サービスのパスワード、クレジットカード番号などの機密情報は、いかなるフォームにも入力しないでください。本サービスがこれらの情報をお尋ねすることはありません。クレジットカード情報はStripe社の安全な決済システムで直接処理され、当サービスには届きません。
     </div>
   </div>
 
   <!-- Section 3 -->
-
   <div class="section" id="s3">
     <div class="section-title"><span class="section-num">3</span>LINE公式アカウントにおける情報収集について</div>
     <p>本サービスのLINE公式アカウント（@281jfkpu）をご利用いただく際、以下の情報を自動的に取得する場合があります。</p>
@@ -379,7 +426,6 @@ vertical-align: middle;
   </div>
 
   <!-- Section 4 -->
-
   <div class="section" id="s4">
     <div class="section-title"><span class="section-num">4</span>個人情報の管理・保護</div>
     <p>収集した個人情報は以下の方法で安全に管理します。</p>
@@ -389,6 +435,7 @@ vertical-align: middle;
       <li>予約情報はGoogleカレンダーおよびGoogleスプレッドシートで管理します。</li>
       <li>防犯パトロール活動で送信いただいた画像はGoogleドライブに保管し、運営者本人のみがアクセスできます。</li>
       <li>まちなか発見機能で投稿いただいた画像は画像ホスティングサービス（Imgur）を経由して保管します。</li>
+      <li>決済情報はStripe Inc.の安全な決済システムで処理され、当サービスのデータベースには保存されません。</li>
       <li>本サービスの運営に必要なシステムにはアクセス制限を設け、不正アクセスの防止に努めます。</li>
     </ul>
     <div class="important-box">
@@ -398,7 +445,6 @@ vertical-align: middle;
   </div>
 
   <!-- Section 5 -->
-
   <div class="section" id="s5">
     <div class="section-title"><span class="section-num">5</span>第三者への提供について</div>
     <p>本サービスは、以下の場合を除き、お客様の個人情報を第三者に提供・開示・売却することはありません。</p>
@@ -407,18 +453,16 @@ vertical-align: middle;
       <li>法令に基づき開示を求められた場合</li>
       <li>人の生命・身体・財産の保護のために必要で、本人の同意を得ることが困難な場合</li>
     </ul>
-    <p style="margin-top:12px; font-size:0.85rem; color: var(--muted);">※ 本サービスが利用するシステム（Google Workspace、Notion、LINE Messaging API、Imgur）のデータ処理については、各プロバイダーのプライバシーポリシーが適用されます。</p>
+    <p style="margin-top:12px; font-size:0.85rem; color: var(--muted);">※ 本サービスが利用するシステム（Google Workspace、Notion、LINE Messaging API、Imgur、Stripe）のデータ処理については、各プロバイダーのプライバシーポリシーが適用されます。</p>
   </div>
 
   <!-- Section 6 -->
-
   <div class="section" id="s6">
     <div class="section-title"><span class="section-num">6</span>Cookieおよびアクセス解析について</div>
     <p>本サービスのウェブサイトはGitHub Pagesにてホスティングされており、現時点では独自のアクセス解析ツールは使用していません。予約フォームおよびまちなか発見機能にはローカルストレージ（ブラウザ内の一時保存機能）を使用し、直前の操作履歴やいいね情報をご本人の端末内にのみ保存します。この情報は外部に送信されません。</p>
   </div>
 
   <!-- Section 7 -->
-
   <div class="section" id="s7">
     <div class="section-title"><span class="section-num">7</span>地域安全マップ（防犯パトロール機能）について</div>
     <p>本サービスが提供する「地域安全マップ」は、LINE公式アカウントのリッチメニューからご送信いただいた位置情報を地図上に表示する機能です。</p>
@@ -442,15 +486,14 @@ vertical-align: middle;
     </div>
   </div>
 
-  <!-- Section 7b：まちなか発見（NEW） -->
-
-  <div class="section" id="s7b">
-    <div class="section-title"><span class="section-num">8</span>まちなか発見機能（地域発見投稿）について <span class="new-badge">NEW</span></div>
+  <!-- Section 8 -->
+  <div class="section" id="s8">
+    <div class="section-title"><span class="section-num">8</span>まちなか発見機能（地域発見投稿）について</div>
     <p>「まちなか発見」機能は、地域の素敵な場所・グルメ・困りごと・イベント情報を投稿・閲覧できる地域情報共有機能です。</p>
     <ul class="check-list">
       <li>投稿された位置情報（緯度・経度）・カテゴリ・日時・地点名はまちなか発見マップに表示されます。</li>
       <li>投稿者のLINEユーザーID・表示名は一般公開されません。</li>
-      <li>投稿いただいた画像は画像ホスティングサービス（Imgur、imgu.com）を経由して保管・表示されます。Imgurのプライバシーポリシーが適用されます。</li>
+      <li>投稿いただいた画像は画像ホスティングサービス（Imgur、imgur.com）を経由して保管・表示されます。Imgurのプライバシーポリシーが適用されます。</li>
       <li>不適切な投稿・画像は運営者の判断で削除する場合があります。</li>
       <li>投稿内容の著作権は投稿者に帰属しますが、本サービスの運営・宣伝目的での使用（SNS等への転載を含む）に同意いただいたものとみなします。</li>
     </ul>
@@ -464,14 +507,13 @@ vertical-align: middle;
     </div>
   </div>
 
-  <!-- Section 7c：LIFF（NEW） -->
-
-  <div class="section" id="s7c">
-    <div class="section-title"><span class="section-num">9</span>LIFFアプリ（LINE連携ウェブ機能）について <span class="new-badge">NEW</span></div>
+  <!-- Section 9 -->
+  <div class="section" id="s9">
+    <div class="section-title"><span class="section-num">9</span>LIFFアプリ（LINE連携ウェブ機能）について</div>
     <p>本サービスの一部機能は、LINE Front-end Framework（LIFF）を使用しています。LIFFはLINE株式会社が提供するウェブアプリ基盤です。</p>
     <ul class="check-list">
       <li>LIFFアプリを開くと、LINEアカウントのユーザーID・表示名・プロフィール画像URLが自動的に取得されます。これはLINEへのログイン状態を利用するためです。</li>
-      <li>取得した情報は本サービスの顧客管理（スマホカルテ・まちなか発見投稿の紐付け）のみに使用します。</li>
+      <li>取得した情報は本サービスの顧客管理（スマホカルテ・まちなか発見投稿の紐付け・Co-Musubiチケット管理）のみに使用します。</li>
       <li>LIFFアプリの利用にはLINEへのログインが必要です。LINEアカウントをお持ちでない方はご利用いただけません。</li>
       <li>LINEの認証に関するデータ処理についてはLINE株式会社のプライバシーポリシーが適用されます。</li>
     </ul>
@@ -481,38 +523,130 @@ vertical-align: middle;
     </div>
   </div>
 
-  <!-- Section 8（旧8→10） -->
+  <!-- Section 10：Co-Musubiチケット（NEW） -->
+  <div class="section musubi-section" id="s10">
+    <div class="section-title"><span class="section-num">10</span>Co-Musubiチケットについて <span class="musubi-badge">NEW</span></div>
+    <p>「Co-Musubiチケット」は、地域の困りごと解決と子どもたちへの還元を目的とした、本サービス独自の地域貢献チケットです。</p>
+    
+    <div class="musubi-box">
+      <strong>🌿 Co-Musubi（結びの輪）の理念</strong>
+      購入者の善意を、見えるかたちで地域に還元する仕組みです。<br>
+      購入額の8割は地域の困りごと解決に、2割は必ず子どもたちへの還元に使用されます。
+    </div>
 
-  <div class="section" id="s8">
-    <div class="section-title"><span class="section-num">10</span>免責事項</div>
+    <h4 style="margin-top:16px; margin-bottom:8px; color: var(--navy); font-size: 0.95rem;">■ チケットの内容</h4>
+    <ul class="check-list">
+      <li>1枚あたりの価格・有効期限はチケット販売ページに明示します。</li>
+      <li>チケットの有効期限は<strong>発行日から6ヶ月以内</strong>とします。</li>
+      <li>期限を過ぎたチケットは失効し、払い戻しは行いません。</li>
+      <li>チケットは本サービス（運営者：西舘龍之介）のサービス提供にのみ使用できます。</li>
+      <li>チケットの転売・譲渡・贈与は可能ですが、現金との交換はできません。</li>
+    </ul>
+
+    <h4 style="margin-top:16px; margin-bottom:8px; color: var(--navy); font-size: 0.95rem;">■ 基金の使い道</h4>
+    <p>購入いただいたチケットの代金は「Co-Musubi基金」としてプールされ、以下の用途に使用します。</p>
+    <table class="data-table">
+      <tr><th>配分</th><th>用途</th></tr>
+      <tr><td>80%</td><td>地域の困りごと解決（高齢者スマホサポート、買い物付き添い、操作教室、地域イベントでの無料相談等）</td></tr>
+      <tr><td>20%</td><td>子どもたちへの還元（地域子ども会への寄付、PTAイベント協賛、子ども向けスマホ教室の開催費等）</td></tr>
+    </table>
+
+    <h4 style="margin-top:16px; margin-bottom:8px; color: var(--navy); font-size: 0.95rem;">■ チケット使用時の通知</h4>
+    <ul class="check-list">
+      <li>購入いただいたチケットが使用された際、LINEで通知をお送りします。</li>
+      <li>通知には「いつ・どこで・何に使われたか」の概要を含めますが、利用者の個人を特定できる情報は含めません。</li>
+      <li>月次で「Co-Musubi通信」として、基金全体の使途報告をLINEで配信します。</li>
+    </ul>
+
+    <h4 style="margin-top:16px; margin-bottom:8px; color: var(--navy); font-size: 0.95rem;">■ 払い戻し・キャンセル</h4>
+    <ul class="check-list">
+      <li>購入後のチケットは、原則として払い戻し・キャンセルは行いません。</li>
+      <li>ただし、運営者の責に帰すべき事由（サービス停止等）により使用できなくなった場合は、未使用分について返金対応をいたします。</li>
+      <li>長期間（30日以上）の入院等の特別な事情がある場合は、個別にご相談ください。</li>
+    </ul>
+
+    <div class="musubi-box">
+      <strong>💡 Co-Musubiチケットの法的位置づけ</strong>
+      Co-Musubiチケットは、資金決済法上の「自家型前払式支払手段」に該当しますが、有効期限が6ヶ月以内であるため、同法の適用除外となります（資金決済法第4条第1号）。<br>
+      また、本サービスは前払式支払手段の未使用残高が1,000万円を超えた場合は、財務局への届出を行います。
+    </div>
+
+    <div class="important-box">
+      <strong>⚠️ チケット使用に関する注意事項</strong>
+      <ul class="check-list" style="margin-top:10px;">
+        <li>チケットは現金や他社サービスとの引き換えには使用できません。</li>
+        <li>チケットの不正使用が確認された場合、当該チケットは無効となります。</li>
+        <li>有効期限切れのチケットの復活はできません。期限内のご使用をお願いします。</li>
+        <li>Co-Musubi基金の使途は、四半期に1回、noteまたはLINEで公開報告します。</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Section 11：サブスク（NEW） -->
+  <div class="section" id="s11">
+    <div class="section-title"><span class="section-num">11</span>サブスクリプションサービス（継続サポートプラン）について <span class="new-badge">NEW</span></div>
+    <p>本サービスは「個人プラン」「ご家族プラン」のサブスクリプション型継続サポートプランを提供しています。</p>
+
+    <h4 style="margin-top:16px; margin-bottom:8px; color: var(--navy); font-size: 0.95rem;">■ プランの内容と料金</h4>
+    <table class="data-table">
+      <tr><th>プラン</th><th>月払い</th><th>年払い</th></tr>
+      <tr><td>個人プラン</td><td>¥440（税込）</td><td>¥4,400（税込・2ヶ月分お得）</td></tr>
+      <tr><td>ご家族プラン（4名様まで）</td><td>¥980（税込）</td><td>¥9,800（税込・約2ヶ月分お得）</td></tr>
+    </table>
+
+    <h4 style="margin-top:16px; margin-bottom:8px; color: var(--navy); font-size: 0.95rem;">■ 含まれるサービス</h4>
+    <ul class="check-list">
+      <li>吉田町内：出張費がいつでも無料</li>
+      <li>LINEでの操作質問・相談が無料</li>
+      <li>年1回のスマホ健康診断（カルテ更新）</li>
+      <li>スポットメニューがすべて20%OFF</li>
+    </ul>
+
+    <h4 style="margin-top:16px; margin-bottom:8px; color: var(--navy); font-size: 0.95rem;">■ 解約について</h4>
+    <ul class="check-list">
+      <li>サブスクリプションはいつでも解約可能です。Stripeのお客様マイページからご自身で解約手続きができます。</li>
+      <li>解約後も、次回更新日まではサービスをご利用いただけます。</li>
+      <li>日割り計算による返金は行いません。</li>
+      <li>解約手続きが分からない場合は、LINE公式アカウントにてご案内します。</li>
+    </ul>
+
+    <div class="info-box">
+      <strong>💝 サブスク会費の10%はCo-Musubi基金へ</strong>
+      毎月のサブスク会費の10%は、自動的にCo-Musubi基金に拠出され、地域の困りごと解決と子どもたちへの還元に使用されます。皆様の継続的なご加入が、地域を支える力になります。
+    </div>
+  </div>
+
+  <!-- Section 12：免責事項 -->
+  <div class="section" id="s12">
+    <div class="section-title"><span class="section-num">12</span>免責事項</div>
     <ul class="check-list">
       <li>本サービスの情報は、スマートフォン・通信プランに関する一般的な相談・サポートを目的とするものであり、特定の商品・サービスの購入を強制するものではありません。</li>
       <li>料金比較シミュレーターの結果は参考値であり、実際の料金と異なる場合があります。</li>
       <li>地域安全マップおよびまちなか発見マップに表示される情報の正確性・最新性について、運営者は保証しません。</li>
       <li>天災・システム障害等、運営者の責に帰さない事由によるサービス停止については、責任を負いかねます。</li>
-      <li>本サービスはGoogle・LINE・Notion・Imgurなどの外部サービスを利用しており、これらのサービス変更・障害による影響については責任を負いかねます。</li>
+      <li>本サービスはGoogle・LINE・Notion・Imgur・Stripeなどの外部サービスを利用しており、これらのサービス変更・障害による影響については責任を負いかねます。</li>
       <li>まちなか発見機能への投稿内容は、投稿者本人の責任に帰属します。投稿内容によって生じた損害について、運営者は責任を負いかねます。</li>
+      <li>Co-Musubi基金の運用状況については四半期ごとに報告しますが、個別の使途決定権は運営者に委ねていただきます。</li>
     </ul>
   </div>
 
-  <!-- Section 9（旧9→11） -->
-
-  <div class="section" id="s9">
-    <div class="section-title"><span class="section-num">11</span>利用規約の変更について</div>
+  <!-- Section 13：規約変更 -->
+  <div class="section" id="s13">
+    <div class="section-title"><span class="section-num">13</span>利用規約の変更について</div>
     <p>本規約は、法令の変更・サービス内容の変更等に応じて予告なく改定する場合があります。改定後は本ページに最新版を掲載し、重要な変更の場合はLINE公式アカウントにてお知らせします。</p>
     <p>改定後に本サービスをご利用いただいた場合、改定後の規約に同意いただいたものとみなします。</p>
     <div class="history">
       📋 更新履歴<br>
       2026年4月24日 — 初版制定<br>
       2026年4月27日 — 第7章に写真送信禁止事項を追記<br>
-      2026年4月30日 — まちなか発見機能（第8章）・LIFFアプリ（第9章）・ブラウザGPS位置情報取得・Imgur画像保管・免責事項追記
+      2026年4月30日 — まちなか発見機能・LIFFアプリ・ブラウザGPS位置情報取得・Imgur画像保管・免責事項追記<br>
+      2026年5月24日 — Co-Musubiチケット条項・サブスクリプション条項・特定商取引法に基づく表記を追加
     </div>
   </div>
 
-  <!-- Section 10（旧10→12） -->
-
-  <div class="section" id="s10">
-    <div class="section-title"><span class="section-num">12</span>お問い合わせ・情報開示請求</div>
+  <!-- Section 14：お問い合わせ -->
+  <div class="section" id="s14">
+    <div class="section-title"><span class="section-num">14</span>お問い合わせ・情報開示請求</div>
     <p>個人情報の開示・訂正・削除のご請求、または本規約に関するお問い合わせは、以下の方法にてお受けしています。</p>
     <table class="data-table">
       <tr><th>連絡方法</th><th>詳細</th></tr>
@@ -521,11 +655,43 @@ vertical-align: middle;
       <tr><td>対応時間</td><td>平日・土日 9:00〜21:00（年末年始を除く）</td></tr>
     </table>
     <p style="margin-top:12px; font-size:0.85rem;">ご請求いただいてから原則7日以内に対応いたします。本人確認が必要な場合は別途ご案内します。</p>
-    <div class="contact-box">
-      <h3>📩 LINEでお気軽にご相談ください</h3>
-      <p>プライバシーに関するご不明点や<br>情報削除のご依頼はLINEが最も早く対応できます。</p>
-      <a href="https://line.me/R/ti/p/@281jfkpu" class="contact-line-btn">LINEで問い合わせる</a>
+  </div>
+
+  <!-- Section 15：特定商取引法（NEW） -->
+  <div class="section" id="s15">
+    <div class="section-title"><span class="section-num">15</span>特定商取引法に基づく表記 <span class="new-badge">NEW</span></div>
+    <p>特定商取引に関する法律第11条に基づき、以下のとおり表記します。</p>
+    
+    <table class="data-table tokushou-table">
+      <tr><th>販売事業者</th><td>西舘 龍之介（櫻井）</td></tr>
+      <tr><th>運営責任者</th><td>西舘 龍之介（櫻井）</td></tr>
+      <tr><th>所在地</th><td>静岡県榛原郡吉田町<br>※詳細な所在地はご請求いただければ遅滞なく開示します。</td></tr>
+      <tr><th>電話番号</th><td>080-8012-1720<br>※受付時間：平日・土日 9:00〜21:00</td></tr>
+      <tr><th>メールアドレス</th><td>LINE公式アカウント（@281jfkpu）にてお問い合わせください。</td></tr>
+      <tr><th>販売価格</th><td>各サービスページに税込価格で表示<br>・スポットサポート：¥3,300〜¥11,000(税込)<br>・サブスクリプション：¥440/月〜¥9,800/年(税込)<br>・Co-Musubiチケット：価格はチケット販売ページに表示</td></tr>
+      <tr><th>商品代金以外の必要料金</th><td>・吉田町以外への出張費：1,000円(会員様：550円)<br>・通信費・決済手数料はお客様のご負担となる場合があります。</td></tr>
+      <tr><th>支払方法</th><td>・クレジットカード決済(Stripe)<br>・現金(対面サービスのみ)<br>・LINE Pay(対面サービスのみ・要相談)</td></tr>
+      <tr><th>支払時期</th><td>・スポットサポート:サービス提供完了時<br>・サブスクリプション:契約時(初回)、以降は毎月または毎年の更新日<br>・Co-Musubiチケット:購入時</td></tr>
+      <tr><th>サービス提供時期</th><td>・スポットサポート:予約日時にサービスを提供<br>・サブスクリプション:決済完了後、即時に会員特典が有効化<br>・Co-Musubiチケット:購入後即時利用可能(有効期限:発行日から6ヶ月)</td></tr>
+      <tr><th>返品・キャンセル</th><td>
+        【スポットサポート】サービス提供前のキャンセルは無料。当日キャンセル・無断キャンセルは料金の50%を申し受けます。<br><br>
+        【サブスクリプション】Stripeのお客様マイページからいつでも解約可能。日割り計算による返金は行いません。<br><br>
+        【Co-Musubiチケット】購入後の払い戻しは原則行いません。運営者の責に帰すべき事由による場合のみ未使用分を返金します。<br><br>
+        【すべての商品】お客様都合による返品・返金は受け付けておりません。
+      </td></tr>
+      <tr><th>動作環境</th><td>・スマートフォン:iOS 14以降 / Android 9以降<br>・ブラウザ:Safari / Chrome / LINE内ブラウザ最新版<br>・LINEアプリ:最新版(LIFF機能利用時)</td></tr>
+    </table>
+
+    <div class="info-box" style="margin-top:16px;">
+      <strong>📞 詳細な所在地のご請求について</strong>
+      個人事業主のため、所在地の詳細はプライバシー保護のため省略していますが、ご請求があれば遅滞なく開示いたします。LINE公式アカウントまたはお電話にてお問い合わせください。
     </div>
+  </div>
+
+  <div class="contact-box">
+    <h3>📩 LINEでお気軽にご相談ください</h3>
+    <p>プライバシーに関するご不明点や<br>情報削除のご依頼はLINEが最も早く対応できます。</p>
+    <a href="https://line.me/R/ti/p/@281jfkpu" class="contact-line-btn">LINEで問い合わせる</a>
   </div>
 
 </div>

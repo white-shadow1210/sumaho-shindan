@@ -279,6 +279,32 @@
             </label>
         </div>
     </div>
+<!-- ↓ ここに同意確認バナーを追加 ↓ -->
+
+<!-- ★ プライバシーポリシー同意確認 -->
+<div style="
+    background: #fff8e1;
+    border: 1px solid #ffe082;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin: 16px 20px;
+    font-size: 0.82rem;
+    color: #5d4037;
+    text-align: center;
+">
+    ご予約の前に
+    <a href="https://white-shadow1210.github.io/sumaho-shindan/terms.html" 
+       target="_blank"
+       style="color: #1976d2; font-weight: 700; text-decoration: underline;">
+        利用規約・プライバシーポリシー
+    </a>
+    をご確認ください
+</div>
+
+<div class="bottom-nav">   ← 既存のコード(283行目)
+    <button class="btn btn-back" id="btn-back" style="display:none;" onclick="goBack()">戻る</button>
+    <button class="btn btn-next" id="btn-next" onclick="goNext()">次へ (日時を指定)</button>
+</div>
 
     <div class="bottom-nav">
         <button class="btn btn-back" id="btn-back" style="display:none;" onclick="goBack()">戻る</button>
@@ -697,6 +723,35 @@
   }
 })();
 </script>
+</script>     ← 699行目(既存)
+
+
+<!-- ★ 共通フッター(プライバシーポリシー・利用規約) -->
+<footer style="
+    background: #f8f9fa;
+    padding: 20px 16px;
+    text-align: center;
+    border-top: 1px solid #e2e8f0;
+    margin-top: 30px;
+">
+    <div style="font-size: 0.78rem; color: #718096; line-height: 1.8;">
+        <a href="https://white-shadow1210.github.io/sumaho-shindan/terms.html" 
+           style="color: #249496; text-decoration: none; margin: 0 10px;">
+            利用規約・プライバシーポリシー
+        </a>
+        <span style="color: #cbd5e0;">|</span>
+        <a href="https://white-shadow1210.github.io/sumaho-shindan/terms.html#s15" 
+           style="color: #249496; text-decoration: none; margin: 0 10px;">
+            特定商取引法に基づく表記
+        </a>
+    </div>
+    <div style="font-size: 0.7rem; color: #a0aec0; margin-top: 8px;">
+        © 2026 スマホ相談士 西舘
+    </div>
+</footer>
+
+</body>      ← 701行目(既存)
+</html>
 
 </body>
 </html>

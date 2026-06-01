@@ -130,6 +130,13 @@ textarea.form-input { resize: vertical; min-height: 70px; }
 .discount-row-price { font-size: 0.75rem; font-weight: bold; color: #d32f2f; }
 .discount-row.active .discount-row-price { color: #27ae60; }
 
+/* 通話オプション（1つ選択） */
+.callopt-area { background: #f9f9f7; border: 1px solid #e0ddd6; border-radius: 8px; padding: 10px; margin-bottom: 10px; }
+.callopt-title { font-size: 0.68rem; font-weight: bold; color: #777; margin-bottom: 7px; }
+.callopt-row.active { background: #e8f7f7; border-color: #249496; }
+.callopt-row.active .discount-row-label { color: #1b7a7c; }
+.callopt-row.active .discount-row-price { color: #e67e22; }
+
 .cost-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .cost-row label { font-size: 0.72rem; color: #777; flex: 0 0 75px; }
 .cost-row input { flex: 1; padding: 7px 10px; border: 1.5px solid #e0ddd6; border-radius: 6px; font-size: 0.88rem; text-align: right; font-family: inherit; min-width: 0; }
@@ -396,6 +403,10 @@ textarea.form-input { resize: vertical; min-height: 70px; }
         <div class="discount-title">✅ 適用中の割引（タップで即時反映）</div>
         <div class="discount-grid" id="cur-discount-list"></div>
       </div>
+      <div class="callopt-area" id="cur-callopt-area" style="display:none;">
+        <div class="callopt-title">📞 通話オプション（1つ選択）</div>
+        <div class="discount-grid" id="cur-callopt-list"></div>
+      </div>
       <div class="cost-row" style="margin-top:8px;">
         <label>端末分割代</label>
         <input type="number" id="cur-device" placeholder="0" oninput="calcAll()">
@@ -436,6 +447,10 @@ textarea.form-input { resize: vertical; min-height: 70px; }
       <div class="discount-area" id="prop-discount-area" style="display:none;">
         <div class="discount-title">✅ 適用予定の割引（タップで即時反映）</div>
         <div class="discount-grid" id="prop-discount-list"></div>
+      </div>
+      <div class="callopt-area" id="prop-callopt-area" style="display:none;">
+        <div class="callopt-title">📞 通話オプション（1つ選択）</div>
+        <div class="discount-grid" id="prop-callopt-list"></div>
       </div>
       <div class="cost-row" style="margin-top:8px;">
         <label>端末分割代</label>
@@ -781,6 +796,7 @@ const CARRIER_DATA = {
     ],
     discountsByPlan: {
       'シンプル3 S（5GB）': [
+        { label:'60歳以上割（24h通話 -1100）', amount:-1100 },
         { label:'家族割引サービス（3人以上）', amount:-1100 },
         { label:'家族割引サービス（2人）',     amount:-1100 },
         { label:'おうち割（光セット）',        amount:-1650 },
@@ -791,6 +807,7 @@ const CARRIER_DATA = {
         { label:'はじめてスマホ割（12ヶ月）', amount:-1100 },
       ],
       'シンプル3 M（30GB）': [
+        { label:'60歳以上割（24h通話 -1100）', amount:-1100 },
         { label:'家族割引サービス（3人以上）', amount:-1100 },
         { label:'家族割引サービス（2人）',     amount:-1100 },
         { label:'おうち割（光セット）',        amount:-1650 },
@@ -801,6 +818,7 @@ const CARRIER_DATA = {
         { label:'はじめてスマホ割（12ヶ月）', amount:-1100 },
       ],
       'シンプル3 L（35GB）': [
+        { label:'60歳以上割（24h通話 -1100）', amount:-1100 },
         { label:'家族割引サービス（3人以上）', amount:-1100 },
         { label:'家族割引サービス（2人）',     amount:-1100 },
         { label:'おうち割（光セット）',        amount:-1650 },
@@ -821,6 +839,7 @@ const CARRIER_DATA = {
     ],
     discountsByPlan: {
       'トクトクプラン2（〜5GB）': [
+        { label:'60歳以上割（24h通話 -1100）', amount:-1100 },
         { label:'家族割（3人以上）',   amount:-550 },
         { label:'家族割（2人）',       amount:-550 },
         { label:'auひかりセット割',    amount:-1100 },
@@ -829,6 +848,7 @@ const CARRIER_DATA = {
         { label:'親子応援割（U18・翌月〜1年間）', amount:-1650 },
       ],
       'トクトクプラン2（〜30GB）': [
+        { label:'60歳以上割（24h通話 -1100）', amount:-1100 },
         { label:'家族割（3人以上）',   amount:-550 },
         { label:'家族割（2人）',       amount:-550 },
         { label:'auひかりセット割',    amount:-1100 },
@@ -844,6 +864,33 @@ const CARRIER_DATA = {
     defaultDiscounts: [],
   },
 };
+
+// ==========================================
+// 通話オプション（1つ選択）
+//  解決順：プラン個別 → キャリア標準 → 汎用
+// ==========================================
+const CALL_OPTIONS = {
+  'docomo':   [ {label:'なし（30秒22円）',amount:0}, {label:'5分かけ放題',amount:880}, {label:'24時間かけ放題',amount:1980} ],
+  'SoftBank': [ {label:'なし（30秒22円）',amount:0}, {label:'5分かけ放題',amount:880}, {label:'24時間かけ放題',amount:1980} ],
+  'au':       [ {label:'なし（30秒22円）',amount:0}, {label:'5分かけ放題',amount:880}, {label:'24時間かけ放題',amount:1980} ],
+  'Rakuten Mobile': [ {label:'Rakuten Linkで無料',amount:0}, {label:'15分標準通話かけ放題',amount:1100} ],
+  'Y mobile': [ {label:'なし（30秒22円）',amount:0}, {label:'だれとでも定額+（10分）',amount:880}, {label:'スーパーだれとでも定額+（24時間）',amount:1980} ],
+  'UQ mobile':[ {label:'なし（30秒22円）',amount:0}, {label:'10分かけ放題',amount:880}, {label:'24時間かけ放題',amount:1980} ],
+};
+// プラン名で個別に上書き（CSV上で標準と異なるもののみ）
+const CALL_OPTIONS_BY_PLAN = {
+  // docomo（5分無料込み・24h+1100）
+  'ahamo（30GB）':              [ {label:'5分かけ放題（無料込み）',amount:0}, {label:'24時間かけ放題',amount:1100} ],
+  'ahamo大盛り（110GB）':        [ {label:'5分かけ放題（無料込み）',amount:0}, {label:'24時間かけ放題',amount:1100} ],
+  'はじめてスマホU15（10GB）':   [ {label:'5分かけ放題（無料込み）',amount:0}, {label:'24時間かけ放題',amount:1100} ],
+  'はじめてスマホU15（5GB）':    [ {label:'5分かけ放題（無料込み）',amount:0}, {label:'24時間かけ放題',amount:1100} ],
+  'はじめてスマホ（1GB）':       [ {label:'5分かけ放題（無料込み）',amount:0}, {label:'24時間かけ放題',amount:1100} ],
+  // au（5分無料込み・24h+1100）
+  'シニアバリュープラン（5GB）': [ {label:'5分かけ放題（無料込み）',amount:0}, {label:'24時間かけ放題',amount:1100} ],
+  // UQ（10分無料込み・24h+1100）
+  'コミコミプランバリュー（35GB）':[ {label:'10分かけ放題（無料込み）',amount:0}, {label:'24時間かけ放題',amount:1100} ],
+};
+const CALL_OPT_DEFAULT = [ {label:'なし（30秒22円）',amount:0}, {label:'5分/10分かけ放題',amount:880}, {label:'24時間かけ放題',amount:1980} ];
 
 const APP_LIST = [
   { name:'🟩 LINE',         key:'line' },
@@ -865,6 +912,8 @@ const APP_LIST = [
 var curCarrier = '', propCarrier = '';
 var curBaseFee = 0, propBaseFee = 0;
 var curDiscountTotal = 0, propDiscountTotal = 0;
+var curCallOpt = 0, propCallOpt = 0;
+var curCallOptLabel = '', propCallOptLabel = '';
 var appData = {};
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -897,8 +946,10 @@ function selectCurCarrier(el, carrier) {
   curCarrier = carrier;
   curBaseFee = 0;
   curDiscountTotal = 0;
+  curCallOpt = 0; curCallOptLabel = '';
   updatePlanSelect('cur', carrier);
   document.getElementById('cur-discount-area').style.display = 'none';
+  document.getElementById('cur-callopt-area').style.display = 'none';
   document.getElementById('cur-plan-result').textContent = 'プランを選択してください';
   calcAll();
 }
@@ -908,8 +959,10 @@ function selectPropCarrier(el, carrier) {
   propCarrier = carrier;
   propBaseFee = 0;
   propDiscountTotal = 0;
+  propCallOpt = 0; propCallOptLabel = '';
   updatePlanSelect('prop', carrier);
   document.getElementById('prop-discount-area').style.display = 'none';
+  document.getElementById('prop-callopt-area').style.display = 'none';
   document.getElementById('prop-plan-result').textContent = 'プランを選択してください';
   calcAll();
 }
@@ -937,6 +990,7 @@ function onCurPlanSelect() {
   document.getElementById('cur-plan-result').innerHTML =
     '基本料：<strong>¥' + plan.base.toLocaleString() + '</strong>/月　データ：' + plan.data;
   buildDiscounts('cur', plan.name, cd);
+  buildCallOptions('cur', carrier, plan.name);
   calcAll();
 }
 function onPropPlanSelect() {
@@ -951,6 +1005,7 @@ function onPropPlanSelect() {
   document.getElementById('prop-plan-result').innerHTML =
     '基本料：<strong>¥' + plan.base.toLocaleString() + '</strong>/月　データ：' + plan.data;
   buildDiscounts('prop', plan.name, cd);
+  buildCallOptions('prop', carrier, plan.name);
   calcAll();
 }
 function buildDiscounts(side, planName, cd) {
@@ -987,14 +1042,46 @@ function buildDiscounts(side, planName, cd) {
   });
   area.style.display = 'block';
 }
+function buildCallOptions(side, carrier, planName) {
+  var opts = (planName && CALL_OPTIONS_BY_PLAN[planName])
+    ? CALL_OPTIONS_BY_PLAN[planName]
+    : (CALL_OPTIONS[carrier] || CALL_OPT_DEFAULT);
+  var area = document.getElementById(side + '-callopt-area');
+  var list = document.getElementById(side + '-callopt-list');
+  list.innerHTML = '';
+  if (side === 'cur') { curCallOpt = 0; curCallOptLabel = ''; }
+  else                { propCallOpt = 0; propCallOptLabel = ''; }
+  opts.forEach(function(o) {
+    var row = document.createElement('div');
+    row.className = 'discount-row callopt-row';
+    var priceTxt = o.amount > 0 ? '+¥' + o.amount.toLocaleString() : '±¥0';
+    var color    = o.amount > 0 ? 'color:#e67e22' : 'color:#777';
+    row.innerHTML =
+      '<span class="discount-row-label">' + o.label + '</span>' +
+      '<span class="discount-row-price" style="' + color + '">' + priceTxt + '</span>';
+    row.onclick = (function(r, amount, label, s) {
+      return function() {
+        // 1つだけ選択（同グループの選択を解除）
+        document.getElementById(s + '-callopt-list').querySelectorAll('.callopt-row')
+          .forEach(function(x){ x.classList.remove('active'); });
+        r.classList.add('active');
+        if (s === 'cur') { curCallOpt = amount; curCallOptLabel = label; }
+        else             { propCallOpt = amount; propCallOptLabel = label; }
+        calcAll();
+      };
+    })(row, o.amount, o.label, side);
+    list.appendChild(row);
+  });
+  area.style.display = 'block';
+}
 function calcAll() {
   var curDevice = parseInt(document.getElementById('cur-device').value) || 0;
   var curOther  = parseInt(document.getElementById('cur-other').value)  || 0;
-  var curTotal  = curBaseFee + curDiscountTotal + curDevice + curOther;
+  var curTotal  = curBaseFee + curDiscountTotal + curCallOpt + curDevice + curOther;
   if (curTotal < 0) curTotal = 0;
   var propDevice = parseInt(document.getElementById('prop-device').value) || 0;
   var propOther  = parseInt(document.getElementById('prop-other').value)  || 0;
-  var propTotal  = propBaseFee + propDiscountTotal + propDevice + propOther;
+  var propTotal  = propBaseFee + propDiscountTotal + propCallOpt + propDevice + propOther;
   if (propTotal < 0) propTotal = 0;
   document.getElementById('cur-total-display').textContent  = '¥' + curTotal.toLocaleString();
   document.getElementById('prop-total-display').textContent = '¥' + propTotal.toLocaleString();
@@ -1116,8 +1203,8 @@ async function submitKarte() {
   var curOther   = parseInt(document.getElementById('cur-other').value)   || 0;
   var propDevice = parseInt(document.getElementById('prop-device').value) || 0;
   var propOther  = parseInt(document.getElementById('prop-other').value)  || 0;
-  var curTotal   = curBaseFee  + curDiscountTotal  + curDevice  + curOther;
-  var propTotal  = propBaseFee + propDiscountTotal + propDevice + propOther;
+  var curTotal   = curBaseFee  + curDiscountTotal  + curCallOpt  + curDevice  + curOther;
+  var propTotal  = propBaseFee + propDiscountTotal + propCallOpt + propDevice + propOther;
   if (curTotal  < 0) curTotal  = 0;
   if (propTotal < 0) propTotal = 0;
   var apps  = getAppSummary();
@@ -1135,6 +1222,8 @@ async function submitKarte() {
     tlTxt ? 'スマホ遍歴：'+tlTxt : '',
     getActiveCurDiscounts()  ? '現在割引：'+getActiveCurDiscounts()  : '',
     getActivePropDiscounts() ? '提案割引：'+getActivePropDiscounts() : '',
+    curCallOptLabel  ? '現在通話：'+curCallOptLabel  : '',
+    propCallOptLabel ? '提案通話：'+propCallOptLabel : '',
   ];
 
   // ★ v6.9.1: 流入経路を取得
@@ -1159,6 +1248,8 @@ async function submitKarte() {
     propCarrier:  propCarrier,
     propPlanName: propPlanName,
     discounts:    getActivePropDiscounts(),
+    callOptionCur:  curCallOptLabel,
+    callOptionProp: propCallOptLabel,
     nextFollow:   document.getElementById('next-follow').value.trim(),
     currentCost:  curTotal,
     proposedCost: propTotal,

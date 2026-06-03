@@ -6,6 +6,27 @@
 
 ## [未リリース]
 
+### 2026-06-03  Task 2 GASセキュリティ強化（実装）
+- `gas/main.gs` を Git 管理下に取り込み（origin/main をマージ）
+- NG_WORDS を2層化（NG_WORDS_REJECT / NG_WORDS_WARN）。NG_WORDS は後方互換で REJECT を参照
+- 新規構成：
+  - 定数：`STANDARD_CARRIERS`, `CHIIKI_CATEGORIES`, `PAYLOAD_SCHEMAS`（8 formType）
+  - 関数：`validatePayload_`, `isTokenValid_`, `checkNGWords_`, `pushToLine_`,
+    `pushToOperator_`, `pushAnomalyAlert_`, `buildAnomalyFlex_`
+- 既存関数の拡張：
+  - `handleWebForm`：トークン照合を `isTokenValid_` 経由（新+旧併用ロジック）、スキーマ検証、各拒否点で `pushAnomalyAlert_` フック
+  - `handleChiikiPost`：スキーマ検証＋NGワードを `checkNGWords_` の2層判定に
+  - `handleChiikiLike` / `handleOshiraseReaction`：スキーマ検証フック
+  - `verifyLineSignature`：戻り値は据置、失敗ケースのみ観測通知
+  - `addMachiPoint`：内部 Push を `pushToLine_` に置換（DRY化、挙動互換）
+- severity 既定は `warn`（受理＋通知）。enum/必須漏れ等の構造的エラーのみ `reject`
+- フロント7ファイルへの実トークン置換・デプロイは龍之介が手作業で実施
+- 置換対象（フロントの `token: 'smaho2026sakurai'` 出現箇所）：
+  - `karte.html:1144`（grep `smaho2026sakurai` で確認）
+  - `index.html:425`（`SECRET_TOKEN` 定数経由）
+  - `app-check.html:338`
+  - `reserve.html` / `chiiki.html` / `oshirase.html` / `map.html` は別GASまたは token送信なし → 主たる置換対象は karte / index / app-check の3ファイル
+
 ### 2026-06-01  karte.html 通話オプション/60歳以上割 追加（フロント）
 - 料金タブに通話オプション欄を追加（プラン単位の出し分け・1つ選択・合計に加算）
 - Y!mobile / UQ の割引先頭に「60歳以上割（-1,100）」を追加

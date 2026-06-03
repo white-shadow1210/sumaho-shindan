@@ -41,7 +41,20 @@ const MAX_IMAGE_BASE64_SIZE = 5 * 1024 * 1024;
 const MAX_DAILY_CHIIKI_POSTS = 10;
 const MAX_DAILY_KOMARI = 10;
 
-const NG_WORDS = [];
+// Task 2: NGワードを2層化
+//   NG_WORDS_REJECT: 即拒否（URL短縮・露骨な詐欺定型）
+//   NG_WORDS_WARN  : 受理＋運営者通知（誤検知リスクある語彙、初期はwarn運用）
+// NG_WORDS（後方互換）は NG_WORDS_REJECT を参照。containsNGWord() は引き続き reject 層のみ判定。
+const NG_WORDS_REJECT = [
+  'bit.ly/', 'tinyurl.com/', 't.co/', 'goo.gl/', 'ow.ly/',
+  '必ず儲か', '元本保証', '当選しました', '高額当選',
+  '無料プレゼント当選', '高額バイト'
+];
+const NG_WORDS_WARN = [
+  '副業', 'パパ活', '在宅で稼', '不労所得',
+  'FX自動', '仮想通貨で稼', '出会い系'
+];
+const NG_WORDS = NG_WORDS_REJECT;
 
 function notionHeaders() {
   return {
@@ -199,6 +212,355 @@ function containsNGWord(text) {
 }
 
 // ==========================================
+// 🔒 Task 2: セキュリティ強化（入力検証・トークン・異常通知）
+// ==========================================
+// 設計方針：
+//   - 既存の handleWebForm / handleChiikiPost / handleOshiraseReaction の
+//     振り分けは壊さない。
+//   - 入力検証は PAYLOAD_SCHEMAS をテーブル化し validatePayload_() に集約。
+//   - 既存の name>100 等の散発チェックは据置（二重防御）。
+//   - severity 既定は 'warn'（受理＋通知）。ローンチ初期に誤拒否を避ける。
+//     reject 指定のフィールドのみ即拒否。
+//   - 異常検知時は運営者LINEへ Push（60秒/reason 単位のクールダウン）。
+//   - verifyLineSignature は当面 true 返却を維持しつつ「失敗だったケース」を観測通知。
+
+// 標準キャリア候補（DB設計タスクの値域と整合）
+const STANDARD_CARRIERS = [
+  'docomo', 'au', 'SoftBank', 'Rakuten Mobile',
+  'ahamo', 'povo', 'LINEMO', 'UQ mobile', 'Y!mobile', 'その他'
+];
+
+// 地域SNS カテゴリ（chiiki.html のラジオ値域）
+const CHIIKI_CATEGORIES = [
+  'グルメ', '景色', 'イベント', '注意', 'お得情報', 'お店', 'その他'
+];
+
+// formType 別のスキーマ。
+//   required:  必須フィールド
+//   type:      'string' | 'number' | 'enum' | 'boolean' | 'string_or_number'
+//   maxLen:    文字列の最大長（バイトではなく String.length）
+//   min/max:   数値の境界
+//   values:    enum の許容値
+//   ngword:    chiiki_post 等で NG ワード判定対象にする
+//   severity:  'reject'（即拒否）| 'warn'（受理＋通知のみ）。省略時は 'warn'。
+const PAYLOAD_SCHEMAS = {
+  // karte.html submitKarte: karteData
+  karte: {
+    name:           { required: true,  type: 'string', maxLen: 100, severity: 'reject' },
+    tel:            { required: true,  type: 'string', maxLen: 20,  severity: 'reject' },
+    email:          { required: false, type: 'string', maxLen: 254 },
+    lineName:       { required: false, type: 'string', maxLen: 100 },
+    carrier:        { required: false, type: 'string', maxLen: 50 },
+    device:         { required: false, type: 'string', maxLen: 100 },
+    battery:        { required: false, type: 'string', maxLen: 20 },
+    storage:        { required: false, type: 'string', maxLen: 50 },
+    buyTime:        { required: false, type: 'string', maxLen: 50 },
+    target:         { required: false, type: 'string', maxLen: 30 },
+    wifi:           { required: false, type: 'string', maxLen: 50 },
+    simConfig:      { required: false, type: 'string', maxLen: 30 },
+    contractType:   { required: false, type: 'string', maxLen: 50 },
+    propCarrier:    { required: false, type: 'string', maxLen: 50 },
+    propPlanName:   { required: false, type: 'string', maxLen: 100 },
+    discounts:      { required: false, type: 'string', maxLen: 500 },
+    nextFollow:     { required: false, type: 'string', maxLen: 500 },
+    currentCost:    { required: false, type: 'string_or_number', min: 0, max: 999999 },
+    proposedCost:   { required: false, type: 'string_or_number', min: 0, max: 999999 },
+    savingCost:     { required: false, type: 'string_or_number', min: -999999, max: 999999 },
+    appUsed:        { required: false, type: 'string', maxLen: 2000 },
+    appTransfer:    { required: false, type: 'string', maxLen: 2000 },
+    purpose:        { required: false, type: 'string', maxLen: 300 },
+    memo:           { required: false, type: 'string', maxLen: 5000 },
+    callOptionCur:  { required: false, type: 'string', maxLen: 100 },
+    callOptionProp: { required: false, type: 'string', maxLen: 100 },
+    source:         { required: false, type: 'string', maxLen: 100 }
+  },
+  // karte.html simData (= karteData + formType='simulation')
+  simulation: {
+    name:         { required: true,  type: 'string', maxLen: 100, severity: 'reject' },
+    tel:          { required: true,  type: 'string', maxLen: 20,  severity: 'reject' },
+    carrier:      { required: false, type: 'string', maxLen: 50 },
+    propCarrier:  { required: false, type: 'string', maxLen: 50 },
+    propPlanName: { required: false, type: 'string', maxLen: 100 },
+    discounts:    { required: false, type: 'string', maxLen: 500 },
+    currentCost:  { required: false, type: 'string_or_number', min: 0, max: 999999 },
+    proposedCost: { required: false, type: 'string_or_number', min: 0, max: 999999 },
+    savingCost:   { required: false, type: 'string_or_number', min: -999999, max: 999999 },
+    device:       { required: false, type: 'string', maxLen: 100 }
+  },
+  // karte.html appReq (= karteData + formType='app_check') / app-check.html send()
+  // app-check.html standalone は name/tel を送らないため required は外す。
+  app_check: {
+    appUsed:     { required: false, type: 'string', maxLen: 2000 },
+    appTransfer: { required: false, type: 'string', maxLen: 2000 },
+    name:        { required: false, type: 'string', maxLen: 100 },
+    tel:         { required: false, type: 'string', maxLen: 20 }
+  },
+  // subscribe.html → main.gs handleWebForm (formType:'subscription' 分岐)
+  subscription: {
+    name:    { required: true,  type: 'string', maxLen: 100, severity: 'reject' },
+    tel:     { required: false, type: 'string', maxLen: 20 },
+    lineName:{ required: false, type: 'string', maxLen: 100 },
+    plan:    { required: false, type: 'string', maxLen: 50 },
+    cycle:   { required: false, type: 'string', maxLen: 20 },
+    payment: { required: false, type: 'string', maxLen: 30 },
+    amount:  { required: false, type: 'string_or_number', min: 0, max: 999999 }
+  },
+  // index.html answers（formType なし。token+name+detail で診断送信）
+  diagnosis: {
+    name:   { required: true,  type: 'string', maxLen: 100, severity: 'reject' },
+    tel:    { required: false, type: 'string', maxLen: 20 },
+    detail: { required: false, type: 'string', maxLen: 1000 },
+    q1:     { required: false, type: 'string', maxLen: 100 },
+    q2:     { required: false, type: 'string', maxLen: 100 },
+    source: { required: false, type: 'string', maxLen: 100 }
+  },
+  // reserve fallback（main.gs に届いた場合のみ。本番 reserve.html は別 GAS）
+  reserve: {
+    name:  { required: true,  type: 'string', maxLen: 100, severity: 'reject' },
+    tel:   { required: true,  type: 'string', maxLen: 20,  severity: 'reject' },
+    email: { required: false, type: 'string', maxLen: 254 },
+    menu:  { required: false, type: 'string', maxLen: 100 },
+    date:  { required: true,  type: 'string', maxLen: 30,  severity: 'reject' },
+    time:  { required: true,  type: 'string', maxLen: 30,  severity: 'reject' },
+    price: { required: false, type: 'string_or_number', min: 0, max: 999999 }
+  },
+  // chiiki.html 投稿
+  chiiki_post: {
+    category:     { required: true,  type: 'enum', values: CHIIKI_CATEGORIES, severity: 'reject' },
+    title:        { required: false, type: 'string', maxLen: 100, ngword: true },
+    address:      { required: false, type: 'string', maxLen: 300, ngword: true },
+    lat:          { required: false, type: 'string_or_number', min: -90,  max: 90 },
+    lng:          { required: false, type: 'string_or_number', min: -180, max: 180 },
+    userId:       { required: false, type: 'string', maxLen: 100 },
+    displayName:  { required: false, type: 'string', maxLen: 100 },
+    imageMime:    { required: false, type: 'enum', values: ['image/jpeg', 'image/png', 'image/webp'] }
+    // imageBase64 は別途 MAX_IMAGE_BASE64_SIZE で既存チェック済み
+  },
+  // chiiki.html いいね
+  chiiki_like: {
+    recordDate: { required: true,  type: 'string', maxLen: 50, severity: 'reject' },
+    lat:        { required: false, type: 'string_or_number', min: -90, max: 90 },
+    liked:      { required: false, type: 'boolean' }
+  },
+  // oshirase.html リアクション
+  oshirase_reaction: {
+    pubDate:      { required: true,  type: 'string', maxLen: 50,  severity: 'reject' },
+    title:        { required: true,  type: 'string', maxLen: 200, severity: 'reject' },
+    reactionType: { required: true,  type: 'enum',   values: ['interest', 'helpful'], severity: 'reject' },
+    action:       { required: true,  type: 'enum',   values: ['add', 'remove'],       severity: 'reject' },
+    userId:       { required: false, type: 'string', maxLen: 100 }
+  }
+};
+
+/**
+ * payload を formType 別スキーマで検証。
+ * @return {ok: bool, errors: [{field, reason}], severity: 'reject'|'warn'}
+ *   ok=false かつ severity='reject' → 即拒否
+ *   ok=false かつ severity='warn'   → 受理＋運営者通知
+ *   ok=true                         → 通常処理
+ */
+function validatePayload_(formType, data) {
+  const schema = PAYLOAD_SCHEMAS[formType];
+  if (!schema) {
+    // 未定義スキーマは観測のみ（拒否しない）
+    return { ok: true };
+  }
+  const errors = [];
+  let worstSeverity = 'warn';
+
+  Object.keys(schema).forEach(function (field) {
+    const rule = schema[field];
+    const v = data[field];
+    const presentRaw = (v !== undefined && v !== null && v !== '');
+
+    if (rule.required && !presentRaw) {
+      errors.push({ field: field, reason: 'required_missing' });
+      if (rule.severity === 'reject') worstSeverity = 'reject';
+      return;
+    }
+    if (!presentRaw) return;
+
+    switch (rule.type) {
+      case 'string':
+        if (typeof v !== 'string') {
+          errors.push({ field: field, reason: 'type_not_string' });
+          if (rule.severity === 'reject') worstSeverity = 'reject';
+          return;
+        }
+        if (rule.maxLen && v.length > rule.maxLen) {
+          errors.push({ field: field, reason: 'maxlen_exceeded(' + v.length + '>' + rule.maxLen + ')' });
+          if (rule.severity === 'reject') worstSeverity = 'reject';
+          return;
+        }
+        break;
+      case 'number': {
+        const n = Number(v);
+        if (!isFinite(n)) {
+          errors.push({ field: field, reason: 'type_not_number' });
+          if (rule.severity === 'reject') worstSeverity = 'reject';
+          return;
+        }
+        if (rule.min !== undefined && n < rule.min) errors.push({ field: field, reason: 'below_min' });
+        if (rule.max !== undefined && n > rule.max) errors.push({ field: field, reason: 'above_max' });
+        break;
+      }
+      case 'string_or_number': {
+        // 既存フロントは Number か文字列の数値で送ってくる
+        const n = Number(v);
+        if (!isFinite(n)) {
+          errors.push({ field: field, reason: 'not_numeric' });
+          if (rule.severity === 'reject') worstSeverity = 'reject';
+          return;
+        }
+        if (rule.min !== undefined && n < rule.min) errors.push({ field: field, reason: 'below_min' });
+        if (rule.max !== undefined && n > rule.max) errors.push({ field: field, reason: 'above_max' });
+        break;
+      }
+      case 'enum':
+        if (rule.values.indexOf(v) === -1) {
+          errors.push({ field: field, reason: 'enum_mismatch(' + String(v).substring(0, 30) + ')' });
+          if (rule.severity === 'reject') worstSeverity = 'reject';
+        }
+        break;
+      case 'boolean':
+        if (typeof v !== 'boolean') errors.push({ field: field, reason: 'type_not_boolean' });
+        break;
+    }
+  });
+
+  if (errors.length === 0) return { ok: true };
+  return { ok: false, errors: errors, severity: worstSeverity };
+}
+
+/**
+ * トークン照合。
+ *   ok=true legacy=false: 新トークン一致
+ *   ok=true legacy=true : 旧トークン（移行期間中）一致 → 1日1回まで運営者通知
+ *   ok=false           : 拒否
+ */
+function isTokenValid_(token) {
+  const current = props.getProperty('SECRET_TOKEN');
+  const legacy  = props.getProperty('SECRET_TOKEN_LEGACY');
+  if (current && token === current) return { ok: true, legacy: false };
+  if (legacy  && token === legacy)  return { ok: true, legacy: true  };
+  return { ok: false };
+}
+
+/**
+ * NGワード判定（2層）。
+ *   reject 層に1つでも該当 → reject:true
+ *   reject に該当せず warn 層に該当 → warn:true
+ */
+function checkNGWords_(text) {
+  if (!text) return { reject: false, warn: false, matched: '' };
+  const lowText = String(text).toLowerCase();
+  for (var i = 0; i < NG_WORDS_REJECT.length; i++) {
+    if (lowText.indexOf(NG_WORDS_REJECT[i].toLowerCase()) !== -1) {
+      return { reject: true, warn: false, matched: NG_WORDS_REJECT[i] };
+    }
+  }
+  for (var j = 0; j < NG_WORDS_WARN.length; j++) {
+    if (lowText.indexOf(NG_WORDS_WARN[j].toLowerCase()) !== -1) {
+      return { reject: false, warn: true, matched: NG_WORDS_WARN[j] };
+    }
+  }
+  return { reject: false, warn: false, matched: '' };
+}
+
+/**
+ * 任意の LINE userId に対する Push API ヘルパー（汎用）。
+ * addMachiPoint 内の Push 実装パターンを共通化したもの。
+ */
+function pushToLine_(userId, messages) {
+  try {
+    const LINE_TOKEN = props.getProperty('LINE_ACCESS_TOKEN');
+    if (!LINE_TOKEN || !userId) return;
+    const msgs = Array.isArray(messages) ? messages : [messages];
+    UrlFetchApp.fetch('https://api.line.me/v2/bot/message/push', {
+      method: 'post',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + LINE_TOKEN },
+      payload: JSON.stringify({ to: userId, messages: msgs }),
+      muteHttpExceptions: true
+    });
+  } catch (e) {
+    console.error('pushToLine_ error: ' + e);
+  }
+}
+
+/**
+ * 運営者OAへ Push（OPERATOR_USER_ID は ScriptProperties に要登録）。
+ */
+function pushToOperator_(messages) {
+  const operatorId = props.getProperty('OPERATOR_USER_ID');
+  if (!operatorId) {
+    console.warn('pushToOperator_: OPERATOR_USER_ID 未設定のためスキップ');
+    return;
+  }
+  pushToLine_(operatorId, messages);
+}
+
+/**
+ * 異常検知通知。同一 reason は60秒に1回まで（洪水防止）。
+ *   reason: 'invalid_token' | 'legacy_token_used' | 'rate_exceeded'
+ *         | 'ngword_blocked' | 'ngword_warn' | 'validation_failed'
+ *         | 'webhook_signature_failed'
+ *   details: { formType?, identifier?, fieldErrors?, snippet?, matched? }
+ */
+function pushAnomalyAlert_(reason, details) {
+  try {
+    const cache = CacheService.getScriptCache();
+    const key = 'anomaly_' + reason;
+    if (cache.get(key)) return;
+    cache.put(key, '1', 60);
+
+    const flex = buildAnomalyFlex_(reason, details || {});
+    pushToOperator_(flex);
+    console.warn('🔔 anomaly_alert: ' + reason + ' details=' + JSON.stringify(details || {}).substring(0, 300));
+  } catch (e) {
+    console.error('pushAnomalyAlert_ error: ' + e);
+  }
+}
+
+function buildAnomalyFlex_(reason, details) {
+  const jstNow = new Date(new Date().getTime() + 9 * 60 * 60 * 1000);
+  const ts = jstNow.toISOString().replace('T', ' ').substring(0, 19);
+  const reasonLabel = {
+    invalid_token:            '🚫 不正トークン',
+    legacy_token_used:        '⚠️ 旧トークン使用',
+    rate_exceeded:            '⛔ レート上限超過',
+    ngword_blocked:           '🚫 NGワード（拒否）',
+    ngword_warn:              '⚠️ NGワード（要観察）',
+    validation_failed:        '⚠️ 入力検証失敗',
+    webhook_signature_failed: '⚠️ LINE署名検証失敗'
+  }[reason] || ('⚠️ ' + reason);
+
+  const bodyContents = [
+    { type: 'text', text: reasonLabel, weight: 'bold', size: 'md', wrap: true },
+    { type: 'text', text: ts + ' JST',  size: 'xs', color: '#888888' }
+  ];
+  if (details.formType)   bodyContents.push({ type: 'text', text: 'formType: ' + details.formType, size: 'sm', wrap: true });
+  if (details.identifier) bodyContents.push({ type: 'text', text: 'id: ' + String(details.identifier).substring(0, 60), size: 'sm', wrap: true });
+  if (details.matched)    bodyContents.push({ type: 'text', text: 'matched: ' + String(details.matched).substring(0, 60), size: 'sm', wrap: true });
+  if (details.fieldErrors && details.fieldErrors.length) {
+    const err = details.fieldErrors.slice(0, 5).map(function (e) { return '- ' + e.field + ': ' + e.reason; }).join('\n');
+    bodyContents.push({ type: 'text', text: err, size: 'xs', wrap: true, color: '#555555' });
+  }
+  if (details.snippet) {
+    bodyContents.push({ type: 'text', text: 'snippet: ' + String(details.snippet).substring(0, 180), size: 'xs', wrap: true, color: '#888888' });
+  }
+
+  return {
+    type: 'flex',
+    altText: '[異常検知] ' + reasonLabel,
+    contents: {
+      type: 'bubble',
+      size: 'kilo',
+      body: { type: 'box', layout: 'vertical', spacing: 'sm', contents: bodyContents }
+    }
+  };
+}
+
+// ==========================================
 // 既存ヘルパー
 // ==========================================
 
@@ -223,13 +585,25 @@ function tryLockSlot(dateStr, timeStr) {
 function verifyLineSignature(rawBody, signature) {
   try {
     const secret = props.getProperty("LINE_CHANNEL_SECRET");
-    if (!secret || !signature) return true;
+    if (!secret || !signature) {
+      // Task 2: 観測のみ（戻り値は当面 true 維持。本来 false だった事象を通知）
+      pushAnomalyAlert_('webhook_signature_failed', { snippet: 'secret_or_signature_missing' });
+      return true;
+    }
     const hash = Utilities.computeHmacSha256Signature(
       Utilities.newBlob(rawBody).getBytes(),
       Utilities.newBlob(secret).getBytes()
     );
-    return Utilities.base64Encode(hash) === signature;
-  } catch (e) { console.error("Signature error: " + e); return true; }
+    const match = Utilities.base64Encode(hash) === signature;
+    if (!match) {
+      pushAnomalyAlert_('webhook_signature_failed', { snippet: 'hash_mismatch' });
+    }
+    return match;
+  } catch (e) {
+    console.error("Signature error: " + e);
+    pushAnomalyAlert_('webhook_signature_failed', { snippet: 'exception:' + String(e).substring(0, 100) });
+    return true;
+  }
 }
 
 function replyToLine(replyToken, messageText) {
@@ -777,6 +1151,28 @@ function doPost(e) {
 // ==========================================
 function handleChiikiPost(data) {
   try {
+    // Task 2: スキーマ検証
+    const vr = validatePayload_('chiiki_post', data);
+    if (!vr.ok) {
+      if (vr.severity === 'reject') {
+        pushAnomalyAlert_('validation_failed', {
+          formType: 'chiiki_post',
+          identifier: (data.userId || 'unknown').substring(0, 60),
+          fieldErrors: vr.errors,
+          snippet: String(data.title || '').substring(0, 80)
+        });
+        return ContentService.createTextOutput(JSON.stringify({
+          status: "error", message: "Invalid input"
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+      pushAnomalyAlert_('validation_failed', {
+        formType: 'chiiki_post',
+        identifier: (data.userId || 'unknown').substring(0, 60),
+        fieldErrors: vr.errors,
+        snippet: String(data.title || '').substring(0, 80)
+      });
+    }
+
     if (data.imageBase64 && data.imageBase64.length > MAX_IMAGE_BASE64_SIZE) {
       console.warn("⚠️ 画像サイズ超過: " + Math.round(data.imageBase64.length/1024/1024) + "MB");
       return ContentService.createTextOutput(JSON.stringify({
@@ -786,18 +1182,39 @@ function handleChiikiPost(data) {
     }
 
     if (data.userId && checkDailyLimit(data.userId, 'chiiki_post', MAX_DAILY_CHIIKI_POSTS)) {
+      pushAnomalyAlert_('rate_exceeded', {
+        formType: 'chiiki_post',
+        identifier: data.userId
+      });
       return ContentService.createTextOutput(JSON.stringify({
         status: "error",
         message: "本日の投稿上限に達しました(1日10件まで)"
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
-    if (containsNGWord(data.title) || containsNGWord(data.address)) {
+    // Task 2: NGワード判定を2層化（reject 即拒否、warn 受理＋通知）
+    const ngTitle   = checkNGWords_(data.title);
+    const ngAddress = checkNGWords_(data.address);
+    if (ngTitle.reject || ngAddress.reject) {
       console.warn("⚠️ NGワード投稿を拒否: " + data.userId);
+      pushAnomalyAlert_('ngword_blocked', {
+        formType: 'chiiki_post',
+        identifier: (data.userId || 'unknown').substring(0, 60),
+        matched: (ngTitle.reject ? ngTitle.matched : ngAddress.matched),
+        snippet: String(data.title || '').substring(0, 80)
+      });
       return ContentService.createTextOutput(JSON.stringify({
         status: "error",
         message: "投稿内容に不適切な表現が含まれています"
       })).setMimeType(ContentService.MimeType.JSON);
+    }
+    if (ngTitle.warn || ngAddress.warn) {
+      pushAnomalyAlert_('ngword_warn', {
+        formType: 'chiiki_post',
+        identifier: (data.userId || 'unknown').substring(0, 60),
+        matched: (ngTitle.warn ? ngTitle.matched : ngAddress.matched),
+        snippet: String(data.title || '').substring(0, 80)
+      });
     }
 
     const jstNow = new Date(new Date().getTime() + 9*60*60*1000);
@@ -877,6 +1294,22 @@ function uploadImageToDrive(base64Data, mimeType, jstNow) {
 
 function handleChiikiLike(data) {
   try {
+    // Task 2: スキーマ検証
+    const vr = validatePayload_('chiiki_like', data);
+    if (!vr.ok) {
+      if (vr.severity === 'reject') {
+        pushAnomalyAlert_('validation_failed', {
+          formType: 'chiiki_like', fieldErrors: vr.errors
+        });
+        return ContentService.createTextOutput(JSON.stringify({
+          status: "error", message: "Invalid input"
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+      pushAnomalyAlert_('validation_failed', {
+        formType: 'chiiki_like', fieldErrors: vr.errors
+      });
+    }
+
     if (!MAP_SHEET_ID) throw new Error("MAP_SHEET_ID 未設定");
     const ss    = SpreadsheetApp.openById(MAP_SHEET_ID);
     const sheet = ss.getSheetByName("地域発見記録");
@@ -1344,15 +1777,59 @@ function handleLineEvent(event) {
 // B. Web フォーム処理 (v6.9.1: 流入トラッキング統合)
 // ==========================================
 function handleWebForm(data) {
-  const SECRET_TOKEN = props.getProperty("SECRET_TOKEN");
-  if (SECRET_TOKEN && data.token !== SECRET_TOKEN) {
+  // Task 2: トークン照合（新+旧 併用）
+  const tokenCheck = isTokenValid_(data.token);
+  if (!tokenCheck.ok) {
+    pushAnomalyAlert_('invalid_token', {
+      formType: data.formType || 'diagnosis',
+      identifier: (data.name || data.lineUserId || 'unknown').substring(0, 60)
+    });
     return ContentService.createTextOutput(JSON.stringify({ status: "error", message: "Unauthorized" })).setMimeType(ContentService.MimeType.JSON);
   }
+  if (tokenCheck.legacy) {
+    // 旧トークン使用：受理しつつ運営者通知（60秒/1回）
+    pushAnomalyAlert_('legacy_token_used', {
+      formType: data.formType || 'diagnosis',
+      identifier: (data.name || data.lineUserId || 'unknown').substring(0, 60)
+    });
+  }
+
   const identifier = (data.name || "unknown").substring(0, 20);
   if (isRateLimited(identifier)) {
+    pushAnomalyAlert_('rate_exceeded', {
+      formType: data.formType || 'diagnosis',
+      identifier: identifier
+    });
     return ContentService.createTextOutput(JSON.stringify({ status: "error", message: "Too many requests" })).setMimeType(ContentService.MimeType.JSON);
   }
-  if (data.name   && data.name.length   > 100) return ContentService.createTextOutput(JSON.stringify({ status: "error", message: "Invalid input" })).setMimeType(ContentService.MimeType.JSON);
+
+  // Task 2: スキーマ検証
+  //   formType 解決：明示 formType を優先。なければ date+time で reserve、その他は diagnosis 扱い。
+  var resolvedFormType = data.formType;
+  if (!resolvedFormType) {
+    if (data.date && data.time) resolvedFormType = 'reserve';
+    else                        resolvedFormType = 'diagnosis';
+  }
+  const vr = validatePayload_(resolvedFormType, data);
+  if (!vr.ok) {
+    if (vr.severity === 'reject') {
+      pushAnomalyAlert_('validation_failed', {
+        formType: resolvedFormType,
+        identifier: identifier,
+        fieldErrors: vr.errors
+      });
+      return ContentService.createTextOutput(JSON.stringify({ status: "error", message: "Invalid input" })).setMimeType(ContentService.MimeType.JSON);
+    }
+    // warn 既定：受理＋通知のみ
+    pushAnomalyAlert_('validation_failed', {
+      formType: resolvedFormType,
+      identifier: identifier,
+      fieldErrors: vr.errors
+    });
+  }
+
+  // 既存散発チェック（据置・二重防御）
+  if (data.name   && data.name.length   > 100)  return ContentService.createTextOutput(JSON.stringify({ status: "error", message: "Invalid input" })).setMimeType(ContentService.MimeType.JSON);
   if (data.detail && data.detail.length > 1000) return ContentService.createTextOutput(JSON.stringify({ status: "error", message: "Invalid input" })).setMimeType(ContentService.MimeType.JSON);
 
   // ★ v6.9.1: 流入経路の正規化(英数字とアンダースコア・ハイフンのみ許可)
@@ -2476,12 +2953,8 @@ function addMachiPoint(userId, pointsToAdd, reason) {
     ];
     for (const m of milestones) {
       if (currentPoints < m.pt && newPoints >= m.pt) {
-        if (LINE_TOKEN && userId) {
-          UrlFetchApp.fetch("https://api.line.me/v2/bot/message/push", {
-            method: "post", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + LINE_TOKEN },
-            payload: JSON.stringify({ to: userId, messages: [{ type: "text", text: m.msg }] }), muteHttpExceptions: true
-          });
-        }
+        // Task 2: 共通 pushToLine_ に統合（旧: 直接 UrlFetchApp.fetch していた箇所）
+        pushToLine_(userId, { type: "text", text: m.msg });
         break;
       }
     }
@@ -2804,9 +3277,33 @@ function setOshiraseTrigger() {
 // ==========================================
 function handleOshiraseReaction(data) {
   try {
+    // Task 2: スキーマ検証
+    const vr = validatePayload_('oshirase_reaction', data);
+    if (!vr.ok) {
+      if (vr.severity === 'reject') {
+        pushAnomalyAlert_('validation_failed', {
+          formType: 'oshirase_reaction',
+          identifier: (data.userId || 'unknown').substring(0, 60),
+          fieldErrors: vr.errors
+        });
+        return ContentService.createTextOutput(JSON.stringify({
+          status: "error", message: "Invalid input"
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+      pushAnomalyAlert_('validation_failed', {
+        formType: 'oshirase_reaction',
+        identifier: (data.userId || 'unknown').substring(0, 60),
+        fieldErrors: vr.errors
+      });
+    }
+
     if (!MAP_SHEET_ID) throw new Error("MAP_SHEET_ID 未設定");
-    
+
     if (data.userId && checkDailyLimit(data.userId, 'oshirase_react', 100)) {
+      pushAnomalyAlert_('rate_exceeded', {
+        formType: 'oshirase_reaction',
+        identifier: data.userId
+      });
       return ContentService.createTextOutput(JSON.stringify({
         status: "error",
         message: "本日のリアクション上限に達しました"

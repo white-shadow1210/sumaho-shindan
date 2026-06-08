@@ -6,6 +6,12 @@
 
 ## [未リリース]
 
+### 2026-06-08  karte.html トークン置換（マイページ未反映バグの修正・案①）
+- karte.html:1233 のハードコード値 `smaho2026sakurai` を新トークン `1d9dc0f0780a4fe18a8d46ddfac6971d` に置換
+- 原因：karte.html だけ Task 2 のフロント置換から漏れていた → 旧トークンで送信 → GAS で Unauthorized 拒否 → device/battery/storage/cost 等が一切 Notion に書き込まれず、マイページが「未記録」表示
+- 影響範囲：karte.html 1ファイル1行のみ
+- 確認：grep で `smaho2026sakurai` 残存ゼロ、新トークン1ヶ所
+
 ### 2026-06-03  Task 2 GASセキュリティ強化（実装）
 - `gas/main.gs` を Git 管理下に取り込み（origin/main をマージ）
 - NG_WORDS を2層化（NG_WORDS_REJECT / NG_WORDS_WARN）。NG_WORDS は後方互換で REJECT を参照

@@ -781,6 +781,16 @@ function upsertCustomerMaster(params) {
       if (params.lineName)     createPayload.properties["LINE_displayName"] = { rich_text: [{ text: { content: params.lineName } }] };
       if (params.carrier)      createPayload.properties["利用キャリア"]   = { rich_text: [{ text: { content: params.carrier } }] };
       if (params.device)       createPayload.properties["利用端末"]       = { rich_text: [{ text: { content: params.device } }] };
+      // ★ 案②: 既存更新ブロックと等価になるよう、新規作成時にも書き込む9項目
+      if (params.battery)      createPayload.properties["バッテリー状態"] = { rich_text: [{ text: { content: params.battery } }] };
+      if (params.storage)      createPayload.properties["ストレージ空き"] = { rich_text: [{ text: { content: params.storage } }] };
+      if (params.buyTime)      createPayload.properties["買い替え時期"]   = { rich_text: [{ text: { content: params.buyTime } }] };
+      if (params.appUsed)      createPayload.properties["利用中アプリ"]   = { rich_text: [{ text: { content: params.appUsed } }] };
+      if (params.appTransfer)  createPayload.properties["移行必須アプリ"] = { rich_text: [{ text: { content: params.appTransfer } }] };
+      if (params.karteDate)    createPayload.properties["スマホカルテ更新日"] = { date: { start: params.karteDate } };
+      if (params.currentCost  !== undefined) createPayload.properties["現在の月額"] = { number: params.currentCost };
+      if (params.proposedCost !== undefined) createPayload.properties["提案後月額"] = { number: params.proposedCost };
+      if (params.savingCost   !== undefined) createPayload.properties["月額節約額"] = { number: params.savingCost };
       if (params.propCarrier)  createPayload.properties["提案キャリア"]   = { rich_text: [{ text: { content: params.propCarrier } }] };
       if (params.propPlanName) createPayload.properties["提案プラン名"]   = { rich_text: [{ text: { content: params.propPlanName } }] };
       if (params.discounts)    createPayload.properties["適用割引"]       = { rich_text: [{ text: { content: params.discounts } }] };

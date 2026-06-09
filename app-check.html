@@ -335,7 +335,7 @@ async function send() {
   const btn=document.getElementById('sbtn'); btn.disabled=true; btn.textContent='送信中...';
   try {
     await fetch(GAS_URL,{method:'POST',body:JSON.stringify({
-      token:'smaho2026sakurai',formType:'app_check',
+      token:'1d9dc0f0780a4fe18a8d46ddfac6971d',formType:'app_check',
       appUsed:u.join('、'),appTransfer:t.join('、')
     })});
   } catch(e){console.warn(e);}

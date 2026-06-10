@@ -1260,14 +1260,8 @@ async function submitKarte() {
     memo:         memoArr.filter(Boolean).join(' | '),
     source:       sourceVal  // ★ v6.9.1: 流入経路
   };
-  var simData = Object.assign({}, karteData, { formType:'simulation' });
   try {
     await fetch(GAS_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'}, body: JSON.stringify(karteData) });
-    await fetch(GAS_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'}, body: JSON.stringify(simData) });
-    if (apps.used || apps.transfer) {
-      var appReq = Object.assign({}, karteData, { formType:'app_check', appUsed:apps.used, appTransfer:apps.transfer });
-      await fetch(GAS_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'}, body: JSON.stringify(appReq) });
-    }
     var save = curTotal - propTotal;
     document.getElementById('sov-summary').innerHTML =
       '<b>お名前：</b>' + name + '<br>' +

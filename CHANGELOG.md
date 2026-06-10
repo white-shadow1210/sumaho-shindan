@@ -6,6 +6,7 @@
 
 ## [未リリース]
 
+claude/richmenu-6button
 ### 2026-06-10  リッチメニュー1枚6ボタン化（タブ撤去）
 - `gas/main.gs` のリッチメニュー関連を、メニューA/B + タブ切替 から **1枚6ボタン構成**に置換
 - 定数：`MENU_A_FILE_ID` / `MENU_B_FILE_ID` を撤去し、`MENU_FILE_ID = "14L3wTKx0zUdLlyfaFG6cSiaXs0SYv8M-"` に一本化
@@ -17,6 +18,14 @@
 - 座標：列幅 835 / 831 / 834（合計2500）／ 縦 210 + 687 + 789（合計1686）
 - 維持：`createRichMenu` / `uploadImageFromDrive` / `resetRichMenuAliases` / `listRichMenus` 無変更。postback ハンドラの `tab_noop` / `switch_to_menu_a` / `switch_to_menu_b` 分岐は no-op として残置
 - デプロイ：Web アプリ再デプロイ**不要**。GAS エディタ反映後 `setupRichMenus()` を1回実行するだけで反映
+### 2026-06-11  karte.html 送信1本化（顧客マスター行重複の解消）
+- `submitKarte()` 内で行っていた3送信（karte / simulation / app_check）を **karte 1本に統合**
+- 削除：`var simData = ...` / simData fetch / `if (apps.used || apps.transfer)` ブロック（appReq 定義 + fetch）
+- 維持：`karteData` 送信、`var apps = getAppSummary()`、try/catch 構造、成功オーバーレイ表示、ボタン状態復帰
+- 背景：GAS側で電話番号のハイフン差により照合が失敗 → 3送信がそれぞれ別の顧客マスター行を作成 → バッテリー/ストレージ等のデータが複数行に散る不具合
+- 影響：simulation / app_check の Notion 書込みは karteData 1本にすべて含まれる（料金/端末/アプリ全項目）ため、機能欠落なし
+- スコープ：karte.html のみ。GAS / Notion / トークン変更なし
+main
 
 ### 2026-06-08  upsertCustomerMaster 新規作成ブロックに欠落9項目を追加（案②）
 - `gas/main.gs` の `upsertCustomerMaster` 関数 内、**新規作成（createPayload）ブロック**に以下9項目を追加：

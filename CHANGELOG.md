@@ -6,6 +6,18 @@
 
 ## [未リリース]
 
+### 2026-06-10  リッチメニュー1枚6ボタン化（タブ撤去）
+- `gas/main.gs` のリッチメニュー関連を、メニューA/B + タブ切替 から **1枚6ボタン構成**に置換
+- 定数：`MENU_A_FILE_ID` / `MENU_B_FILE_ID` を撤去し、`MENU_FILE_ID = "14L3wTKx0zUdLlyfaFG6cSiaXs0SYv8M-"` に一本化
+- 関数：
+  - `setupRichMenus()` を 1枚版に書き換え：デフォルト解除 → alias 掃除 → 既存メニュー全削除 → 新メニュー作成 + 画像アップ + デフォルト設定 → `RICHMENU_ID` を Properties 保存 + 旧 A/B キー削除
+  - `buildMenuAConfig` / `buildMenuBConfig` を撤去し、`buildMenuConfig()` 新設（2500×1686、見出し帯 y=0〜210 はタップ不感、6ボタンのみ）
+  - `deleteAllRichMenus_(token)` 新設（既存リッチメニュー全削除ヘルパー）
+- ボタン配置：上段 [無料診断 / 料金・メニュー / WEB予約]、下段 [初めての方へ / マイページ / 直接相談]
+- 座標：列幅 835 / 831 / 834（合計2500）／ 縦 210 + 687 + 789（合計1686）
+- 維持：`createRichMenu` / `uploadImageFromDrive` / `resetRichMenuAliases` / `listRichMenus` 無変更。postback ハンドラの `tab_noop` / `switch_to_menu_a` / `switch_to_menu_b` 分岐は no-op として残置
+- デプロイ：Web アプリ再デプロイ**不要**。GAS エディタ反映後 `setupRichMenus()` を1回実行するだけで反映
+
 ### 2026-06-08  upsertCustomerMaster 新規作成ブロックに欠落9項目を追加（案②）
 - `gas/main.gs` の `upsertCustomerMaster` 関数 内、**新規作成（createPayload）ブロック**に以下9項目を追加：
   - バッテリー状態 / ストレージ空き / 買い替え時期 / 利用中アプリ / 移行必須アプリ

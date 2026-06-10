@@ -2296,7 +2296,7 @@ function setSourceReportTrigger() {
 //   - addMachiPoint
 //   - customerMasterTest / testKarteV2
 //   - setupRichMenus / createRichMenu / uploadImageFromDrive
-//   - buildMenuAConfig / buildMenuBConfig
+//   - buildMenuConfig / deleteAllRichMenus_
 //   - resetRichMenuAliases / listRichMenus
 //   - getOshiraseData / getSampleOshiraseItems
 //   - clearOshiraseCache / clearChiikiCache
@@ -3024,27 +3024,54 @@ function testKarteV2() {
 // ==========================================
 // リッチメニュー セットアップ
 // ==========================================
-const MENU_A_FILE_ID = "1orblm5RItYL1uBEW8cr9qtdj7iSq3PX2";
-const MENU_B_FILE_ID = "13AHLoe4UDlHJnm8gXCpQqKpN7ERJZ05u";
+// リッチメニュー画像（2500×1686・1枚6ボタン版）の Drive ファイルID
+const MENU_FILE_ID = "14L3wTKx0zUdLlyfaFG6cSiaXs0SYv8M-";
 const SITE = "https://white-shadow1210.github.io/sumaho-shindan";
 
+// 1枚6ボタン版のセットアップ。
+//   - 全ユーザーのデフォルト紐付け解除
+//   - 旧 alias（a/b）の掃除
+//   - 既存リッチメニュー全削除（重複防止）
+//   - 新メニュー作成 + 画像アップロード + デフォルト設定
+//   - RICHMENU_ID を保存。旧 RICHMENU_A_ID / RICHMENU_B_ID は削除
 function setupRichMenus() {
   const LINE_TOKEN = props.getProperty("LINE_ACCESS_TOKEN");
   if (!LINE_TOKEN) { console.error("❌ LINE_ACCESS_TOKEN が未設定です"); return; }
-  try { UrlFetchApp.fetch("https://api.line.me/v2/bot/user/all/richmenu", { method: "delete", headers: { "Authorization": "Bearer " + LINE_TOKEN }, muteHttpExceptions: true }); } catch(e) {}
-  const menuAId = createRichMenu(LINE_TOKEN, buildMenuAConfig());
-  if (!menuAId) { console.error("❌ メニューA作成失敗"); return; }
-  if (!uploadImageFromDrive(LINE_TOKEN, menuAId, MENU_A_FILE_ID)) { console.error("❌ メニューA画像アップロード失敗"); return; }
-  const menuBId = createRichMenu(LINE_TOKEN, buildMenuBConfig());
-  if (!menuBId) { console.error("❌ メニューB作成失敗"); return; }
-  if (!uploadImageFromDrive(LINE_TOKEN, menuBId, MENU_B_FILE_ID)) { console.error("❌ メニューB画像アップロード失敗"); return; }
-  UrlFetchApp.fetch("https://api.line.me/v2/bot/user/all/richmenu/" + menuAId, { method: "post", headers: { "Authorization": "Bearer " + LINE_TOKEN }, muteHttpExceptions: true });
-  UrlFetchApp.fetch("https://api.line.me/v2/bot/richmenu/alias", { method: "post", headers: { "Authorization": "Bearer " + LINE_TOKEN, "Content-Type": "application/json" }, payload: JSON.stringify({ richMenuAliasId: "richmenu-alias-a", richMenuId: menuAId }), muteHttpExceptions: true });
-  UrlFetchApp.fetch("https://api.line.me/v2/bot/richmenu/alias", { method: "post", headers: { "Authorization": "Bearer " + LINE_TOKEN, "Content-Type": "application/json" }, payload: JSON.stringify({ richMenuAliasId: "richmenu-alias-b", richMenuId: menuBId }), muteHttpExceptions: true });
-  props.setProperty("RICHMENU_A_ID", menuAId);
-  props.setProperty("RICHMENU_B_ID", menuBId);
-  console.log("=== セットアップ完了 === A:" + menuAId + " / B:" + menuBId);
-  try { MailApp.sendEmail(Session.getEffectiveUser().getEmail(), "【リッチメニュー】セットアップ完了", "メニューA: " + menuAId + "\nメニューB: " + menuBId); } catch(e) {}
+
+  // 1) 既存のデフォルト紐付け解除
+  try {
+    UrlFetchApp.fetch("https://api.line.me/v2/bot/user/all/richmenu",
+      { method: "delete", headers: { "Authorization": "Bearer " + LINE_TOKEN }, muteHttpExceptions: true });
+  } catch(e) {}
+
+  // 2) 旧 alias 掃除（タブ切替用 a/b を削除）
+  try { resetRichMenuAliases(); } catch(e) { console.error("alias cleanup error: " + e); }
+
+  // 3) 既存リッチメニュー全削除（重複防止）
+  deleteAllRichMenus_(LINE_TOKEN);
+
+  // 4) 新メニュー作成 + 画像アップロード
+  const menuId = createRichMenu(LINE_TOKEN, buildMenuConfig());
+  if (!menuId) { console.error("❌ メニュー作成失敗"); return; }
+  if (!uploadImageFromDrive(LINE_TOKEN, menuId, MENU_FILE_ID)) {
+    console.error("❌ メニュー画像アップロード失敗"); return;
+  }
+
+  // 5) 全ユーザーのデフォルトに設定
+  UrlFetchApp.fetch("https://api.line.me/v2/bot/user/all/richmenu/" + menuId,
+    { method: "post", headers: { "Authorization": "Bearer " + LINE_TOKEN }, muteHttpExceptions: true });
+
+  // 6) Properties 保存（旧 A/B キーはクリーンアップ）
+  props.setProperty("RICHMENU_ID", menuId);
+  try { props.deleteProperty("RICHMENU_A_ID"); } catch(e) {}
+  try { props.deleteProperty("RICHMENU_B_ID"); } catch(e) {}
+
+  console.log("=== セットアップ完了 === RICHMENU_ID:" + menuId);
+  try {
+    MailApp.sendEmail(Session.getEffectiveUser().getEmail(),
+      "【リッチメニュー】1枚6ボタン版 セットアップ完了",
+      "RichMenuId: " + menuId);
+  } catch(e) {}
 }
 
 function createRichMenu(token, config) {
@@ -3062,32 +3089,45 @@ function uploadImageFromDrive(token, richMenuId, fileId) {
   } catch(e) { return false; }
 }
 
-function buildMenuAConfig() {
-  const W = 400, H = 336, TAB_H = 107, BTN_Y = 138;
-  return { size: { width: 1200, height: 810 }, selected: true, name: "メニューA_スマホサポート", chatBarText: "スマホサポート", areas: [
-    { bounds: { x: 0,   y: 0,       width: 600, height: TAB_H }, action: { type: "postback", data: "tab_noop" } },
-    { bounds: { x: 600, y: 0,       width: 600, height: TAB_H }, action: { type: "richmenuswitch", richMenuAliasId: "richmenu-alias-b", data: "switch_to_menu_b" } },
-    { bounds: { x: 0,   y: BTN_Y,   width: W,   height: H     }, action: { type: "uri", uri: SITE + "/index.html" } },
-    { bounds: { x: W,   y: BTN_Y,   width: W,   height: H     }, action: { type: "uri", uri: SITE + "/prices.html" } },
-    { bounds: { x: W*2, y: BTN_Y,   width: W,   height: H     }, action: { type: "uri", uri: SITE + "/reserve.html" } },
-    { bounds: { x: 0,   y: BTN_Y+H, width: W,   height: H     }, action: { type: "uri", uri: SITE + "/map.html" } },
-    { bounds: { x: W,   y: BTN_Y+H, width: W,   height: H     }, action: { type: "uri", uri: SITE + "/cases.html" } },
-    { bounds: { x: W*2, y: BTN_Y+H, width: W,   height: H     }, action: { type: "message", text: "直接相談" } }
-  ]};
+// 1枚6ボタン版の config。
+//   画像: 2500×1686
+//   見出し帯: y=0〜210（areas に含めない＝タップ不感）
+//   上段: y=210, height=687  ／ 下段: y=897, height=789
+//   列幅: 835 / 831 / 834  ／  合計縦 210+687+789=1686 ✓  横 835+831+834=2500 ✓
+function buildMenuConfig() {
+  return {
+    size: { width: 2500, height: 1686 },
+    selected: true,
+    name: "スマホサポート_6ボタン",
+    chatBarText: "スマホサポート",
+    areas: [
+      // 上段：まずは無料診断 / 料金・メニュー / WEBで予約する
+      { bounds: { x: 0,    y: 210, width: 835, height: 687 }, action: { type: "uri", uri: SITE + "/index.html"   } },
+      { bounds: { x: 835,  y: 210, width: 831, height: 687 }, action: { type: "uri", uri: SITE + "/prices.html"  } },
+      { bounds: { x: 1666, y: 210, width: 834, height: 687 }, action: { type: "uri", uri: SITE + "/reserve.html" } },
+      // 下段：初めての方へ / マイページ / 直接相談
+      { bounds: { x: 0,    y: 897, width: 835, height: 789 }, action: { type: "uri",      uri:  SITE + "/about.html" } },
+      { bounds: { x: 835,  y: 897, width: 831, height: 789 }, action: { type: "postback", data: "mypage_start", displayText: "マイページ" } },
+      { bounds: { x: 1666, y: 897, width: 834, height: 789 }, action: { type: "message",  text: "直接相談" } }
+    ]
+  };
 }
 
-function buildMenuBConfig() {
-  const W = 400, H = 336, TAB_H = 107, BTN_Y = 138;
-  return { size: { width: 1200, height: 810 }, selected: true, name: "メニューB_まちなか情報", chatBarText: "まちなか情報", areas: [
-    { bounds: { x: 0,   y: 0,       width: 600, height: TAB_H }, action: { type: "richmenuswitch", richMenuAliasId: "richmenu-alias-a", data: "switch_to_menu_a" } },
-    { bounds: { x: 600, y: 0,       width: 600, height: TAB_H }, action: { type: "postback", data: "tab_noop" } },
-    { bounds: { x: 0,   y: BTN_Y,   width: W,   height: H     }, action: { type: "uri", uri: SITE + "/oshirase.html" } },
-    { bounds: { x: W,   y: BTN_Y,   width: W,   height: H     }, action: { type: "postback", data: "helpmap_start",   displayText: "困りごと相談" } },
-    { bounds: { x: W*2, y: BTN_Y,   width: W,   height: H     }, action: { type: "postback", data: "supporter_start", displayText: "スマホ教えて" } },
-    { bounds: { x: 0,   y: BTN_Y+H, width: W,   height: H     }, action: { type: "uri", uri: "https://white-shadow1210.github.io/sumaho-shindan/chiiki.html?v=4" } },
-    { bounds: { x: W,   y: BTN_Y+H, width: W,   height: H     }, action: { type: "uri", uri: "https://www.instagram.com/s._.ryunosuke" } },
-    { bounds: { x: W*2, y: BTN_Y+H, width: W,   height: H     }, action: { type: "postback", data: "mypage_start", displayText: "マイページ" } }
-  ]};
+// 既存リッチメニューを全削除（重複防止）。setupRichMenus 内から呼ばれる。
+function deleteAllRichMenus_(token) {
+  try {
+    const res = UrlFetchApp.fetch("https://api.line.me/v2/bot/richmenu/list",
+      { headers: { "Authorization": "Bearer " + token }, muteHttpExceptions: true });
+    if (res.getResponseCode() !== 200) return;
+    const menus = JSON.parse(res.getContentText()).richmenus || [];
+    menus.forEach(function(m) {
+      try {
+        UrlFetchApp.fetch("https://api.line.me/v2/bot/richmenu/" + m.richMenuId,
+          { method: "delete", headers: { "Authorization": "Bearer " + token }, muteHttpExceptions: true });
+        console.log("既存メニュー削除: " + m.richMenuId + " (" + (m.name || '') + ")");
+      } catch(e) { console.error("delete error: " + e); }
+    });
+  } catch (e) { console.error("deleteAllRichMenus_ error: " + e); }
 }
 
 function resetRichMenuAliases() {

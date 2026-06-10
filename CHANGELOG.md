@@ -6,6 +6,14 @@
 
 ## [未リリース]
 
+### 2026-06-11  karte.html 送信1本化（顧客マスター行重複の解消）
+- `submitKarte()` 内で行っていた3送信（karte / simulation / app_check）を **karte 1本に統合**
+- 削除：`var simData = ...` / simData fetch / `if (apps.used || apps.transfer)` ブロック（appReq 定義 + fetch）
+- 維持：`karteData` 送信、`var apps = getAppSummary()`、try/catch 構造、成功オーバーレイ表示、ボタン状態復帰
+- 背景：GAS側で電話番号のハイフン差により照合が失敗 → 3送信がそれぞれ別の顧客マスター行を作成 → バッテリー/ストレージ等のデータが複数行に散る不具合
+- 影響：simulation / app_check の Notion 書込みは karteData 1本にすべて含まれる（料金/端末/アプリ全項目）ため、機能欠落なし
+- スコープ：karte.html のみ。GAS / Notion / トークン変更なし
+
 ### 2026-06-08  upsertCustomerMaster 新規作成ブロックに欠落9項目を追加（案②）
 - `gas/main.gs` の `upsertCustomerMaster` 関数 内、**新規作成（createPayload）ブロック**に以下9項目を追加：
   - バッテリー状態 / ストレージ空き / 買い替え時期 / 利用中アプリ / 移行必須アプリ

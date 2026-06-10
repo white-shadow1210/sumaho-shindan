@@ -3025,7 +3025,7 @@ function testKarteV2() {
 // リッチメニュー セットアップ
 // ==========================================
 // リッチメニュー画像（2500×1686・1枚6ボタン版）の Drive ファイルID
-const MENU_FILE_ID = "14L3wTKx0zUdLlyfaFG6cSiaXs0SYv8M-";
+const MENU_FILE_ID = "1y0SzUC-QyI0gVKJaAjy5V7E1VV7sPH-i";
 const SITE = "https://white-shadow1210.github.io/sumaho-shindan";
 
 // 1枚6ボタン版のセットアップ。

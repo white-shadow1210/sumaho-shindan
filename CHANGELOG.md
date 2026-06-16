@@ -6,6 +6,17 @@
 
 ## [未リリース]
 
+### 2026-06-16  Task 1: 署名ノイズ抑制 + 友だち追加通知の新設
+- **(A) `verifyLineSignature` の通知ノイズ抑制**：`!secret || !signature` の単一分岐を2つに分割
+  - `!secret`（LINE_CHANNEL_SECRET 未設定＝本物の設定ミス）：snippet を `channel_secret_missing` に変更して通知維持
+  - `!signature`（GAS doPost が HTTP ヘッダーを読めず常時発生）：通知抑制、戻り値 `true` のみ
+  - hash不一致 / 例外 の通知は無変更
+- **(B) follow イベントで新規登録時に運営者へ通知**：`if (existing.length === 0)` 内の Notion ページ作成直後に `pushToOperator_({ type:'text', text:'🎉 新しい友だちが追加されました：' + displayName })` を追加
+  - 既存ユーザーの再フォロー時は発火しない（`existing.length === 0` の中で実行）
+  - Notion ページ作成と独立した try/catch で、通知失敗が後続のプレ会員 push やフォロー処理を止めない
+- 影響：すべて追加・分岐分割のみ。既存挙動（戻り値、Notion 書込み、プレ会員 push）は無変更
+- デプロイ：doPost 経路の変更のため **Web再デプロイ必須**
+
 ### 2026-06-16  Task 3: 診断ポイントの二重付与を1回に統一
 - `gas/main.gs` 内、`handleWebForm` の診断分岐から `addMachiPoint(data.lineUserId, 3, "スマホ診断送信")` を削除（1行）
 - 背景：1回の診断で `"スマホ診断送信"`（フォーム送信時 +3）と `"スマホ診断完了"`（LINEで「カルテ診断完了」送信時 +3）の両方が発火し、合計 +6 が付与されていた

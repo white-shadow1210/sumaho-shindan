@@ -2003,7 +2003,8 @@ function handleWebForm(data) {
       historyText = "【スマホ診断】" + (data.q1 ? "キャリア:" + data.q1 : '') + (data.q2 ? " 料金:" + data.q2 : '');
       if (cleanSource) historyText += ' [流入:' + cleanSource + ']';
       upsertParams.carrier = data.q1 || '';
-      if (data.lineUserId) addMachiPoint(data.lineUserId, 3, "スマホ診断送信");
+      // ★ Task 3: 二重付与解消。送信時の +3 は廃止し、LINEで「カルテ診断完了」送信時の
+      //   +3（linkLineIdToCustomer 経由 / "スマホ診断完了"）に統一。
 
       const cleanTel = (data.tel || '').replace(/[^\d]/g, '');
       if (cleanTel.length >= 10) {

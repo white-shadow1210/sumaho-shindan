@@ -6,6 +6,14 @@
 
 ## [未リリース]
 
+### 2026-06-16  Task 3: 診断ポイントの二重付与を1回に統一
+- `gas/main.gs` 内、`handleWebForm` の診断分岐から `addMachiPoint(data.lineUserId, 3, "スマホ診断送信")` を削除（1行）
+- 背景：1回の診断で `"スマホ診断送信"`（フォーム送信時 +3）と `"スマホ診断完了"`（LINEで「カルテ診断完了」送信時 +3）の両方が発火し、合計 +6 が付与されていた
+- 維持：`linkLineIdToCustomer` 内の2箇所（相互排他）の `"スマホ診断完了"` +3 は残置 → 1回の診断で +3 単発に統一
+- 残置：`historyText` 生成、`upsertCustomerMaster` 呼び出し、Cache 保存（`diag_latest_tel` / `diag_tel_*`）はすべて無変更
+- 他の `addMachiPoint` 呼び出し（地域発見 +3 / 位置情報 +1 / 困りごと相談 +2 / 予約 +5 / まちなか発見 +3）にも一切影響なし
+- デプロイ：doPost 経路の変更のため **Web再デプロイ必須**
+
 claude/richmenu-6button
 ### 2026-06-10  リッチメニュー1枚6ボタン化（タブ撤去）
 - `gas/main.gs` のリッチメニュー関連を、メニューA/B + タブ切替 から **1枚6ボタン構成**に置換

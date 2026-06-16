@@ -585,9 +585,14 @@ function tryLockSlot(dateStr, timeStr) {
 function verifyLineSignature(rawBody, signature) {
   try {
     const secret = props.getProperty("LINE_CHANNEL_SECRET");
-    if (!secret || !signature) {
-      // Task 2: 観測のみ（戻り値は当面 true 維持。本来 false だった事象を通知）
-      pushAnomalyAlert_('webhook_signature_failed', { snippet: 'secret_or_signature_missing' });
+    if (!secret) {
+      // ★ Task 1(A): LINE_CHANNEL_SECRET 未設定は本物の設定ミス → 通知維持
+      pushAnomalyAlert_('webhook_signature_failed', { snippet: 'channel_secret_missing' });
+      return true;
+    }
+    if (!signature) {
+      // ★ Task 1(A): GAS doPost は HTTP ヘッダーを読めず !signature が常時発生する。
+      //   ノイズ通知になるため抑制。処理は通す。
       return true;
     }
     const hash = Utilities.computeHmacSha256Signature(
@@ -1390,6 +1395,14 @@ function handleLineEvent(event) {
             "プレ会員":         { checkbox: isPreLaunch }
           }}), muteHttpExceptions: true
         });
+
+        // ★ Task 1(B): 新規フォロー時のみ運営者へ通知。再フォロー時（existing.length > 0）は発火しない。
+        try {
+          pushToOperator_({
+            type: 'text',
+            text: '🎉 新しい友だちが追加されました：' + (displayName || '(displayName取得失敗)')
+          });
+        } catch(e) { console.error('新規フォロー通知エラー: ' + e); }
 
         // ★ v7.0: プレ会員登録の場合は専用LINEメッセージをpush
         if (isPreLaunch && LINE_TOKEN && userId) {

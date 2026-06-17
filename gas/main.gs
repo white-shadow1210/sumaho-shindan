@@ -2645,10 +2645,10 @@ function replyMyPage(userId, replyToken) {
       });
     }
 
-    const milestones    = [10, 20, 30, 50];
+    const milestones    = [20, 30, 40, 60];
     const nextMilestone = milestones.find(m => m > points) || null;
     const ptToNext      = nextMilestone ? (nextMilestone - points) : 0;
-    const couponMap     = { 10:"次回10%割引", 20:"まちの発見者バッジ", 30:"次回30%割引", 50:"サポーター認定証" };
+    const milestoneMap  = { 20:"まちの仲間バッジ", 30:"まちの発見者バッジ", 40:"まちの常連さんバッジ", 60:"吉田町サポーター認定証" };
     const buyMap = {
       "２年以内":   "比較的新しい（あと2〜3年）",
       "２〜４年以内": "そろそろ検討時期",
@@ -2687,7 +2687,7 @@ function replyMyPage(userId, replyToken) {
         { label: "最終来店日",   value: lastDate  ? lastDate.replace(/-/g,"/")  : "未設定" },
         { type: "separator" },
         { label: "ポイント",     value: points + "pt", bold: true },
-        { label: "次の特典",     value: nextMilestone ? "あと" + ptToNext + "ptで " + couponMap[nextMilestone] : "🎉 最高ランク達成！" }
+        { label: "次の特典",     value: nextMilestone ? "あと" + ptToNext + "ptで " + milestoneMap[nextMilestone] : "🎉 最高ランク達成！" }
       ],
       { type: "uri", label: "予約する", uri: reserveUrl }
     );
@@ -2763,7 +2763,7 @@ function replyMyPage(userId, replyToken) {
       "#249496", "🏆", "まちつながり履歴",
       [
         { label: "ポイント合計", value: points + "pt", bold: true },
-        { label: "次の特典",    value: nextMilestone ? "あと" + ptToNext + "ptで " + couponMap[nextMilestone] : "🎉 最高ランク達成！" },
+        { label: "次の特典",    value: nextMilestone ? "あと" + ptToNext + "ptで " + milestoneMap[nextMilestone] : "🎉 最高ランク達成！" },
         { type: "separator" },
         ...historyRows,
         { type: "separator" },
@@ -2970,10 +2970,10 @@ function addMachiPoint(userId, pointsToAdd, reason) {
     });
     console.log("ポイント付与: " + reason + " +" + pointsToAdd + "pt（累計:" + newPoints + "pt）");
     const milestones = [
-      { pt: 10, msg: "🎉 まちつながりポイントが10ptに達しました！\n\n✨ 特典：次回ご相談時に10%割引クーポンをプレゼント！\n\nご予約の際に「10ptクーポン」とお伝えください😊" },
-      { pt: 20, msg: "🌟 まちつながりポイントが20ptに達しました！\n\n🏅 「まちの発見者」バッジを贈ります！" },
-      { pt: 30, msg: "🎊 まちつながりポイントが30ptに達しました！\n\n✨ 特典：次回ご相談時に30%割引クーポンをプレゼント！" },
-      { pt: 50, msg: "🏆 まちつながりポイントが50ptに達しました！\n\n🎖️「吉田町サポーター認定証」を贈ります！" }
+      { pt: 20, msg: "🎉 まちつながりポイントが20ptに達しました！\n\n🏅 「まちの仲間」バッジを贈ります！" },
+      { pt: 30, msg: "🌟 まちつながりポイントが30ptに達しました！\n\n🏅 「まちの発見者」バッジを贈ります！" },
+      { pt: 40, msg: "🎊 まちつながりポイントが40ptに達しました！\n\n🏅 「まちの常連さん」バッジを贈ります！" },
+      { pt: 60, msg: "🏆 まちつながりポイントが60ptに達しました！\n\n🎖️「吉田町サポーター認定証」を贈ります！" }
     ];
     for (const m of milestones) {
       if (currentPoints < m.pt && newPoints >= m.pt) {

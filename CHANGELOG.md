@@ -6,6 +6,19 @@
 
 ## [未リリース]
 
+### 2026-06-17  Google Maps API キー差し替え（漏洩対応）
+- GitHub Secret scanning で検出された「Google API Key #1」漏洩への対応
+- 旧キー `AIzaSyDeC5...Rienk` → 新キー `AIzaSyBISDa...eE48I` に置換（4箇所）
+  - `chiiki.html:350`（定数定義）／ `chiiki.html:714`（SDK script src）
+  - `map.html:313`（CONFIG内定義）／ `map.html:636`（SDK script src）
+- 旧キー残存：grep 全件 → **0件**（リポジトリ全体）
+- 新キーは Google Cloud 側で以下の制限が事前設定済み：
+  - アプリ制限：ウェブサイト `https://white-shadow1210.github.io/*`
+  - API制限：Maps JavaScript API / Geocoding API / Places API / Places API (New)
+- GAS / Notion / トークン / 他HTML：変更なし
+- デプロイ：静的HTMLのみ → **GitHub Pages反映で完了**（GAS再デプロイ不要）
+- マージ後の手動手順（龍之介）：地図動作確認 → Google Cloud で旧キーをrevoke → GitHub Secret scanning alert を「Close as → revoked」
+
 ### 2026-06-16  Task 2: ポイント特典を名誉系に統一 + 閾値を [20, 30, 40, 60] へ
 - `gas/main.gs` のマイルストーン制度から **割引クーポンを完全撤廃**し、名誉系（バッジ・認定証）のみに統一
 - 閾値変更：`[10, 20, 30, 50]` → `[20, 30, 40, 60]`

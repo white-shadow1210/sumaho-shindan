@@ -84,7 +84,7 @@ function handlePreMemberBenefit(data) {
   try {
     let filter;
     if (data.tel) {
-      const cleanTel = (data.tel || '').replace(/[^\d]/g, '');
+      const cleanTel = normalizeTel_(data.tel);
       filter = { property: "電話番号", rich_text: { contains: cleanTel } };
     } else if (data.lineUserId) {
       filter = { property: "LINE_userid", rich_text: { equals: data.lineUserId } };
@@ -209,6 +209,24 @@ function containsNGWord(text) {
     }
   }
   return false;
+}
+
+// ==========================================
+// 📞 正規化ヘルパー（電話番号）
+// ==========================================
+// 電話番号を「半角数字のみ」に正規化する。
+//   - 全角数字（０-９）を半角に変換
+//   - 残った非数字（ハイフン / 空白 / 括弧 / 記号など）を除去
+// 入力が null / undefined / 空文字 / 数字を含まない値の場合は '' を返す。
+//   - normalizeTel_('090-1234-5678')          → '09012345678'
+//   - normalizeTel_('０９０-１２３４-５６７８') → '09012345678'
+//   - normalizeTel_('---')                    → ''
+//   - normalizeTel_(null)                     → ''
+function normalizeTel_(tel) {
+  if (!tel) return '';
+  return String(tel)
+    .replace(/[０-９]/g, function(c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); })
+    .replace(/[^\d]/g, '');
 }
 
 // ==========================================
@@ -701,7 +719,7 @@ function makeMyPageBubble(headerColor, headerIcon, headerTitle, rows, footerBtn)
 // upsertCustomerMaster (v6.9.1: 流入経路対応)
 // ==========================================
 function upsertCustomerMaster(params) {
-  const tel = (params.tel || "").replace(/[^\d]/g, "");
+  const tel = normalizeTel_(params.tel);
   if (!tel) { console.log("電話番号なし → スキップ"); return null; }
   const jstNow   = new Date(new Date().getTime() + 9*60*60*1000);
   const todayStr = jstNow.toISOString().substring(0, 10);
@@ -772,7 +790,7 @@ function upsertCustomerMaster(params) {
         parent: { database_id: CUSTOMER_MASTER_ID },
         properties: {
           "氏名":           { title:     [{ text: { content: params.name || "未入力" } }] },
-          "電話番号":       { rich_text: [{ text: { content: params.tel  || "" } }] },
+          "電話番号":       { rich_text: [{ text: { content: normalizeTel_(params.tel) } }] },
           "初回登録日":     { date:      { start: todayStr } },
           "最終来店日":     { date:      { start: todayStr } },
           "対応ステータス": { select:    { name: "新規" } }
@@ -862,7 +880,7 @@ function upsertCustomerMasterByLineId(data) {
         }
       };
       if (data.name  && data.name.length > 0)  updatePayload.properties["氏名"] = { title: [{ text: { content: data.name } }] };
-      if (data.tel   && data.tel.length > 0)   updatePayload.properties["電話番号"] = { rich_text: [{ text: { content: data.tel } }] };
+      if (data.tel   && data.tel.length > 0)   updatePayload.properties["電話番号"] = { rich_text: [{ text: { content: normalizeTel_(data.tel) } }] };
       if (data.email && data.email.length > 0) updatePayload.properties["メールアドレス"] = { rich_text: [{ text: { content: data.email } }] };
       if (data.q1)   updatePayload.properties["利用キャリア"] = { rich_text: [{ text: { content: data.q1 } }] };
 
@@ -893,7 +911,7 @@ function upsertCustomerMasterByLineId(data) {
           "対応ステータス":   { select:    { name: "新規" } }
         }
       };
-      if (data.tel   && data.tel.length > 0)   createPayload.properties["電話番号"]      = { rich_text: [{ text: { content: data.tel } }] };
+      if (data.tel   && data.tel.length > 0)   createPayload.properties["電話番号"]      = { rich_text: [{ text: { content: normalizeTel_(data.tel) } }] };
       if (data.email && data.email.length > 0) createPayload.properties["メールアドレス"]  = { rich_text: [{ text: { content: data.email } }] };
       if (data.q1)   createPayload.properties["利用キャリア"] = { rich_text: [{ text: { content: data.q1 } }] };
 
@@ -1886,7 +1904,7 @@ function handleWebForm(data) {
 
     if (data.tel) {
       try {
-        const cleanTel = data.tel.replace(/[^\d]/g,"");
+        const cleanTel = normalizeTel_(data.tel);
         const searchRes = UrlFetchApp.fetch(
           "https://api.notion.com/v1/databases/" + CUSTOMER_MASTER_ID + "/query",
           { method: "post", headers: notionHeaders(),
@@ -1921,7 +1939,7 @@ function handleWebForm(data) {
               parent: { database_id: CUSTOMER_MASTER_ID },
               properties: {
                 "氏名":           { title:     [{ text: { content: data.name || "未入力" } }] },
-                "電話番号":       { rich_text: [{ text: { content: data.tel  || "" } }] },
+                "電話番号":       { rich_text: [{ text: { content: normalizeTel_(data.tel) } }] },
                 "初回登録日":     { date:      { start: todayStr } },
                 "最終来店日":     { date:      { start: todayStr } },
                 "対応ステータス": { select:    { name: "会員" } },
@@ -2019,7 +2037,7 @@ function handleWebForm(data) {
       // ★ Task 3: 二重付与解消。送信時の +3 は廃止し、LINEで「カルテ診断完了」送信時の
       //   +3（linkLineIdToCustomer 経由 / "スマホ診断完了"）に統一。
 
-      const cleanTel = (data.tel || '').replace(/[^\d]/g, '');
+      const cleanTel = normalizeTel_(data.tel);
       if (cleanTel.length >= 10) {
         CacheService.getScriptCache().put('diag_latest_tel', cleanTel, 3600);
         CacheService.getScriptCache().put('diag_tel_' + cleanTel, '1', 3600);
@@ -2038,7 +2056,7 @@ function handleWebForm(data) {
       try {
         const updatePayload = { properties: {} };
         if (data.name)        updatePayload.properties["氏名"]              = { title: [{ text: { content: data.name } }] };
-        if (data.tel)         updatePayload.properties["電話番号"]          = { rich_text: [{ text: { content: data.tel } }] };
+        if (data.tel)         updatePayload.properties["電話番号"]          = { rich_text: [{ text: { content: normalizeTel_(data.tel) } }] };
         if (data.email)       updatePayload.properties["メールアドレス"]    = { rich_text: [{ text: { content: data.email } }] };
         if (data.carrier)     updatePayload.properties["利用キャリア"]      = { rich_text: [{ text: { content: data.carrier } }] };
         if (data.device)      updatePayload.properties["利用端末"]          = { rich_text: [{ text: { content: data.device } }] };
@@ -2118,7 +2136,7 @@ function handleWebForm(data) {
   if (data.q6)     payload.properties["Q6_買い替え時期"]  = { select:    { name: data.q6 } };
   if (data.q3 && data.q3.length > 0) payload.properties["Q3_データ通信量"] = { multi_select: data.q3.map(i => ({ name: i })) };
   if (data.q7 && data.q7.length > 0) payload.properties["Q7_気になること"] = { multi_select: data.q7.map(i => ({ name: i })) };
-  if (data.tel)        payload.properties["電話番号"]      = { rich_text: [{ text: { content: data.tel   } }] };
+  if (data.tel)        payload.properties["電話番号"]      = { rich_text: [{ text: { content: normalizeTel_(data.tel) } }] };
   if (data.email)      payload.properties["メールアドレス"] = { rich_text: [{ text: { content: data.email } }] };
   if (customerMasterPageId) payload.properties["顧客マスター"] = { relation: [{ id: customerMasterPageId }] };
   if (data.lineUserId) payload.properties["LINE_userid"]    = { rich_text: [{ text: { content: data.lineUserId } }] };

@@ -6,6 +6,18 @@
 
 ## [未リリース]
 
+### 2026-06-17  電話番号のハイフン統一（新規書込みのみ・既存データmigrationは別PR予定）
+- 共通ヘルパー `normalizeTel_(tel)` を新設：全角数字 `０-９` → 半角 → 非数字（ハイフン・空白・括弧等）除去
+- 既存の散発的なインライン `.replace(/[^\d]/g, ...)`（4箇所）を `normalizeTel_()` に統一（挙動互換・一元管理）
+  - `handlePreMemberBenefit` / `upsertCustomerMaster`（検索） / サブスク handler（検索） / 診断 fallback（Cache）
+- Notion「電話番号」プロパティへの書込み6箇所すべてを `normalizeTel_()` 経由に変更
+  - `upsertCustomerMaster` 新規 / `upsertCustomerMasterByLineId` 更新・新規 / handleWebForm サブスク・カルテLINE紐付け / `registerKomariFromKarte`
+- 背景：書込み側が正規化されておらず、検索側（`contains: 数字のみ`）と不整合 → 「090-1234-5678」保存済みレコードへの「09012345678」フィルターが一致せず重複行を生む根本原因だった
+- 影響：**新規以降の書込みはハイフン無し統一**。既存ハイフン付きレコードは別PRの一括migrationで対応予定（DRY_RUN付き）
+- Notion プロパティ：型・列名すべて据置（rich_text のまま）
+- デプロイ：doPost 経路の変更のため **Web再デプロイ必須**
+
+
 ### 2026-06-17  Google Maps API キー差し替え（漏洩対応）
 - GitHub Secret scanning で検出された「Google API Key #1」漏洩への対応
 - 旧キー `AIzaSyDeC5...Rienk` → 新キー `AIzaSyBISDa...eE48I` に置換（4箇所）

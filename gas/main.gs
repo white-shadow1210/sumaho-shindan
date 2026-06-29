@@ -2641,7 +2641,8 @@ function replyMyPage(userId, replyToken) {
     const isMember   = safeCheck(p["かかりつけ会員"]);
     const carrier    = safeText(p["利用キャリア"])  || safeSelect(p["Q1_携帯会社"]) || "未記録";
     var monthly  = safeSelect(p["Q2_毎月の支払額"]) || "";
-    var buyTime  = safeSelect(p["Q6_買い替え時期"]) || null;
+    // ★ buyTime: カルテ由来の「買い替え時期」rich_text を優先、なければ診断由来の「Q6_買い替え時期」select にフォールバック
+    var buyTime  = safeText(p["買い替え時期"]) || safeSelect(p["Q6_買い替え時期"]) || null;
     var netEnv   = safeSelect(p["Q5_ネット環境"])   || "";
 
     if (!monthly || !buyTime || !netEnv) {
@@ -2660,6 +2661,7 @@ function replyMyPage(userId, replyToken) {
           if (diagResults && diagResults.length > 0) {
             var dp = diagResults[0].properties;
             if (!monthly) monthly = safeSelect(dp["Q2_毎月の支払額"]) || "未記録";
+            // ★ 顧客マスター/カルテ側で取れなかったときの最終フォールバック（診断DB の Q6_買い替え時期 select）
             if (!buyTime) buyTime = safeSelect(dp["Q6_買い替え時期"]) || null;
             if (!netEnv)  netEnv  = safeSelect(dp["Q5_ネット環境"])   || "未記録";
           }
@@ -2704,6 +2706,7 @@ function replyMyPage(userId, replyToken) {
       "２年以内":   "比較的新しい（あと2〜3年）",
       "２〜４年以内": "そろそろ検討時期",
       "４年以上":   "⚠️ 買い替え時期です！",
+      "⚠️ ４年以上": "⚠️ 買い替え時期です！",  // ★ 過去カルテ（絵文字付き）データ救済用エイリアス
       "わからない": "診断でチェックしましょう"
     };
     const reserveUrl = "https://white-shadow1210.github.io/sumaho-shindan/reserve.html";

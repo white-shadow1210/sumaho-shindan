@@ -1212,7 +1212,16 @@ async function submitKarte() {
   if (propTotal < 0) propTotal = 0;
   var apps  = getAppSummary();
   var tl    = getTimelineData();
-  var tlTxt = tl.map(function(t){ return t.year+'：'+t.memo; }).join(' / ');
+  // ★ 年順ソート + 空エントリ除去（年なしは末尾）
+  var validTl = tl
+    .filter(function(t){ return (t.year && String(t.year).trim()) || (t.memo && String(t.memo).trim()); })
+    .sort(function(a, b){
+      var ya = parseInt(a.year) || 9999;
+      var yb = parseInt(b.year) || 9999;
+      return ya - yb;
+    });
+  var tlTxt        = validTl.map(function(t){ return t.year+'：'+t.memo; }).join(' / ');  // memo埋め込み用（後方互換）
+  var timelineText = validTl.map(function(t){ return t.year+'：'+t.memo; }).join('\n');   // 専用「スマホ遍歴」プロパティ用
   var curPlanSel  = document.getElementById('cur-plan-select');
   var propPlanSel = document.getElementById('prop-plan-select');
   var curPlanName  = curPlanSel.options[curPlanSel.selectedIndex]   ? curPlanSel.options[curPlanSel.selectedIndex].text   : '';
@@ -1261,6 +1270,7 @@ async function submitKarte() {
     appTransfer:  apps.transfer,
     purpose:      getMultiVals('purpose-group').join('、'),
     memo:         memoArr.filter(Boolean).join(' | '),
+    timeline:     timelineText,
     source:       sourceVal  // ★ v6.9.1: 流入経路
   };
   try {

@@ -6,6 +6,21 @@
 
 ## [未リリース]
 
+### 2026-06-17  スマホ遍歴タイムラインをマイページ card7 に表示
+- カルテのタイムラインを Notion 顧客マスターの **「スマホ遍歴」** rich_text プロパティに専用保存し、マイページのカルーセル7枚目に表示
+- **karte.html**：
+  - `getTimelineData()` の結果を **年順（古→新）でソート + 空エントリ除去** ＋ 年なしは末尾
+  - `timelineText`（改行区切り文字列）を payload の `timeline` フィールドとして新規送信
+  - memo 内の「スマホ遍歴：...」も**フェイルセーフとして据置**（GAS未デプロイ期間の情報落ち回避）
+- **GAS `handleWebForm` karte 分岐**：`upsertParams.timeline = data.timeline` を追加
+- **GAS `upsertCustomerMaster`**：update / create 両ブロックに `params.timeline` を「スマホ遍歴」プロパティへ書込み（既存 `memoToRichText_` を流用して 2000文字超は自動分割）
+- **GAS `replyMyPage`**：
+  - 新ヘルパー `safeRichText(prop)` を追加（複数 chunk の rich_text を連結して取得）
+  - 新 **card7 「📲 スマホ遍歴」**（紫系 `#6c5ce7`）をカルーセルに追加。**10件まで表示**＋超過分は「…他N件」表示。データなしは「まだ記録がありません」表示
+  - カルーセル枚数：6 → 7（LINE仕様上限12枚なので余裕）
+- 前提：Notion 顧客マスターDB に「スマホ遍歴」プロパティ（テキスト型 = rich_text）を事前に手動追加済み
+- デプロイ：karte.html → GitHub Pages 自動反映 ／ gas/main.gs → **Web再デプロイ必須**（doPost と LINE event 両経路を変更）
+
 ### 2026-06-17  カルテ memo を Notion 顧客マスター「メモ」プロパティに反映
 - カルテ送信時の `data.memo`（5種類連結：基本メモ / 端末メモ / シムメモ / 今日サマリ / タイムライン / 割引）を、Notion 顧客マスターの **「メモ」** rich_text プロパティに書き込み
 - 共通ヘルパー `memoToRichText_(memo)` 新設：Notion の text オブジェクト 2000文字制限に備え、2000文字ごとに自動分割（長文でも 400 サイレント失敗回避）

@@ -789,6 +789,9 @@ function upsertCustomerMaster(params) {
       // ★ 内部メモ（最新を上書き保持・マイページには表示しない）2000文字超は自動分割
       if (params.memo)          updatePayload.properties["メモ"]              = { rich_text: memoToRichText_(params.memo) };
 
+      // ★ スマホ遍歴（最新を上書き保持・マイページ card7 で表示。改行区切り・年順ソート済み）
+      if (params.timeline)      updatePayload.properties["スマホ遍歴"]        = { rich_text: memoToRichText_(params.timeline) };
+
       UrlFetchApp.fetch("https://api.notion.com/v1/pages/" + existingPageId, {
         method: "patch", headers: notionHeaders(), payload: JSON.stringify(updatePayload), muteHttpExceptions: true
       });
@@ -850,6 +853,9 @@ function upsertCustomerMaster(params) {
 
       // ★ 内部メモ（更新ブロックと等価）
       if (params.memo)         createPayload.properties["メモ"]          = { rich_text: memoToRichText_(params.memo) };
+
+      // ★ スマホ遍歴（更新ブロックと等価）
+      if (params.timeline)     createPayload.properties["スマホ遍歴"]    = { rich_text: memoToRichText_(params.timeline) };
 
       const createRes = UrlFetchApp.fetch("https://api.notion.com/v1/pages", {
         method: "post", headers: notionHeaders(), payload: JSON.stringify(createPayload), muteHttpExceptions: true
@@ -2028,6 +2034,7 @@ function handleWebForm(data) {
       upsertParams.simConfig    = data.simConfig    || '';
       upsertParams.contractType = data.contractType || '';
       upsertParams.memo         = data.memo         || '';
+      upsertParams.timeline     = data.timeline     || '';
 
     } else if (data.formType === 'simulation') {
       historyText = "【料金シミュレーション】" + (data.carrier||'') + " 現状:¥" + (data.currentCost||0) + " → 提案後:¥" + (data.proposedCost||0) + " 月額節約:¥" + (data.savingCost||0);
@@ -2618,6 +2625,8 @@ function replyMyPage(userId, replyToken) {
     const p    = page.properties;
 
     function safeText(prop)  { try { return (prop && prop.rich_text && prop.rich_text[0]) ? prop.rich_text[0].plain_text : ""; } catch(e) { return ""; } }
+    // safeRichText: rich_text が 2000文字超で複数 text オブジェクトに分割保存されているケース用に全 chunk を連結（memoToRichText_ の対応版）
+    function safeRichText(prop) { try { return (prop && prop.rich_text) ? prop.rich_text.map(function(rt){ return rt.plain_text || ""; }).join("") : ""; } catch(e) { return ""; } }
     function safeTitle(prop) { try { return (prop && prop.title && prop.title[0]) ? prop.title[0].plain_text : ""; } catch(e) { return ""; } }
     function safeSelect(prop){ try { return (prop && prop.select) ? prop.select.name : ""; } catch(e) { return ""; } }
     function safeDate(prop)  { try { return (prop && prop.date) ? prop.date.start : null; } catch(e) { return null; } }
@@ -2815,6 +2824,39 @@ function replyMyPage(userId, replyToken) {
       null
     );
 
+    // ★ card7: スマホ遍歴（年順・古→新で表示。10件まで、超過は "…他N件"）
+    const timelineRaw = safeRichText(p["スマホ遍歴"]);
+    const timelineLines = (timelineRaw || "")
+      .split("\n")
+      .map(function(s){ return s.trim(); })
+      .filter(Boolean);
+    const TL_MAX_SHOW = 10;
+    const tlShown = timelineLines.slice(0, TL_MAX_SHOW);
+    const tlRemaining = timelineLines.length - TL_MAX_SHOW;
+    const timelineRows = tlShown.length > 0
+      ? tlShown.map(function(line){
+          const m = line.match(/^(\d{4})[：:](.+)$/);  // 「2019：内容」 → {label:"2019", value:"内容"}
+          if (m) {
+            const val = m[2].trim();
+            return { label: m[1], value: val.length > 30 ? val.substring(0, 30) + "…" : val };
+          }
+          return { label: "", value: line.length > 36 ? line.substring(0, 36) + "…" : line };
+        })
+      : [{ label: "履歴", value: "まだ記録がありません" }];
+    if (tlRemaining > 0) {
+      timelineRows.push({ type: "separator" });
+      timelineRows.push({ label: "", value: "…他 " + tlRemaining + " 件" });
+    }
+    const card7 = makeMyPageBubble(
+      "#6c5ce7", "📲", "スマホ遍歴",
+      [
+        ...timelineRows,
+        { type: "separator" },
+        { label: "カルテ更新日", value: karteDate ? karteDate.replace(/-/g,"/") : "未実施" }
+      ],
+      { type: "uri", label: "定期点検を予約する", uri: reserveUrl + "?menu=" + encodeURIComponent("【会員限定】定期点検サポート") }
+    );
+
     UrlFetchApp.fetch("https://api.line.me/v2/bot/message/reply", {
       method: "post",
       headers: { "Content-Type": "application/json", "Authorization": "Bearer " + LINE_TOKEN },
@@ -2825,7 +2867,7 @@ function replyMyPage(userId, replyToken) {
           {
             type: "flex",
             altText: name + " さんのマイページ",
-            contents: { type: "carousel", contents: [card1, card2, card3, card4, card5, card6] }
+            contents: { type: "carousel", contents: [card1, card2, card3, card4, card5, card6, card7] }
           }
         ]
       }),

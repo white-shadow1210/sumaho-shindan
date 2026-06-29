@@ -230,6 +230,23 @@ function normalizeTel_(tel) {
 }
 
 // ==========================================
+// 📝 正規化ヘルパー（memo → Notion rich_text 配列）
+// ==========================================
+// Notion API では rich_text の単一 text オブジェクトは 2000 文字制限。
+// karte の memo は 5種類連結（基本/端末/シム/今日サマリ/タイムライン/割引）で長くなりやすいため、
+// 2000 文字ごとに text オブジェクトを分割して安全に書き込む。
+// 空・null・undefined は空配列を返す（呼び出し側のガードで書込みスキップ）。
+function memoToRichText_(memo) {
+  if (!memo) return [];
+  const m = String(memo);
+  const chunks = [];
+  for (let i = 0; i < m.length; i += 2000) {
+    chunks.push({ text: { content: m.substring(i, i + 2000) } });
+  }
+  return chunks;
+}
+
+// ==========================================
 // 🔒 Task 2: セキュリティ強化（入力検証・トークン・異常通知）
 // ==========================================
 // 設計方針：
@@ -769,6 +786,9 @@ function upsertCustomerMaster(params) {
       // ★ v6.9.1: 流入経路
       if (params.source)        updatePayload.properties["流入経路"]          = { select: { name: params.source } };
 
+      // ★ 内部メモ（最新を上書き保持・マイページには表示しない）2000文字超は自動分割
+      if (params.memo)          updatePayload.properties["メモ"]              = { rich_text: memoToRichText_(params.memo) };
+
       UrlFetchApp.fetch("https://api.notion.com/v1/pages/" + existingPageId, {
         method: "patch", headers: notionHeaders(), payload: JSON.stringify(updatePayload), muteHttpExceptions: true
       });
@@ -827,6 +847,9 @@ function upsertCustomerMaster(params) {
 
       // ★ v6.9.1: 流入経路
       if (params.source)       createPayload.properties["流入経路"]      = { select: { name: params.source } };
+
+      // ★ 内部メモ（更新ブロックと等価）
+      if (params.memo)         createPayload.properties["メモ"]          = { rich_text: memoToRichText_(params.memo) };
 
       const createRes = UrlFetchApp.fetch("https://api.notion.com/v1/pages", {
         method: "post", headers: notionHeaders(), payload: JSON.stringify(createPayload), muteHttpExceptions: true
@@ -2004,6 +2027,7 @@ function handleWebForm(data) {
       upsertParams.wifi         = data.wifi         || '';
       upsertParams.simConfig    = data.simConfig    || '';
       upsertParams.contractType = data.contractType || '';
+      upsertParams.memo         = data.memo         || '';
 
     } else if (data.formType === 'simulation') {
       historyText = "【料金シミュレーション】" + (data.carrier||'') + " 現状:¥" + (data.currentCost||0) + " → 提案後:¥" + (data.proposedCost||0) + " 月額節約:¥" + (data.savingCost||0);

@@ -103,6 +103,24 @@
   .card p{font-size:15.5px;color:var(--ink-soft);line-height:1.7;}
   .card p b{display:block;color:var(--ink);font-family:var(--mincho);font-size:17px;margin-bottom:4px;}
 
+  /* FEE 料金のこと */
+  .fee{background:var(--paper);}
+  .fee .head{text-align:center;}
+  .fee h2{font-size:clamp(22px,3.6vw,31px);color:var(--teal-deep);margin:22px 0 14px;line-height:1.6;}
+  .fee .lead{font-size:15.5px;color:var(--ink-soft);max-width:540px;margin:0 auto 42px;text-align:center;}
+  .fee-grid{display:grid;grid-template-columns:1fr;gap:18px;max-width:660px;margin:0 auto;}
+  @media(min-width:640px){.fee-grid{grid-template-columns:1fr 1fr;}}
+  .fee-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:30px 26px;box-shadow:0 8px 24px rgba(43,38,34,.04);}
+  .fee-card .tag{display:inline-block;font-family:var(--mincho);font-size:13.5px;font-weight:700;padding:5px 18px;border-radius:999px;margin-bottom:20px;letter-spacing:.06em;}
+  .fee-card.free .tag{background:var(--teal);color:#fff;}
+  .fee-card.paid .tag{background:var(--gold);color:#fff;}
+  .fee-card ul{list-style:none;}
+  .fee-card li{position:relative;padding-left:22px;font-size:15.5px;color:var(--ink-soft);line-height:1.7;margin-bottom:12px;}
+  .fee-card li:last-child{margin-bottom:0;}
+  .fee-card li::before{content:"";position:absolute;left:2px;top:11px;width:7px;height:7px;border-radius:50%;background:var(--leaf);}
+  .fee .note{font-size:14px;color:var(--ink-soft);text-align:center;margin-top:22px;}
+  .fee .em{font-family:var(--mincho);font-size:clamp(16px,2.4vw,20px);color:var(--ink);margin-top:40px;line-height:1.95;max-width:600px;margin-left:auto;margin-right:auto;text-align:center;}
+
   /* KARTE */
   .karte{text-align:center;background:var(--paper);}
   .karte h2{font-size:clamp(22px,3.6vw,31px);margin:22px 0 24px;color:var(--teal-deep);}
@@ -222,6 +240,39 @@
         <div class="k">属しません</div>
         <div class="v">どのお店にも、どのキャリアにも属していません。だから、あなたのことだけを考えられます。</div>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEE 料金のこと -->
+<section class="fee">
+  <div class="wrap">
+    <div class="head">
+      <div class="bo fade"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 3c0 5-4 7-4 11a4 4 0 0 0 8 0c0-4-4-6-4-11z"/></svg></div>
+      <h2 class="fade">お金のことも、正直に。</h2>
+      <p class="lead fade" style="transition-delay:.08s">気持ちよくご相談いただくために、どこまでが無料で、どこからが有料か、はじめにはっきりお伝えします。</p>
+    </div>
+    <div class="fee-grid">
+      <div class="fee-card free fade" style="transition-delay:.1s">
+        <span class="tag">無料でできること</span>
+        <ul>
+          <li>スマホの「困った」のご相談</li>
+          <li>スマホ健康診断（今の状態を確認し、カルテを作成）</li>
+        </ul>
+      </div>
+      <div class="fee-card paid fade" style="transition-delay:.18s">
+        <span class="tag">ご希望に応じた有料メニュー</span>
+        <ul>
+          <li>プランの詳しい見直し・最適化のご提案</li>
+          <li>続けて見守る、かかりつけのサポート</li>
+        </ul>
+      </div>
+    </div>
+    <p class="note fade" style="transition-delay:.22s">※ もちろん、その場で契約を迫ることはありません。</p>
+    <div class="em fade" style="transition-delay:.24s">
+      わたしがいただくのは、モノを売る手数料ではなく、<br>
+      ご相談そのものへの対価です。<br>
+      だからこそ、どのお店にもキャリアにも偏らず、あなたのためだけを考えられます。
     </div>
   </div>
 </section>

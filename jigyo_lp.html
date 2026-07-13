@@ -142,6 +142,9 @@
   .yakusoku{max-width:560px;margin:24px auto 0;background:#fff;border:1px solid #DED6C6;border-left:4px solid #3E7A72;border-radius:12px;padding:20px 22px;}
   .yakusoku b{display:block;font-family:'Shippori Mincho',serif;font-size:14.5px;color:#2F5E58;margin-bottom:6px;letter-spacing:.08em;}
   .yakusoku p{font-size:14px;color:#5A544C;line-height:1.95;}
+  /* 末尾1文字だけの段落落ちを防ぐ（対応ブラウザのみ・非対応でも無害） */
+  p, li, .bubble, details .a, .item .tx p, .promise .row .v, .yakusoku p, .cta-notes p{text-wrap:pretty;}
+  h1, h2, h3, .principle, .hero .sub, .quiet, .fee .em, .talk .capt{text-wrap:balance;}
 </style>
 </head>
 <body>

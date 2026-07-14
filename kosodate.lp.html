@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>うちの子のスマホ、いつから？｜スマホの相談士</title>
+<meta name="description" content="静岡県 吉田町・牧之原市。売らない・急かさない・どこにも属さない、あなたの町のスマホの相談士です。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Shippori+Mincho:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{font-family:'Noto Sans JP',sans-serif;color:#2B2622;background:#FAF8F5;line-height:2.0;font-size:17.5px;overflow-x:clip;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");}
+  h1,h2,h3{font-family:'Shippori Mincho',serif;font-weight:700;letter-spacing:.04em;}
+  .wrap{max-width:680px;margin:0 auto;padding:0 clamp(22px,5.5vw,34px);}
+  section{padding:clamp(58px,10vw,96px) 0;}
+  .fade{opacity:0;transform:translateY(20px);transition:opacity .85s cubic-bezier(.22,1,.36,1),transform .85s cubic-bezier(.22,1,.36,1);}
+  .fade.vis{opacity:1;transform:none;}
+  @media(prefers-reduced-motion:reduce){.fade{opacity:1;transform:none;transition:none;}}
+
+  .bo{display:flex;align-items:center;justify-content:center;gap:14px;margin:0 auto 34px;color:#8FA88C;}
+  .bo::before,.bo::after{content:"";height:1px;width:56px;background:#DED6C6;}
+  .bo svg{width:20px;height:20px;opacity:.85;}
+  section h2{text-align:center;font-size:clamp(22px,3.6vw,29px);line-height:1.65;margin-bottom:12px;}
+  section .lead{text-align:center;font-size:15.5px;color:#5A544C;margin-bottom:42px;}
+
+  /* HERO */
+  .hero{min-height:86vh;display:flex;flex-direction:column;justify-content:center;text-align:center;position:relative;}
+  .hero .eyebrow{font-size:12.5px;letter-spacing:.32em;color:#5A544C;margin-bottom:24px;}
+  .hero h1{font-size:clamp(36px,9vw,58px);line-height:1.5;margin-bottom:22px;}
+  .hero h1 .kin{color:#2F5E58;}
+  .hero .sub{font-size:clamp(14.5px,2.2vw,17px);color:#5A544C;line-height:2.15;margin-bottom:24px;}
+  .hero .sub b{color:#2B2622;}
+  .hero .trust{display:inline-block;background:#fff;border:1px solid #DED6C6;border-radius:999px;padding:8px 20px;font-size:13px;color:#5A544C;margin-bottom:20px;box-shadow:0 6px 18px rgba(43,38,34,.05);}
+  .hero-cta{display:inline-flex;align-items:center;gap:10px;margin:0 auto;background:#3E7A72;color:#fff;font-family:'Shippori Mincho',serif;font-size:16.5px;font-weight:600;padding:15px 34px;border-radius:999px;text-decoration:none;box-shadow:0 10px 26px rgba(62,122,114,.35);width:fit-content;}
+  .hero-cta svg{width:20px;height:20px;}
+  .hero .stamp{position:absolute;top:22px;right:clamp(4px,3vw,12px);width:86px;height:86px;border:1.4px solid #DED6C6;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#5A544C;font-size:11.5px;line-height:1.5;transform:rotate(-6deg);text-align:center;background:rgba(250,248,245,.65);}
+  .hero .stamp b{color:#B08A4A;font-size:11.5px;font-weight:700;font-family:'Shippori Mincho',serif;margin-bottom:2px;}
+
+  /* トーク風セクション（LINEの予告編） */
+  .talk{background:#F5F1E8;}
+  .talk .chatbox{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:18px;}
+  .msg{display:flex;gap:10px;align-items:flex-end;}
+  .msg.you{justify-content:flex-end;}
+  .msg .face{width:40px;height:40px;border-radius:50%;overflow:hidden;border:1px solid #DED6C6;flex-shrink:0;background:#FAF8F5;}
+  .msg .face img{width:100%;height:100%;object-fit:cover;display:block;}
+  .bubble{max-width:76%;padding:13px 18px;font-size:15.5px;line-height:1.85;border-radius:18px;box-shadow:0 4px 14px rgba(43,38,34,.06);}
+  .msg.you .bubble{background:#3E7A72;color:#fff;border-bottom-right-radius:4px;}
+  .msg.me .bubble{background:#fff;color:#2B2622;border:1px solid #DED6C6;border-bottom-left-radius:4px;}
+  .talk .capt{text-align:center;font-size:13.5px;color:#5A544C;margin-top:30px;line-height:1.9;}
+
+  /* PROFILE */
+  .profile{text-align:center;}
+  .profile .avatar{width:116px;height:116px;border-radius:50%;border:1.4px solid #DED6C6;background:#FAF8F5;margin:0 auto 18px;overflow:hidden;box-shadow:0 8px 22px rgba(43,38,34,.08);}
+  .profile .avatar img{width:100%;height:100%;object-fit:cover;display:block;}
+  .profile .role{font-size:12.5px;color:#3E7A72;letter-spacing:.16em;margin-bottom:5px;}
+  .profile .nm{font-family:'Shippori Mincho',serif;font-size:24px;}
+  .profile .nm .y{font-size:12px;color:#5A544C;margin-left:8px;font-family:'Noto Sans JP',sans-serif;}
+  .profile .msgtext{font-size:15.5px;color:#5A544C;max-width:470px;margin:18px auto 34px;text-align:justify;text-align-last:center;line-height:2.0;}
+  .nums{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;max-width:560px;margin:0 auto;}
+  .num{background:#fff;border:1px solid #DED6C6;border-radius:14px;padding:20px 8px;text-align:center;}
+  .num .v{font-family:'Shippori Mincho',serif;font-size:clamp(19px,4vw,26px);font-weight:800;color:#2F5E58;line-height:1.3;}
+  .num .v small{font-size:.55em;}
+  .num .k{font-size:12.5px;color:#5A544C;margin-top:5px;line-height:1.5;}
+
+  /* SOUDAN */
+  .items{max-width:540px;margin:0 auto;display:grid;gap:13px;}
+  .item{display:flex;gap:15px;align-items:center;background:#fff;border:1px solid #DED6C6;border-radius:16px;padding:17px 20px;box-shadow:0 5px 16px rgba(43,38,34,.03);}
+  .item .ic{flex-shrink:0;width:38px;height:38px;border-radius:12px;background:#EEF2EC;color:#3E7A72;display:flex;align-items:center;justify-content:center;}
+  .item .ic svg{width:19px;height:19px;}
+  .item .tx b{display:block;font-family:'Shippori Mincho',serif;font-size:16.5px;line-height:1.6;}
+  .item .tx p{font-size:13.5px;color:#5A544C;line-height:1.7;}
+  .quiet{text-align:center;font-family:'Shippori Mincho',serif;font-size:clamp(16px,2.5vw,19px);margin-top:38px;line-height:2;}
+
+  /* PROMISE 墨 */
+  .promise{background:#2B2622;color:#FAF8F5;text-align:center;}
+  .promise h2{color:#B89150;}
+  .promise .list{max-width:500px;margin:26px auto 0;text-align:left;}
+  .promise .row{display:flex;gap:16px;align-items:flex-start;padding:21px 0;border-bottom:1px solid rgba(255,255,255,.12);}
+  .promise .row:last-child{border-bottom:none;}
+  .promise .row .k{font-family:'Shippori Mincho',serif;font-size:18px;color:#fff;flex-shrink:0;width:122px;}
+  .promise .row .v{font-size:15px;color:rgba(255,255,255,.82);line-height:1.85;}
+
+  /* FEE */
+  .fee{background:#F5F1E8;}
+  .fee-grid{display:grid;grid-template-columns:1fr;gap:16px;max-width:620px;margin:0 auto;}
+  @media(min-width:620px){.fee-grid{grid-template-columns:1fr 1fr;}}
+  .fee-card{background:#fff;border:1px solid #DED6C6;border-radius:16px;padding:27px 24px;}
+  .fee-card .tag{display:inline-block;font-family:'Shippori Mincho',serif;font-size:12.5px;font-weight:700;padding:5px 17px;border-radius:999px;margin-bottom:17px;color:#fff;}
+  .fee-card.free .tag{background:#3E7A72;}
+  .fee-card.paid .tag{background:#B89150;}
+  .fee-card ul{list-style:none;}
+  .fee-card li{position:relative;padding-left:19px;font-size:15px;color:#5A544C;line-height:1.8;margin-bottom:10px;}
+  .fee-card li:last-child{margin-bottom:0;}
+  .fee-card li::before{content:"";position:absolute;left:2px;top:11px;width:6px;height:6px;border-radius:50%;background:#8FA88C;}
+  .fee .note{font-size:13.5px;color:#5A544C;text-align:center;margin-top:20px;}
+  .fee .em{font-family:'Shippori Mincho',serif;font-size:clamp(15px,2.4vw,18px);margin:38px auto 0;line-height:2.1;max-width:540px;text-align:center;}
+
+  /* FAQ アコーディオン */
+  .faq .qa{max-width:560px;margin:0 auto;display:grid;gap:12px;}
+  details{background:#fff;border:1px solid #DED6C6;border-radius:14px;overflow:hidden;}
+  summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:13px;padding:18px 20px;font-family:'Shippori Mincho',serif;font-size:16px;line-height:1.7;}
+  summary::-webkit-details-marker{display:none;}
+  summary .q{flex-shrink:0;width:26px;height:26px;border-radius:50%;background:#3E7A72;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-family:'Shippori Mincho',serif;}
+  summary .ar{margin-left:auto;color:#B08A4A;transition:transform .3s;flex-shrink:0;}
+  details[open] summary .ar{transform:rotate(180deg);}
+  details .a{padding:2px 20px 19px 59px;font-size:14.5px;color:#5A544C;line-height:1.95;}
+
+  /* CTA */
+  .cta{text-align:center;background:#2B2622;color:#FAF8F5;}
+  .cta h2{color:#B89150;font-size:clamp(23px,4vw,32px);line-height:1.65;margin:22px 0 16px;}
+  .cta .lead{font-size:16px;color:rgba(255,255,255,.82);margin-bottom:8px;}
+  .cta .lead2{font-size:14.5px;color:rgba(255,255,255,.6);margin-bottom:36px;}
+  .cta .free{display:inline-block;background:#B89150;color:#2B2622;font-family:'Shippori Mincho',serif;font-size:12.5px;font-weight:700;padding:4px 16px;border-radius:999px;margin-bottom:18px;}
+  .btn-main{display:inline-flex;align-items:center;gap:12px;background:#3E7A72;color:#fff;font-family:'Shippori Mincho',serif;font-size:18.5px;font-weight:600;padding:20px 42px;border-radius:999px;text-decoration:none;box-shadow:0 12px 30px rgba(62,122,114,.4);transition:transform .3s;}
+  .btn-main:hover{transform:translateY(-3px);}
+  .btn-main svg{width:22px;height:22px;}
+  .subcta{margin-top:32px;padding-top:28px;border-top:1px solid rgba(255,255,255,.14);}
+  .cta-notes{text-align:left;max-width:420px;margin:0 auto;}
+  .cta-notes p{font-size:13px;color:rgba(255,255,255,.55);line-height:1.9;margin-bottom:8px;}
+  .cta-notes p:last-child{margin-bottom:0;}
+
+  .sticky-cta{position:fixed;left:0;right:0;bottom:0;z-index:50;padding:10px 16px calc(10px + env(safe-area-inset-bottom));opacity:0;transform:translateY(100%);transition:opacity .45s ease,transform .45s ease;pointer-events:none;}
+  .sticky-cta.show{opacity:1;transform:none;pointer-events:auto;}
+  .sticky-cta a{display:flex;align-items:center;justify-content:center;gap:10px;max-width:430px;margin:0 auto;min-height:52px;background:#3E7A72;color:#fff;font-family:'Shippori Mincho',serif;font-size:16px;font-weight:600;border-radius:999px;text-decoration:none;box-shadow:0 8px 24px rgba(43,38,34,.28);}
+  .sticky-cta a svg{width:20px;height:20px;}
+
+  footer{text-align:center;padding:44px 20px 110px;color:#5A544C;font-size:12px;border-top:1px solid #DED6C6;background:#FAF8F5;}
+  footer .cl{font-family:'Shippori Mincho',serif;font-size:16px;color:#2B2622;margin-bottom:10px;letter-spacing:.1em;}
+  .avatar-photo{width:100%;height:100%;background:url("data:image/jpeg;base64,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") center/cover no-repeat;}
+  .fee .principle{font-family:'Shippori Mincho',serif;font-size:clamp(16.5px,2.8vw,21px);line-height:2.2;text-align:center;background:#fff;border:1px solid #DED6C6;border-radius:16px;padding:26px 20px;max-width:560px;margin:0 auto 26px;box-shadow:0 6px 18px rgba(43,38,34,.04);}
+  .fee .principle .fr{color:#2F5E58;border-bottom:3px solid rgba(62,122,114,.35);padding:0 .1em;}
+  .fee .principle .pd{color:#B08A4A;border-bottom:3px solid rgba(184,145,80,.4);padding:0 .1em;}
+  .menu{display:grid;gap:0;}
+  .mrow{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 2px;border-bottom:1px dashed #DED6C6;}
+  .mrow:last-child{border-bottom:none;}
+  .mrow .mn{font-size:15px;color:#2B2622;line-height:1.6;font-weight:500;}
+  .mrow .mn small{display:block;font-size:12.5px;color:#8a8378;font-weight:400;margin-top:1px;}
+  .mrow .mp{font-family:'Shippori Mincho',serif;font-size:16px;font-weight:700;color:#B08A4A;flex-shrink:0;white-space:nowrap;}
+  .yakusoku{max-width:560px;margin:24px auto 0;background:#fff;border:1px solid #DED6C6;border-left:4px solid #3E7A72;border-radius:12px;padding:20px 22px;}
+  .yakusoku b{display:block;font-family:'Shippori Mincho',serif;font-size:14.5px;color:#2F5E58;margin-bottom:6px;letter-spacing:.08em;}
+  .yakusoku p{font-size:14px;color:#5A544C;line-height:1.95;}
+  /* 末尾1文字だけの段落落ちを防ぐ（対応ブラウザのみ・非対応でも無害） */
+  p, li, .bubble, details .a, .item .tx p, .promise .row .v, .yakusoku p, .cta-notes p{text-wrap:pretty;}
+  h1, h2, h3, .principle, .hero .sub, .quiet, .fee .em, .talk .capt{text-wrap:balance;}
+  .stat-note{text-align:center;font-size:11.5px;color:#8a8378;margin-top:16px;letter-spacing:.02em;}
+  .promise .plead{font-size:14px;color:rgba(255,255,255,.7);text-align:center;margin:-14px 0 10px;line-height:1.9;}
+  /* 導入（習い事のくだり） */
+  .naru{background:#F5F1E8;text-align:center;}
+  .naru p{font-family:'Shippori Mincho',serif;font-size:clamp(17px,2.8vw,21px);line-height:2.4;color:#2B2622;text-wrap:balance;}
+  .naru p+p{margin-top:30px;}
+  .naru .lt{color:#5A544C;font-size:.82em;}
+  /* 成長物語タイムライン */
+  .tl{max-width:540px;margin:0 auto;position:relative;}
+  .tl::before{content:"";position:absolute;left:15px;top:8px;bottom:8px;width:2px;background:#DED6C6;border-radius:2px;}
+  .tli{position:relative;padding:0 0 30px 46px;}
+  .tli:last-child{padding-bottom:0;}
+  .tli .dot{position:absolute;left:7px;top:6px;width:18px;height:18px;border-radius:50%;background:#3E7A72;border:4px solid #FAF8F5;}
+  .tli .when{display:inline-block;font-family:'Shippori Mincho',serif;font-size:13px;font-weight:700;color:#B08A4A;letter-spacing:.06em;margin-bottom:6px;}
+  .tli .bd2{background:#fff;border:1px solid #DED6C6;border-radius:14px;padding:19px 22px;box-shadow:0 5px 16px rgba(43,38,34,.03);}
+  .tli .bd2 b{display:block;font-family:'Shippori Mincho',serif;font-size:16.5px;margin-bottom:5px;line-height:1.6;}
+  .tli .bd2 p{font-size:13.5px;color:#5A544C;line-height:1.85;}
+  .tl-close{max-width:540px;margin:38px auto 0;text-align:center;font-size:14.5px;color:#5A544C;line-height:2.1;text-wrap:pretty;}
+  .tl-close b{color:#2F5E58;font-family:'Shippori Mincho',serif;}
+</style>
+</head>
+<body>
+
+<!-- ① HERO -->
+<section class="hero wrap">
+  <div class="stamp fade"><b>地元</b>吉田町・<br>牧之原市</div>
+  <div class="eyebrow fade">ス マ ホ の 相 談 士</div>
+  <h1 class="fade" style="transition-delay:.08s">うちの子のスマホ、<br><span class="kin">いつから？どうする？</span></h1>
+  <p class="sub fade" style="transition-delay:.2s">正解は、ご家庭の数だけあります。<br><b>売らない相談士</b>と、一緒に考えませんか。</p>
+  <div class="fade" style="transition-delay:.28s"><span class="trust">携帯業界10年 ／ 約7,000名のご相談 ／ 小1の娘の父</span></div>
+  <a href="https://lin.ee/7mIbpCd" class="hero-cta fade" style="transition-delay:.36s">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5c-1.3 0-2.5-.3-3.6-.8L4 20l1-4a8.4 8.4 0 0 1-1-4C4 7 7.8 3.5 12.5 3.5S21 7 21 11.5z"/></svg>
+    LINEで無料相談する
+  </a>
+</section>
+
+<!-- 導入：習い事のくだり -->
+<section class="naru">
+  <div class="wrap">
+    <p class="fade">「この子のために、何かしてあげたい」。<br>その気持ちで、習い事を選んだことは<br>ありませんか。</p>
+    <p class="fade" style="transition-delay:.12s">スマホも、きっと同じです。</p>
+    <p class="lt fade" style="transition-delay:.24s">安さや流行りより大切な「わが家の形」を、一緒に見つけませんか。</p>
+  </div>
+</section>
+
+<!-- ② トーク（相談の予告編・親御さん版） -->
+<section class="talk">
+  <div class="wrap">
+    <h2 class="fade">相談は、こんな感じです。</h2>
+    <p class="lead fade" style="transition-delay:.06s">LINEのトークで、こんなふうに気軽にどうぞ。</p>
+    <div class="chatbox">
+      <div class="msg you fade" style="transition-delay:.05s"><div class="bubble">小3の息子が「クラスのみんな持ってる」と言い出して…。防犯のためには持たせたいけど、SNSとか心配で。</div></div>
+      <div class="msg me fade" style="transition-delay:.15s"><div class="face"><div class="avatar-photo" aria-hidden="true"></div></div><div class="bubble">その迷い、とても自然です。「みんな」と言っても、実際は持っている子と持っていない子が半々くらいの学年です。焦らなくて大丈夫ですよ。</div></div>
+      <div class="msg you fade" style="transition-delay:.25s"><div class="bubble">そうなんですね。何を買えばいいかも分からなくて。</div></div>
+      <div class="msg me fade" style="transition-delay:.35s"><div class="face"><div class="avatar-photo" aria-hidden="true"></div></div><div class="bubble">機種やプランは、あとで十分間に合います。まずは「わが家は何のために持たせるのか」から、一緒に整理しましょう。わたしはどこにも属していないので、「まだ持たせない」という結論も、一緒に選べます。</div></div>
+    </div>
+    <p class="capt fade" style="transition-delay:.4s">— こんなやり取りから、はじまります。</p>
+  </div>
+</section>
+
+<!-- ③ 迷いあるある -->
+<section class="wrap">
+  <h2 class="fade">こんな迷い、ありませんか。</h2>
+  <p class="lead fade" style="transition-delay:.06s">保育園から小学生のお子さんを持つ、親御さんの声です。</p>
+  <div class="items">
+    <div class="item fade" style="transition-delay:.05s"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 10h8M8 14h5"/><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5c-1.3 0-2.5-.3-3.6-.8L4 20l1-4a8.4 8.4 0 0 1-1-4C4 7 7.8 3.5 12.5 3.5S21 7 21 11.5z"/></svg></div><div class="tx"><b>「みんな持ってる」と言われて、焦る</b><p>本当にみんな？　周りに合わせるべき？</p></div></div>
+    <div class="item fade" style="transition-delay:.1s"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/></svg></div><div class="tx"><b>防犯には持たせたい。でもSNSやゲームが心配</b><p>知らない人とのやり取り、課金、夜ふかし…</p></div></div>
+    <div class="item fade" style="transition-delay:.15s"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><line x1="10" y1="18.5" x2="14" y2="18.5"/></svg></div><div class="tx"><b>キッズ携帯？　GPS？　スマホ？</b><p>種類が多すぎて、何が合うのか分からない</p></div></div>
+    <div class="item fade" style="transition-delay:.2s"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 6v6l4 2"/><circle cx="12" cy="12" r="9"/></svg></div><div class="tx"><b>家庭のルール、どう決めればいい？</b><p>時間・場所・SNS。あとから直すのは大変そう</p></div></div>
+    <div class="item fade" style="transition-delay:.25s"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5h5M9.5 13h5"/></svg></div><div class="tx"><b>月々の料金は、なるべく抑えたい</b><p>家族全体の通信費も、気になっている</p></div></div>
+  </div>
+  <p class="quiet fade" style="transition-delay:.2s">スマホのことが、頭の片すみの<br>「名もなき負担」になっていませんか。</p>
+</section>
+
+<!-- ④ 数字で見る、いま -->
+<section class="talk">
+  <div class="wrap">
+    <h2 class="fade">数字で見る、いまの小学生。</h2>
+    <p class="lead fade" style="transition-delay:.06s">焦る必要も、遅すぎることもありません。</p>
+    <div class="nums fade" style="transition-delay:.1s">
+      <div class="num"><div class="v">小5<small>で</small>半数</div><div class="k">スマホを持っている<br>のは、まだ約半分</div></div>
+      <div class="num"><div class="v">10.2<small>歳</small></div><div class="k">持ちはじめの<br>全国平均</div></div>
+      <div class="num"><div class="v">SNS</div><div class="k">親の心配ごと<br>第1位</div></div>
+    </div>
+    <p class="stat-note fade" style="transition-delay:.14s">出典：NTTドコモ モバイル社会研究所（2026年1月）ほか各社調査より</p>
+    <p class="quiet fade" style="transition-delay:.18s">早いか遅いかより、<br>「わが家の理由」があるかどうか。</p>
+  </div>
+</section>
+
+<!-- ⑤ わたしも、おなじ親です -->
+<section class="profile">
+  <div class="wrap">
+    <div class="bo fade"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 3c0 5-4 7-4 11a4 4 0 0 0 8 0c0-4-4-6-4-11z"/></svg></div>
+    <h2 class="fade">わたしも、おなじ親です。</h2>
+    <div class="avatar fade" style="margin-top:26px;"><div class="avatar-photo" role="img" aria-label="スマホの相談士 櫻井龍之介"></div></div>
+    <div class="role fade" style="transition-delay:.05s">スマホの相談士</div>
+    <div class="nm fade" style="transition-delay:.08s">櫻井 龍之介<span class="y">さくらい りゅうのすけ</span></div>
+    <p class="msgtext fade" style="transition-delay:.12s">吉田町で暮らす、二人の娘（小1と0歳）の父です。わが家にも、いつか同じ日が来ます。携帯業界で10年、約7,000名のご相談に向き合う中で、お子さんのスマホデビューの相談も、たくさん受けてきました。売る側からではなく、おなじ親の側から。一緒に考えさせてください。</p>
+  </div>
+</section>
+
+<!-- ⑥ 相談できること（デビュー特化） -->
+<section class="wrap">
+  <h2 class="fade">一緒に、考えられること。</h2>
+  <p class="lead fade" style="transition-delay:.06s">「まだ何も決まっていない」段階からで、大丈夫です。</p>
+  <div class="items">
+    <div class="item fade" style="transition-delay:.05s"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 6v6l4 2"/><circle cx="12" cy="12" r="9"/></svg></div><div class="tx"><b>持たせる時期の考え方</b><p>「わが家の基準」を、一緒に言葉にします</p></div></div>
+    <div class="item fade" style="transition-delay:.1s"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><line x1="10" y1="18.5" x2="14" y2="18.5"/></svg></div><div class="tx"><b>キッズ携帯・GPS・スマホの選び分け</b><p>年齢と目的に合う「ちょうどいい」を</p></div></div>
+    <div class="item fade" style="transition-delay:.15s"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5h5M9.5 13h5"/></svg></div><div class="tx"><b>子ども向けの、かしこい料金の持たせ方</b><p>家族全体の通信費も、あわせて見直せます</p></div></div>
+    <div class="item fade" style="transition-delay:.2s"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg></div><div class="tx"><b>フィルタリング・見守り設定</b><p>スクリーンタイム等を、実際の画面で一緒に</p></div></div>
+    <div class="item fade" style="transition-delay:.25s"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 10h8M8 14h5"/><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5c-1.3 0-2.5-.3-3.6-.8L4 20l1-4a8.4 8.4 0 0 1-1-4C4 7 7.8 3.5 12.5 3.5S21 7 21 11.5z"/></svg></div><div class="tx"><b>家庭ルールのつくり方</b><p>SNS・ゲーム・夜の使い方。あとで揉めない決め方</p></div></div>
+  </div>
+  <p class="quiet fade" style="transition-delay:.2s">持たせるためではなく、<br>迷いに寄り添うための相談です。</p>
+</section>
+
+<!-- 成長物語 -->
+<section class="talk">
+  <div class="wrap">
+    <h2 class="fade">ある家族の、スマホ成長物語。</h2>
+    <p class="lead fade" style="transition-delay:.06s">一度きりの相談ではなく、お子さんの成長に合わせて伴走できます。</p>
+    <div class="tl">
+      <div class="tli fade" style="transition-delay:.05s"><span class="dot"></span><span class="when">小1の春</span><div class="bd2"><b>見守りGPS・キッズ携帯からスタート</b><p>行動範囲が広がる時期。まずは「居場所と連絡」だけの、安全第一のはじまり。</p></div></div>
+      <div class="tli fade" style="transition-delay:.13s"><span class="dot"></span><span class="when">小4〜小6</span><div class="bd2"><b>スマホデビュー</b><p>ただ買い与えるのではなく、フィルタリング設定と「家庭のルールづくり」という壁を、一緒に越えます。</p></div></div>
+      <div class="tli fade" style="transition-delay:.21s"><span class="dot"></span><span class="when">中学生</span><div class="bd2"><b>家族全体のプラン見直し</b><p>動画やSNSで通信量が増える時期。家族みんなの契約を、パズルを解くように整えます。</p></div></div>
+      <div class="tli fade" style="transition-delay:.29s"><span class="dot"></span><span class="when">そして</span><div class="bd2"><b>離れて暮らす祖父母のサポートまで</b><p>おじいちゃん・おばあちゃんのスマホの「困った」も。ご家族の負担ごと、お引き受けします。</p></div></div>
+    </div>
+    <p class="tl-close fade" style="transition-delay:.34s">安くなる、設定が終わる。それは当たり前で、<br>本当にお渡ししたいのは、お父さん・お母さんの<b>心と時間の「ゆとり」</b>です。<br>あなたの街の<b>「スマホの保健室」</b>として、寄り添い続けます。</p>
+  </div>
+</section>
+
+<!-- ⑦ PROMISE -->
+<section class="promise">
+  <div class="wrap">
+    <h2 class="fade">わたしが、しないこと。</h2>
+    <p class="plead fade" style="transition-delay:.03s">売らない相談士だから、「まだ持たせない」というご提案もできます。</p>
+    <div class="list">
+      <div class="row fade" style="transition-delay:.05s"><div class="k">売りません</div><div class="v">スマホもプランも、こちらから売り込むことはありません。ノルマも、契約の縛りもありません。</div></div>
+      <div class="row fade" style="transition-delay:.15s"><div class="k">急かしません</div><div class="v">その場で決めてもらう必要はありません。持ち帰って、ご家族と相談してからで大丈夫です。</div></div>
+      <div class="row fade" style="transition-delay:.25s"><div class="k">属しません</div><div class="v">どのお店にも、どのキャリアにも属していません。だから、お子さんとご家庭のことだけを考えられます。</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ⑧ FEE -->
+<section class="fee">
+  <div class="wrap">
+    <div class="bo fade"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 3c0 5-4 7-4 11a4 4 0 0 0 8 0c0-4-4-6-4-11z"/></svg></div>
+    <h2 class="fade">お金のことは、先に、はっきり。</h2>
+    <p class="lead fade" style="transition-delay:.06s">「知らないうちに有料になっていた」が、いちばん嫌なことだと思うので。</p>
+
+    <div class="principle fade" style="transition-delay:.1s">
+      トークで答えられる質問は、<b class="fr">無料</b>。<br>
+      お時間をいただく「作業」と「ご提案」は、<b class="pd">有料</b>。
+    </div>
+
+    <div class="fee-grid">
+      <div class="fee-card free fade" style="transition-delay:.14s">
+        <span class="tag">無料（トークの中で完結すること）</span>
+        <ul>
+          <li>持たせる時期や選び方の、ちょっとした質問</li>
+          <li>「これ、詐欺？」など不安なメッセージの確認</li>
+          <li>かんたんスマホ診断フォーム（先に状況が伝わり、トークでの相談がスムーズに）</li>
+          <li>お困りごとの切り分けと、合うメニューのご案内まで</li>
+        </ul>
+      </div>
+      <div class="fee-card paid fade" style="transition-delay:.2s">
+        <span class="tag">有料（お時間をいただく作業・ご提案）</span>
+        <div class="menu">
+          <div class="mrow"><span class="mn">プラン見直し・最適化診断<small>お子さんの分も家族まとめて・60〜90分</small></span><span class="mp">¥5,500</span></div>
+          <div class="mrow"><span class="mn">完全データ移行パック<small>端末選び〜初期設定・見守り設定まで・90〜120分</small></span><span class="mp">¥11,000</span></div>
+          <div class="mrow"><span class="mn">スマホの整理・お悩み相談<small>対面でじっくり・45〜60分</small></span><span class="mp">¥3,300</span></div>
+          <div class="mrow"><span class="mn">かかりつけ顧問（月額）<small>家族プランあり・操作質問いつでも</small></span><span class="mp">月¥440〜</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="yakusoku fade" style="transition-delay:.24s">
+      <b>お約束</b>
+      <p>トークの内容が有料メニューの領域に入るときは、作業を始める前に、必ず「ここからは○○（¥○○）になります」と先にお伝えします。黙って料金が発生することは、絶対にありません。</p>
+    </div>
+
+    <p class="note fade" style="transition-delay:.26s">※ 金額はすべて税込です。もちろん、その場で契約を迫ることはありません。</p>
+    <div class="em fade" style="transition-delay:.28s">わたしがいただくのは、モノを売る手数料ではなく、<br>ご相談そのものへの対価です。</div>
+  </div>
+</section>
+
+<!-- ⑨ FAQ -->
+<section class="faq wrap">
+  <h2 class="fade">よくあるご質問</h2>
+  <p class="lead fade" style="transition-delay:.06s">気になるところだけ、タップして開いてください。</p>
+  <div class="qa">
+    <details class="fade" style="transition-delay:.05s">
+      <summary><span class="q">Q</span>何歳から持たせるのが正解ですか？<span class="ar">▼</span></summary>
+      <div class="a">「何歳なら正解」という答えは、実はありません。通学距離、習いごと、ご家庭の考え方で変わります。全国平均や周りの状況は参考情報としてお伝えしつつ、「わが家の理由」を一緒に見つけるのが、わたしの役目です。</div>
+    </details>
+    <details class="fade" style="transition-delay:.1s">
+      <summary><span class="q">Q</span>キッズ携帯とスマホ、どちらがいいですか？<span class="ar">▼</span></summary>
+      <div class="a">目的によります。「居場所と連絡だけ」ならキッズ携帯やGPSで十分なことも多く、その方が安く済みます。逆に、周りとのやり取りが目的ならスマホ＋見守り設定という選択も。ご家庭の目的を聞いてから、一緒に選びます。</div>
+    </details>
+    <details class="fade" style="transition-delay:.13s">
+      <summary><span class="q">Q</span>相談したら、契約を勧められませんか？<span class="ar">▼</span></summary>
+      <div class="a">勧めません。わたしはスマホも回線も扱っていないので、売るものがそもそもありません。「まだ持たせないほうがいい」という結論になることも、普通にあります。</div>
+    </details>
+    <details class="fade" style="transition-delay:.16s">
+      <summary><span class="q">Q</span>相談だけで終わってもいいですか？<span class="ar">▼</span></summary>
+      <div class="a">もちろんです。トークでの質問や、お悩みの整理までは無料なので、「聞いてスッキリした」で終わって大丈夫です。有料メニューの領域に入るときは、始める前に必ず金額を先にお伝えします。ご案内を聞いてから、やめていただいてもまったく構いません。</div>
+    </details>
+    <details class="fade" style="transition-delay:.19s">
+      <summary><span class="q">Q</span>無料と有料の境目は、どこですか？<span class="ar">▼</span></summary>
+      <div class="a">目安はシンプルで、「トークのやり取りで答えられる質問」は無料、「わたしがお時間をいただいて行う作業やご提案」は有料です。たとえば「フィルタリングってどこで設定するの？」は無料、「わが家に最適なプランを分析して提案して」は有料メニュー（¥5,500）になります。境目に入るときは、必ず先にお伝えします。</div>
+    </details>
+  </div>
+</section>
+
+<!-- ⑩ CTA -->
+<section class="cta">
+  <div class="wrap">
+    <span class="free fade">LINEトークでの相談は無料です</span>
+    <h2 class="fade" style="transition-delay:.05s">持たせる・持たせないの前に、<br>まず、話してみませんか。</h2>
+    <p class="lead fade" style="transition-delay:.1s">友だち追加していただくと、LINEのトークで気軽にご相談できます。</p>
+    <p class="lead2 fade" style="transition-delay:.14s">「まだ先の話」でも、大丈夫。お守りがわりに、どうぞ。</p>
+    <!-- 友だち追加経路URL：lin.ee/7mIbpCd（コッコロ先生チラシ配布用・2026/07/14発行） -->
+    <a href="https://lin.ee/7mIbpCd" class="btn-main fade" style="transition-delay:.18s">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5c-1.3 0-2.5-.3-3.6-.8L4 20l1-4a8.4 8.4 0 0 1-1-4C4 7 7.8 3.5 12.5 3.5S21 7 21 11.5z"/></svg>
+      LINEで友だち追加する
+    </a>
+    <div class="subcta fade" style="transition-delay:.22s">
+      <div class="cta-notes">
+        <p>※ ご相談の窓口は、LINEのトークのみです。お電話でのご相談は承っておりません。</p>
+        <p>※ 一人で運営しているため、お返事に少しお時間をいただくことがあります。</p>
+        <p>※ しつこいご案内や、こちらからの売り込みは、いたしません。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="sticky-cta" id="stickyCta" aria-hidden="true">
+  <a href="https://lin.ee/7mIbpCd">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5c-1.3 0-2.5-.3-3.6-.8L4 20l1-4a8.4 8.4 0 0 1-1-4C4 7 7.8 3.5 12.5 3.5S21 7 21 11.5z"/></svg>
+    LINEで無料相談する
+  </a>
+</div>
+
+<footer>
+  <div class="cl">スマホ、売りません。</div>
+  スマホの相談士 ｜ 静岡県 吉田町・牧之原市
+</footer>
+
+<script>
+  document.addEventListener("DOMContentLoaded",()=>{
+    if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+      const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');io.unobserve(e.target);}});},{rootMargin:'0px 0px -8% 0px',threshold:.1});
+      document.querySelectorAll('.fade').forEach(el=>io.observe(el));
+    }
+    const sticky=document.getElementById('stickyCta');
+    const hero=document.querySelector('.hero');
+    const ctaSec=document.querySelector('.cta');
+    let heroOut=false, ctaIn=false;
+    const update=()=>{const on=heroOut&&!ctaIn;sticky.classList.toggle('show',on);sticky.setAttribute('aria-hidden',on?'false':'true');};
+    new IntersectionObserver(es=>{es.forEach(e=>{heroOut=!e.isIntersecting;update();});},{threshold:0}).observe(hero);
+    new IntersectionObserver(es=>{es.forEach(e=>{ctaIn=e.isIntersecting;update();});},{threshold:.15}).observe(ctaSec);
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>スマホ見積もりシート｜街のスマホ相談士</title>
+<style>
+  /* ===== 色は hex 直書き（CSS変数は使わない） ===== */
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    font-family: "Hiragino Sans", "Noto Sans JP", sans-serif;
+    background: #F5F1E8;
+    color: #2B2622;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 12px; }
+
+  header.top {
+    text-align: center;
+    padding: 14px 10px 10px;
+  }
+  header.top h1 {
+    font-family: "Shippori Mincho", serif;
+    font-size: 20px;
+    margin: 0 0 2px;
+    color: #2F5E58;
+  }
+  header.top p { margin: 0; font-size: 12px; color: #5A544C; }
+
+  .layout { display: flex; gap: 14px; flex-wrap: wrap; }
+  .col-left  { flex: 1 1 360px; min-width: 320px; }
+  .col-right { flex: 1 1 480px; min-width: 320px; }
+
+  /* ===== 左：見積もりカード ===== */
+  .estimate-card {
+    background: #ffffff;
+    border: 1px solid #DED6C6;
+    border-radius: 14px;
+    padding: 16px;
+    position: sticky;
+    top: 10px;
+  }
+  .estimate-card h2 {
+    font-family: "Shippori Mincho", serif;
+    font-size: 16px;
+    margin: 0 0 12px;
+    color: #2F5E58;
+    border-bottom: 2px solid #3E7A72;
+    padding-bottom: 6px;
+  }
+  .selected-plan {
+    background: #F0F5F3;
+    border: 1px solid #3E7A72;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+  }
+  .selected-plan .carrier { font-size: 12px; color: #5A544C; }
+  .selected-plan .planname { font-size: 16px; font-weight: 700; color: #2F5E58; }
+  .selected-plan .empty { color: #B0A99C; font-size: 14px; }
+
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 4px;
+    border-bottom: 1px dashed #DED6C6;
+    gap: 8px;
+  }
+  .row .label { font-size: 13px; color: #5A544C; flex-shrink: 0; }
+  .row .val { font-weight: 700; text-align: right; }
+  .row input[type="text"], .row input[type="number"] {
+    width: 110px;
+    padding: 6px 8px;
+    border: 1px solid #DED6C6;
+    border-radius: 8px;
+    font-size: 14px;
+    text-align: right;
+    font-family: inherit;
+  }
+  .row .unit { font-size: 12px; color: #5A544C; margin-left: 2px; }
+
+  .discounts { padding: 6px 0; }
+  .discounts .d-title { font-size: 13px; color: #5A544C; margin: 6px 4px; }
+  .chk {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 8px; border-radius: 8px; margin: 3px 0;
+    background: #FAF8F3; cursor: pointer;
+  }
+  .chk input { width: 18px; height: 18px; accent-color: #3E7A72; }
+  .chk .cname { flex: 1; font-size: 13px; }
+  .chk .cval { font-size: 13px; color: #B08A4A; font-weight: 700; }
+  .chk.disabled { opacity: 0.4; }
+
+  .total-box {
+    margin-top: 14px;
+    background: #2F5E58;
+    color: #fff;
+    border-radius: 12px;
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .total-box .t-label { font-size: 12px; opacity: 0.9; }
+  .total-box .t-val { font-size: 30px; font-weight: 800; }
+  .total-box .t-val small { font-size: 14px; font-weight: 500; }
+
+  /* 続柄・名義入力 */
+  .meigi-row {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 12px; padding: 8px 10px;
+    background: #F0F5F3; border: 1px solid #cfe0db; border-radius: 8px;
+  }
+  .meigi-row .label { font-size: 13px; color: #2F5E58; font-weight: 700; flex-shrink: 0; }
+  .meigi-input {
+    flex: 1; min-width: 0; padding: 7px 10px;
+    border: 1px solid #DED6C6; border-radius: 8px; font-size: 14px; font-family: inherit;
+  }
+
+  /* 家族リストに追加ボタン */
+  .add-family-btn {
+    margin-top: 10px; width: 100%;
+    padding: 12px; border: 2px solid #3E7A72; background: #fff; color: #2F5E58;
+    border-radius: 8px; font-family: inherit; font-size: 14px; font-weight: 700;
+    cursor: pointer;
+  }
+  .add-family-btn:active { background: #F0F5F3; }
+
+  /* 家族リスト */
+  .family-list {
+    margin-top: 12px; padding: 12px;
+    background: #FBF6EC; border: 1px solid #E8DFC9; border-radius: 10px;
+  }
+  .family-list .fl-title { font-size: 13px; font-weight: 700; color: #B08A4A; margin-bottom: 8px; }
+  .family-item {
+    display: flex; justify-content: space-between; align-items: center;
+    background: #fff; border: 1px solid #E8DFC9; border-radius: 8px;
+    padding: 8px 10px; margin: 5px 0;
+  }
+  .family-item .fi-info { font-size: 12.5px; }
+  .family-item .fi-info .fi-name { font-weight: 700; color: #2F5E58; }
+  .family-item .fi-info .fi-detail { font-size: 11px; color: #8A8478; }
+  .family-item .fi-price { font-size: 13px; font-weight: 700; color: #2F5E58; margin-left: 8px; white-space: nowrap; }
+  .family-item .fi-del {
+    margin-left: 8px; border: none; background: #F0E9DA; color: #8A6D2E;
+    border-radius: 6px; width: 26px; height: 26px; cursor: pointer; font-size: 14px; flex-shrink: 0;
+  }
+  .make-proposal-btn {
+    margin-top: 10px; width: 100%;
+    padding: 12px; border: none; background: #2F5E58; color: #fff;
+    border-radius: 8px; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+  }
+  .make-proposal-btn:active { opacity: 0.88; }
+
+  .explain {
+    margin-top: 12px;
+    background: #FBF6EC;
+    border: 1px solid #E8DFC9;
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 12.5px;
+    line-height: 1.75;
+    color: #4A443C;
+  }
+  .explain .e-title { font-weight: 700; color: #B08A4A; margin-bottom: 6px; font-size: 13px; }
+  .explain ul { margin: 4px 0 0; padding-left: 18px; }
+  .explain li { margin-bottom: 4px; }
+  .explain .placeholder { color: #B0A99C; }
+
+  .note-fixed {
+    margin-top: 10px;
+    font-size: 11px;
+    color: #8A8478;
+    line-height: 1.6;
+    padding: 8px 4px;
+  }
+
+  .reset-btn {
+    margin-top: 10px; width: 100%;
+    padding: 9px; border: 1px solid #DED6C6; background: #fff;
+    border-radius: 8px; color: #5A544C; font-family: inherit; font-size: 13px;
+    cursor: pointer;
+  }
+
+  /* ===== 右：プラン一覧 ===== */
+  .plans-card {
+    background: #fff;
+    border: 1px solid #DED6C6;
+    border-radius: 14px;
+    padding: 14px;
+  }
+  .tabs { display: flex; gap: 8px; margin-bottom: 10px; }
+  .tab {
+    flex: 1; padding: 9px; text-align: center;
+    border: 1px solid #DED6C6; border-radius: 8px;
+    background: #FAF8F3; cursor: pointer; font-size: 13px; font-weight: 700;
+    color: #5A544C;
+  }
+  .tab.active { background: #3E7A72; color: #fff; border-color: #3E7A72; }
+
+  /* カテゴリ選択 */
+  .cat-filter { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .cat-chip {
+    padding: 6px 12px; border: 1px solid #cfe0db; border-radius: 8px;
+    background: #F0F5F3; font-size: 12px; cursor: pointer; color: #2F5E58; font-weight: 700;
+  }
+  .cat-chip.active { background: #2F5E58; color: #fff; border-color: #2F5E58; }
+
+  .giga-filter { margin-bottom: 10px; }
+  .giga-filter .gf-label { font-size: 12px; color: #5A544C; margin-bottom: 5px; }
+  .giga-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .giga-chip {
+    padding: 5px 10px; border: 1px solid #DED6C6; border-radius: 999px;
+    background: #fff; font-size: 12px; cursor: pointer; color: #5A544C;
+  }
+  .giga-chip.active { background: #B08A4A; color: #fff; border-color: #B08A4A; }
+
+  .carrier-group { margin-bottom: 14px; }
+  .carrier-name {
+    font-size: 13px; font-weight: 700; color: #2F5E58;
+    padding: 4px 2px; border-bottom: 1px solid #E8DFC9; margin-bottom: 6px;
+  }
+  .plan-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 9px 10px; border: 1px solid #E8DFC9; border-radius: 9px;
+    margin: 4px 0; cursor: pointer; background: #fff;
+    transition: 0.12s;
+  }
+  .plan-item:active { transform: scale(0.99); }
+  .plan-item.selected { border-color: #3E7A72; background: #F0F5F3; }
+  .plan-item .pi-left .pi-name { font-size: 13.5px; font-weight: 700; }
+  .plan-item .pi-left .pi-giga { font-size: 11px; color: #8A8478; }
+  .plan-item .pi-price { font-size: 15px; font-weight: 800; color: #2F5E58; }
+  .plan-item .pi-price small { font-size: 11px; font-weight: 500; }
+
+  .hidden { display: none !important; }
+
+  /* ===== 端末ブロック ===== */
+  .device-block {
+    background: #FAF8F3;
+    border: 1px solid #E8DFC9;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+  }
+  .dev-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 0; gap: 8px;
+  }
+  .dev-row .label { font-size: 13px; color: #5A544C; flex-shrink: 0; }
+  .device-name-input {
+    flex: 1; min-width: 0;
+    padding: 7px 10px; border: 1px solid #DED6C6; border-radius: 8px;
+    font-size: 14px; font-family: inherit;
+  }
+  .dev-row input[type="number"] {
+    width: 120px; padding: 6px 8px; border: 1px solid #DED6C6;
+    border-radius: 8px; font-size: 14px; text-align: right; font-family: inherit;
+  }
+  .dev-row select {
+    padding: 7px 10px; border: 1px solid #DED6C6; border-radius: 8px;
+    font-size: 14px; font-family: inherit; background: #fff;
+  }
+  .pay-toggle { display: flex; gap: 4px; }
+  .pt-btn {
+    padding: 7px 16px; border: 1px solid #DED6C6; background: #fff;
+    border-radius: 8px; font-size: 13px; font-family: inherit; cursor: pointer;
+    color: #5A544C; font-weight: 700;
+  }
+  .pt-btn.active { background: #3E7A72; color: #fff; border-color: #3E7A72; }
+
+  /* 残価入力行（強調） */
+  .zanka-input-row {
+    background: #FBF1DE; border: 1px solid #E3C88C; border-radius: 8px;
+    padding: 8px 10px; margin-top: 6px;
+  }
+  .zanka-input-row .zi-label { font-size: 12px; color: #8A6D2E; font-weight: 700; display:block; margin-bottom: 4px; }
+  .zanka-input-row .zi-hint { font-size: 10.5px; color: #A08A5E; line-height: 1.5; }
+  .zanka-input-row input[type="number"] {
+    width: 130px; padding: 6px 8px; border: 1px solid #DED6C6;
+    border-radius: 8px; font-size: 14px; text-align: right; font-family: inherit;
+  }
+
+  .device-monthly {
+    margin-top: 8px; padding: 8px 10px; background: #fff;
+    border-radius: 8px; font-size: 13px; text-align: center;
+    border: 1px dashed #DED6C6;
+  }
+  .device-monthly b { color: #2F5E58; font-size: 16px; }
+
+  /* 残価免除グラフ */
+  .zanka-graph { margin-top: 10px; }
+  .zg-title { font-size: 11px; color: #5A544C; margin-bottom: 5px; text-align:center; }
+  .zg-bar { display: flex; height: 40px; border-radius: 6px; overflow: hidden; border: 1px solid #DED6C6; }
+  .zg-first {
+    background: #3E7A72; color: #fff; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; font-size: 10px; line-height: 1.2;
+  }
+  .zg-second {
+    background: repeating-linear-gradient(45deg, #F0E9DA, #F0E9DA 6px, #E5DCC8 6px, #E5DCC8 12px);
+    color: #8A8478; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; font-size: 10px; line-height: 1.2;
+    border-left: 2px dashed #B08A4A;
+  }
+  .zg-legend { font-size: 10px; color: #8A8478; margin-top: 4px; line-height: 1.5; }
+  .zg-legend .dot-g { color: #3E7A72; font-weight: 700; }
+  .zg-legend .dot-h { color: #B08A4A; font-weight: 700; }
+
+  /* PDF出力ボタン */
+  .pdf-btn {
+    margin-top: 8px; width: 100%;
+    padding: 11px; border: none; background: #B08A4A; color: #fff;
+    border-radius: 8px; font-family: inherit; font-size: 14px; font-weight: 700;
+    cursor: pointer;
+  }
+  .pdf-btn:active { opacity: 0.85; }
+
+  /* 印刷時 */
+  @media print {
+    .col-right, .tabs, .reset-btn, .pdf-btn, .pay-toggle, header.top p { display: none !important; }
+    body { background: #fff; }
+    .estimate-card { border: none; position: static; }
+    .layout { display: block; }
+  }
+
+  /* 提案書オーバーレイ */
+  .proposal-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: #E8E3D8; overflow-y: auto; padding: 12px;
+  }
+  .po-bar {
+    position: sticky; top: 0; z-index: 2;
+    display: flex; gap: 8px; max-width: 1050px; margin: 0 auto 12px;
+  }
+  .po-btn { flex: 1; padding: 13px; border: none; border-radius: 8px; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+  .po-btn.print { background: #B08A4A; color: #fff; }
+  .po-btn.close { background: #fff; border: 1px solid #DED6C6; color: #5A544C; }
+
+  /* オーバーレイ表示中の印刷：裏を隠して提案書だけ出す */
+  body.proposal-open > .wrap { display: none !important; }
+  @media print {
+    body.proposal-open .po-bar { display: none !important; }
+    body.proposal-open .proposal-overlay { position: static; background: #fff; padding: 0; }
+  }
+
+  /* 提案書の中身スタイル */
+  .po-area{max-width:1050px;margin:0 auto;}
+  .proposal{background:#FBF9F4;border:1px solid #DED6C6;border-radius:10px;padding:22px 24px 26px;box-shadow:0 4px 16px rgba(0,0,0,0.08);}
+  .ph{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #2F5E58;padding-bottom:12px;margin-bottom:4px;}
+  .ph-title{font-family:"Shippori Mincho",serif;font-size:22px;font-weight:700;color:#2F5E58;}
+  .ph-title small{display:block;font-size:12px;color:#5A544C;font-weight:400;margin-top:3px;}
+  .ph-date{font-size:12px;color:#5A544C;text-align:right;}
+  .ph-brand{font-family:"Shippori Mincho",serif;font-size:13px;color:#B08A4A;margin-top:2px;}
+  .pm-members{display:flex;gap:10px;margin:16px 0;}
+  .pm-member{flex:1;border:1px solid #DED6C6;border-radius:8px;overflow:hidden;background:#fff;display:flex;flex-direction:column;}
+  .pm-head{background:#2F5E58;color:#fff;padding:8px 6px;text-align:center;}
+  .pm-name{font-size:14px;font-weight:700;}
+  .pm-carrier{text-align:center;padding:7px 4px;background:#F0F5F3;border-bottom:1px solid #E0EAE7;}
+  .pm-cname{font-size:14px;font-weight:800;color:#2F5E58;}
+  .pm-cplan{font-size:10px;color:#5A544C;margin-top:1px;}
+  .pm-device{text-align:center;padding:6px 4px;font-size:10.5px;color:#4A443C;border-bottom:1px dashed #E0DACB;line-height:1.4;}
+  .pm-lines{padding:6px 8px;flex:1;}
+  .pm-line{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;color:#4A443C;}
+  .pm-line span:first-child{color:#8A8478;}
+  .pm-sub{background:#FBF6EC;border-top:2px solid #B08A4A;padding:8px 6px;text-align:center;}
+  .pm-sub-label{font-size:10px;color:#8A6D2E;}
+  .pm-sub-val{font-size:17px;font-weight:800;color:#2F5E58;}
+  .pm-sub-val small{font-size:11px;font-weight:500;}
+  .pm-extra{background:#F7F3EA;border-top:1px dashed #DED6C6;padding:7px 8px;}
+  .pm-xrow{display:flex;justify-content:space-between;font-size:10px;color:#7A7469;padding:2px 0;}
+  .pm-xrow span:last-child{font-weight:700;color:#5A544C;}
+  .pm-ftotal{background:#2F5E58;color:#fff;border-radius:10px;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;margin:14px 0;}
+  .pm-ft-label{font-size:14px;font-weight:700;}
+  .pm-ft-sub{font-size:11px;opacity:0.85;margin-top:2px;}
+  .pm-ft-val{font-size:30px;font-weight:800;}
+  .pm-ft-val small{font-size:15px;font-weight:500;}
+  .pm-init{display:flex;justify-content:space-between;align-items:center;background:#F7F3EA;border:1px solid #E0D9C8;border-radius:8px;padding:9px 16px;margin-top:-6px;}
+  .pm-init-label{font-size:12px;color:#7A7469;}
+  .pm-init-val{font-size:14px;font-weight:700;color:#5A544C;}
+  .pm-ex{margin-top:14px;}
+  .pm-ex-title{font-size:12px;font-weight:700;color:#2F5E58;border-left:4px solid #3E7A72;padding-left:8px;margin-bottom:7px;}
+  .pm-ex ul{list-style:none;}
+  .pm-ex li{font-size:11.5px;color:#4A443C;line-height:1.7;padding:3px 0 3px 8px;border-bottom:1px dashed #E8E0CF;}
+  .pm-ex li b{color:#2F5E58;}
+  .pm-note-box{background:#FBF6EC;border:1px solid #E8DFC9;border-radius:8px;padding:11px 13px;min-height:50px;font-size:12px;color:#4A443C;line-height:1.75;}
+  .pm-footer{margin-top:16px;font-size:10px;color:#8A8478;line-height:1.6;border-top:1px solid #E8E0CF;padding-top:10px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>スマホ見積もりシート</h1>
+    <p>街のスマホ相談士｜右のプランを選ぶと、左に自動で反映されます</p>
+  </header>
+
+  <div class="layout">
+    <!-- ===== 左 ===== -->
+    <div class="col-left">
+      <div class="estimate-card">
+        <h2>お見積り内容</h2>
+
+        <div class="meigi-row">
+          <span class="label">続柄・お名前</span>
+          <input type="text" id="meigiName" class="meigi-input" placeholder="例）ご主人様 / 奥様 / 長男様">
+        </div>
+
+        <div class="selected-plan" id="selectedPlan">
+          <span class="empty">右の一覧からプランを選んでください</span>
+        </div>
+
+        <div class="device-block">
+          <div class="dev-row">
+            <span class="label">機種名</span>
+            <input type="text" id="deviceName" class="device-name-input" placeholder="例）iPhone 16 128GB">
+          </div>
+          <div class="dev-row">
+            <span class="label">本体価格（総額）</span>
+            <span><input type="number" id="deviceTotal" placeholder="0" oninput="calc()"><span class="unit">円</span></span>
+          </div>
+          <div class="dev-row">
+            <span class="label">支払い方法</span>
+            <div class="pay-toggle">
+              <button type="button" class="pt-btn active" id="ptIkkatsu" onclick="setPay('ikkatsu')">一括</button>
+              <button type="button" class="pt-btn" id="ptBunkatsu" onclick="setPay('bunkatsu')">分割</button>
+            </div>
+          </div>
+          <div class="dev-row" id="bunkatsuRow" style="display:none;">
+            <span class="label">分割回数</span>
+            <select id="bunkatsuKaisu" onchange="onKaisuChange()"></select>
+          </div>
+          <!-- 残価入力（残価免除対象の回数を選んだときだけ表示） -->
+          <div class="zanka-input-row" id="zankaInputRow" style="display:none;">
+            <span class="zi-label">残価（後半に免除される金額）</span>
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+              <span class="zi-hint" id="zankaHint">返却で免除される金額を入力してください</span>
+              <span><input type="number" id="zankaValue" placeholder="0" oninput="calc()"><span class="unit">円</span></span>
+            </div>
+          </div>
+          <div id="deviceMonthly" class="device-monthly" style="display:none;"></div>
+          <div id="zankaGraph" class="zanka-graph" style="display:none;"></div>
+        </div>
+
+        <div class="row">
+          <span class="label">基本プラン</span>
+          <span class="val" id="basePrice">— 円</span>
+        </div>
+
+        <div class="discounts">
+          <div class="d-title">通話オプション</div>
+          <div id="callOptions"></div>
+          <div class="d-title">各種割引（該当するものにチェック）</div>
+          <div id="discountList"></div>
+        </div>
+
+        <div class="row">
+          <span class="label">補償（月々）</span>
+          <span><input type="number" id="hoshoPrice" placeholder="0"><span class="unit">円</span></span>
+        </div>
+        <div class="row">
+          <span class="label">その他（月々）</span>
+          <span><input type="number" id="otherPrice" placeholder="0"><span class="unit">円</span></span>
+        </div>
+
+        <div class="total-box">
+          <div class="t-label">月々のお支払い目安（合計）</div>
+          <div class="t-val" id="totalVal">—<small> 円</small></div>
+        </div>
+
+        <button class="add-family-btn" onclick="addToFamily()">＋ この内容を家族リストに追加</button>
+
+        <div class="family-list" id="familyList" style="display:none;">
+          <div class="fl-title">家族リスト（<span id="familyCount">0</span>名）</div>
+          <div id="familyItems"></div>
+          <button class="make-proposal-btn" onclick="makeProposal()">家族の提案書を作成する →</button>
+        </div>
+
+        <div class="explain" id="explainBox">
+          <div class="e-title">お見積りの根拠・解説</div>
+          <div class="placeholder">プランを選ぶと、ここに解説が表示されます。</div>
+        </div>
+
+        <div class="note-fixed" id="noteFixed"></div>
+
+        <button class="pdf-btn" onclick="window.print()">この見積もりをPDFで保存／印刷</button>
+        <button class="reset-btn" onclick="resetAll()">選び直す（リセット）</button>
+      </div>
+    </div>
+
+    <!-- ===== 右 ===== -->
+    <div class="col-right">
+      <div class="plans-card">
+        <div class="tabs">
+          <div class="tab active" data-group="major" onclick="switchTab('major')">大手</div>
+          <div class="tab" data-group="mvno" onclick="switchTab('mvno')">格安</div>
+        </div>
+
+        <div class="cat-filter">
+          <div class="cat-chip active" data-cat="sumaho" onclick="setCategory('sumaho')">スマホ（一般）</div>
+          <div class="cat-chip" data-cat="kids" onclick="setCategory('kids')">キッズ</div>
+          <div class="cat-chip" data-cat="senior" onclick="setCategory('senior')">シニア</div>
+          <div class="cat-chip" data-cat="u18" onclick="setCategory('u18')">U18・学割</div>
+        </div>
+
+        <div class="giga-filter">
+          <div class="gf-label">データ量でしぼり込む</div>
+          <div class="giga-chips" id="gigaChips"></div>
+        </div>
+
+        <div id="planList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =======================================================================
+   料金マスターデータ v5  ★ここが心臓部★
+   ・出典：龍之介さん作成CSV（全キャリア）＋Web整合性確認済み
+   ・数字は税込・月額（円）
+   ・category: "sumaho"=スマホ一般 / "kids" / "senior" / "u18"（今回はsumahoのみ中身。他は箱）
+   ・discounts: そのプランに効く割引を種類別に（0やサなしは持たせない）
+       kazoku2/kazoku3=家族割2人/3人, card=カード割, net=ネット割, denki=でんき割
+   ・jimu: 事務手数料（店頭）
+   ・call: 通話オプション月額（kakehodai=24h, op10, op5）
+   ======================================================================= */
+
+/* ---- 大手：スマホ一般 ---- */
+const PLANS_MAJOR = [
+  // === docomo ===
+  { carrier:"docomo", category:"sumaho", name:"ドコモMAX", giga:"無制限", price:8448,
+    call:{kakehodai:1980, op5:880}, jimu:0,
+    discounts:{kazoku2:550, kazoku3:1210, card:550, net:1210, denki:110},
+    explain:"無制限プラン。家族割・ドコモ光セット割・dカード払い・ドコモでんきを重ねると大きく下がる。DAZNなどの特典付き。" },
+  { carrier:"docomo", category:"sumaho", name:"ドコモMAX（〜3GB）", giga:"3", price:6798,
+    call:{kakehodai:1980, op5:880}, jimu:0,
+    discounts:{kazoku2:550, kazoku3:1210, card:550, net:1210, denki:110},
+    explain:"段階制。3GBまでの料金。使わない月は自動で安くなるが、割引前は割高。" },
+  { carrier:"docomo", category:"sumaho", name:"ドコモMAX（〜1GB）", giga:"1", price:5698,
+    call:{kakehodai:1980, op5:880}, jimu:0,
+    discounts:{kazoku2:550, kazoku3:1210, card:550, net:1210, denki:110},
+    explain:"段階制。1GBまでの料金。" },
+  { carrier:"docomo", category:"sumaho", name:"ドコモポイ活MAX", giga:"無制限", price:11748,
+    call:{kakehodai:1980, op5:880}, jimu:0,
+    discounts:{kazoku2:550, kazoku3:1210, card:550, net:1210, denki:110},
+    explain:"ドコモMAXをベースに、対象決済でdポイント還元が増えるプラン。決済額が多い方向け。" },
+  { carrier:"docomo", category:"sumaho", name:"ドコモポイ活20", giga:"20", price:7898,
+    call:{kakehodai:1980, op5:880}, jimu:0,
+    discounts:{kazoku2:550, kazoku3:1210, card:550, net:1210, denki:110},
+    explain:"20GB＋ポイ活。13〜20GB前後でdカード・d払いを使う方向け。" },
+  { carrier:"docomo", category:"sumaho", name:"ドコモmini（10GB）", giga:"10", price:3850,
+    call:{kakehodai:1980, op5:880}, jimu:0,
+    discounts:{card:550, net:1210, denki:110},
+    explain:"少〜中容量プラン。10GBまで。家族割は対象外だが、光・dカード・でんきで下がる。" },
+  { carrier:"docomo", category:"sumaho", name:"ドコモmini（4GB）", giga:"4", price:2750,
+    call:{kakehodai:1980, op5:880}, jimu:0,
+    discounts:{card:550, net:1210, denki:110},
+    explain:"少容量プラン。4GBまで。家族割対象外。光・dカード・でんきで最安880円まで下がる。" },
+  { carrier:"docomo", category:"sumaho", name:"ahamo", giga:"30", price:2970,
+    call:{op5:0, kakehodai:1100}, jimu:0,
+    discounts:{},
+    explain:"30GBで5分かけ放題込み。海外もそのまま使える。手続きは基本オンライン。割引対象外。" },
+  { carrier:"docomo", category:"sumaho", name:"ahamo大盛り", giga:"110", price:4950,
+    call:{op5:0, kakehodai:1100}, jimu:0,
+    discounts:{},
+    explain:"110GBの大容量。5分かけ放題込み。割引対象外。" },
+
+  // === au ===
+  { carrier:"au", category:"sumaho", name:"auバリューリンクプラン マネ活", giga:"無制限", price:9328,
+    call:{kakehodai:1980, op5:880}, jimu:3850,
+    discounts:{card:1100},
+    explain:"金融連携でお得になる無制限プラン。auじぶん銀行・auカードを使う方向け。" },
+  { carrier:"au", category:"sumaho", name:"auバリューリンクプラン", giga:"無制限", price:8008,
+    call:{kakehodai:1980, op5:880}, jimu:3850,
+    discounts:{kazoku2:660, kazoku3:1210, card:220, net:1100},
+    explain:"無制限プラン。家族割・auカード・auひかりを重ねて下がる。" },
+  { carrier:"au", category:"sumaho", name:"スマホミニプラン＋（〜5GB）", giga:"5", price:8228,
+    call:{kakehodai:1980, op5:880}, jimu:3850,
+    discounts:{kazoku2:660, kazoku3:1210, card:220, net:1100},
+    explain:"段階制。5GBまでの料金。割引前は割高。" },
+  { carrier:"au", category:"sumaho", name:"スマホミニプラン＋（〜3GB）", giga:"3", price:6578,
+    call:{kakehodai:1980, op5:880}, jimu:3850,
+    discounts:{kazoku2:660, kazoku3:1210, card:220, net:1100},
+    explain:"段階制。3GBまでの料金。" },
+  { carrier:"au", category:"sumaho", name:"スマホミニプラン＋（〜1GB）", giga:"1", price:4928,
+    call:{kakehodai:1980, op5:880}, jimu:3850,
+    discounts:{kazoku2:660, kazoku3:1210, card:220, net:1100},
+    explain:"段階制。1GBまでの料金。" },
+
+  // === SoftBank ===
+  { carrier:"SoftBank", category:"sumaho", name:"ペイトク2", giga:"無制限", price:10538,
+    call:{kakehodai:1980, op5:880}, jimu:3850,
+    discounts:{kazoku2:660, kazoku3:1210, card:550, net:1100, denki:110},
+    explain:"PayPayポイント還元に特化した無制限プラン。" },
+  { carrier:"SoftBank", category:"sumaho", name:"テイガク無制限", giga:"無制限", price:8008,
+    call:{kakehodai:1980, op5:880}, jimu:3850,
+    discounts:{kazoku2:660, kazoku3:1210, card:550, net:1100, denki:110},
+    explain:"無制限プラン。家族割・カード・SoftBank光・でんきを重ねて下がる。" },
+  { carrier:"SoftBank", category:"sumaho", name:"ミニフィット2（〜5GB）", giga:"5", price:6358,
+    call:{kakehodai:1980, op5:880}, jimu:3850,
+    discounts:{kazoku2:220, kazoku3:550, card:550, net:1100, denki:110},
+    explain:"段階制。5GBまでの料金。" },
+  { carrier:"SoftBank", category:"sumaho", name:"ミニフィット2（〜2GB）", giga:"2", price:5258,
+    call:{kakehodai:1980, op5:880}, jimu:3850,
+    discounts:{kazoku2:220, kazoku3:550, card:550, net:1100, denki:110},
+    explain:"段階制。2GBまでの料金。" },
+
+  // === Rakuten ===
+  { carrier:"Rakuten", category:"sumaho", name:"最強プラン（無制限）", giga:"無制限", price:3278,
+    call:{op10:1100}, jimu:0,
+    discounts:{kazoku2:110, kazoku3:110},
+    explain:"使った分だけ変動。3GBまで1,078円、20GBまで2,178円、20GB超〜無制限で3,278円。かけ放題はRakuten Linkアプリ経由で無料。" },
+  { carrier:"Rakuten", category:"sumaho", name:"最強プラン（〜20GB）", giga:"20", price:2178,
+    call:{op10:1100}, jimu:0,
+    discounts:{kazoku2:110, kazoku3:110},
+    explain:"使った分だけ変動。20GBまでで2,178円。Rakuten Linkアプリ経由なら通話無料。" },
+  { carrier:"Rakuten", category:"sumaho", name:"最強プラン（〜3GB）", giga:"3", price:1078,
+    call:{op10:1100}, jimu:0,
+    discounts:{kazoku2:110, kazoku3:110},
+    explain:"使った分だけ変動。3GBまでなら1,078円。Rakuten Linkアプリ経由なら通話無料。" },
+
+  // === Y!mobile ===
+  { carrier:"Y!mobile", category:"sumaho", name:"シンプル3 S", giga:"5", price:3058,
+    call:{kakehodai:1980, op10:880}, jimu:0,
+    discounts:{kazoku2:1100, kazoku3:1100, card:550, net:1650, denki:110},
+    explain:"5GB。家族割・おうち割・PayPayカード割で下がる。60歳以上は24時間かけ放題が割引。" },
+  { carrier:"Y!mobile", category:"sumaho", name:"シンプル3 M", giga:"30", price:4158,
+    call:{kakehodai:1980, op10:880}, jimu:0,
+    discounts:{kazoku2:1100, kazoku3:1100, card:550, net:1650, denki:110},
+    explain:"30GB。バランス型。家族割・おうち割・カード割の対象。" },
+  { carrier:"Y!mobile", category:"sumaho", name:"シンプル3 L", giga:"35", price:5258,
+    call:{kakehodai:1980, op10:0}, jimu:0,
+    discounts:{kazoku2:1100, kazoku3:1100, card:550, net:1650, denki:110},
+    explain:"35GB。10分かけ放題込み。家族割・おうち割・カード割の対象。" },
+
+  // === UQ mobile ===
+  { carrier:"UQ mobile", category:"sumaho", name:"トクトクプラン2（〜5GB）", giga:"5", price:4048,
+    call:{kakehodai:1980, op10:880}, jimu:3850,
+    discounts:{kazoku2:550, kazoku3:550, card:220, net:1100},
+    explain:"段階制。5GBまでの料金。auでんき・自宅セット割の対象。" },
+  { carrier:"UQ mobile", category:"sumaho", name:"トクトクプラン2（〜30GB）", giga:"30", price:4048,
+    call:{kakehodai:1980, op10:880}, jimu:3850,
+    discounts:{kazoku2:550, kazoku3:550, card:220, net:1100},
+    explain:"段階制。30GBまで使っても同額。auでんき・自宅セット割の対象。" },
+  { carrier:"UQ mobile", category:"sumaho", name:"コミコミプランバリュー", giga:"35", price:3828,
+    call:{kakehodai:1980, op10:0}, jimu:3850,
+    discounts:{card:660},
+    explain:"35GB＋10分かけ放題込みで3,828円。単体で完結する分かりやすさが強み。" },
+];
+
+/* ---- 格安：スマホ一般 ---- */
+const PLANS_MVNO = [
+  // === AEON Mobile（主要ギガのみ抜粋。全ギガはCSVにあり後日追加可）===
+  { carrier:"AEONモバイル", category:"sumaho", name:"ベーシック 60GB", giga:"60", price:4158, call:{kakehodai:1650, op10:935, op5:550}, jimu:0, discounts:{}, explain:"イオンモバイルの大容量。全国のイオンで対面サポート。" },
+  { carrier:"AEONモバイル", category:"sumaho", name:"ベーシック 50GB", giga:"50", price:3608, call:{kakehodai:1650, op10:935, op5:550}, jimu:0, discounts:{}, explain:"50GB。容量を1GB刻みで細かく選べるのが特徴。" },
+  { carrier:"AEONモバイル", category:"sumaho", name:"ベーシック 30GB", giga:"30", price:2508, call:{kakehodai:1650, op10:935, op5:550}, jimu:0, discounts:{}, explain:"30GB。" },
+  { carrier:"AEONモバイル", category:"sumaho", name:"ベーシック 20GB", giga:"20", price:1958, call:{kakehodai:1650, op10:935, op5:550}, jimu:0, discounts:{}, explain:"20GB。" },
+  { carrier:"AEONモバイル", category:"sumaho", name:"ベーシック 10GB", giga:"10", price:1848, call:{kakehodai:1650, op10:935, op5:550}, jimu:0, discounts:{}, explain:"10GB。少〜中容量向け。" },
+  { carrier:"AEONモバイル", category:"sumaho", name:"ベーシック 5GB", giga:"5", price:1298, call:{kakehodai:1650, op10:935, op5:550}, jimu:0, discounts:{}, explain:"5GB。" },
+  { carrier:"AEONモバイル", category:"sumaho", name:"ベーシック 1GB", giga:"1", price:858, call:{kakehodai:1650, op10:935, op5:550}, jimu:0, discounts:{}, explain:"1GB。通話中心の方向け。" },
+
+  // === LIBMO ===
+  { carrier:"LIBMO", category:"sumaho", name:"なっとくプラン 60GB", giga:"60", price:3960, call:{kakehodai:1430, op10:770, op5:550}, jimu:0, discounts:{}, explain:"TOKAIグループのMVNO。60GB。" },
+  { carrier:"LIBMO", category:"sumaho", name:"なっとくプラン 30GB", giga:"30", price:2728, call:{kakehodai:1430, op10:770, op5:550}, jimu:0, discounts:{}, explain:"30GB。" },
+  { carrier:"LIBMO", category:"sumaho", name:"なっとくプラン 20GB", giga:"20", price:1991, call:{kakehodai:1430, op10:770, op5:550}, jimu:0, discounts:{}, explain:"20GB。" },
+  { carrier:"LIBMO", category:"sumaho", name:"なっとくプラン 8GB", giga:"8", price:1518, call:{kakehodai:1430, op10:770, op5:550}, jimu:0, discounts:{}, explain:"8GB。" },
+  { carrier:"LIBMO", category:"sumaho", name:"なっとくプラン 3GB", giga:"3", price:980, call:{kakehodai:1430, op10:770, op5:550}, jimu:0, discounts:{}, explain:"3GB。" },
+
+  // === iijmio ===
+  { carrier:"IIJmio", category:"sumaho", name:"ギガプラン 55GB", giga:"55", price:3900, call:{kakehodai:1400, op10:700, op5:500}, jimu:0, discounts:{}, explain:"IIJmioの大容量。eSIMやデータ専用など柔軟。" },
+  { carrier:"IIJmio", category:"sumaho", name:"ギガプラン 45GB", giga:"45", price:3300, call:{kakehodai:1400, op10:700, op5:500}, jimu:0, discounts:{}, explain:"45GB。" },
+  { carrier:"IIJmio", category:"sumaho", name:"ギガプラン 35GB", giga:"35", price:2400, call:{kakehodai:1400, op10:700, op5:500}, jimu:0, discounts:{}, explain:"35GB。" },
+  { carrier:"IIJmio", category:"sumaho", name:"ギガプラン 25GB", giga:"25", price:2000, call:{kakehodai:1400, op10:700, op5:500}, jimu:0, discounts:{}, explain:"25GB。" },
+  { carrier:"IIJmio", category:"sumaho", name:"ギガプラン 15GB", giga:"15", price:1600, call:{kakehodai:1400, op10:700, op5:500}, jimu:0, discounts:{}, explain:"15GB。" },
+  { carrier:"IIJmio", category:"sumaho", name:"ギガプラン 10GB", giga:"10", price:1400, call:{kakehodai:1400, op10:700, op5:500}, jimu:0, discounts:{}, explain:"10GB。" },
+  { carrier:"IIJmio", category:"sumaho", name:"ギガプラン 5GB", giga:"5", price:950, call:{kakehodai:1400, op10:700, op5:500}, jimu:0, discounts:{}, explain:"5GB。" },
+  { carrier:"IIJmio", category:"sumaho", name:"ギガプラン 2GB", giga:"2", price:850, call:{kakehodai:1400, op10:700, op5:500}, jimu:0, discounts:{}, explain:"2GB。最小構成でコスパ重視。" },
+
+  // === 日本通信 ===
+  { carrier:"日本通信", category:"sumaho", name:"合理的50GBプラン", giga:"50", price:2178, call:{kakehodai:1600, op5:390}, jimu:3300, discounts:{}, explain:"50GBで2,178円と割安。通話は別途オプション。" },
+  { carrier:"日本通信", category:"sumaho", name:"合理的みんなのプラン", giga:"20", price:1390, call:{kakehodai:1600, op5:390}, jimu:3300, discounts:{}, explain:"20GBで1,390円。バランス型。" },
+  { carrier:"日本通信", category:"sumaho", name:"合理的シンプル290プラン", giga:"1", price:290, call:{kakehodai:1600, op5:390}, jimu:3300, discounts:{}, explain:"1GBで290円。ほぼ通話専用・サブ回線向け。" },
+
+  // === mineo ===
+  { carrier:"mineo", category:"sumaho", name:"マイピタ 50GB", giga:"50", price:2948, call:{kakehodai:1210, op10:550}, jimu:0, discounts:{}, explain:"関西発のMVNO。50GB。パケット分け合いなど独自機能。" },
+  { carrier:"mineo", category:"sumaho", name:"マイピタ 30GB", giga:"30", price:2178, call:{kakehodai:1210, op10:550}, jimu:0, discounts:{}, explain:"30GB。" },
+  { carrier:"mineo", category:"sumaho", name:"マイピタ 15GB", giga:"15", price:1958, call:{kakehodai:1210, op10:550}, jimu:0, discounts:{}, explain:"15GB。" },
+  { carrier:"mineo", category:"sumaho", name:"マイピタ 7GB", giga:"7", price:1518, call:{kakehodai:1210, op10:550}, jimu:0, discounts:{}, explain:"7GB。" },
+  { carrier:"mineo", category:"sumaho", name:"マイピタ 3GB", giga:"3", price:1298, call:{kakehodai:1210, op10:550}, jimu:0, discounts:{}, explain:"3GB。少容量向け。" },
+
+  // === LINEMO ===
+  { carrier:"LINEMO", category:"sumaho", name:"ベストプランV", giga:"30", price:2970, call:{kakehodai:1650, op5:550}, jimu:0, discounts:{}, explain:"ソフトバンク回線でLINEギガフリー。30GB。" },
+  { carrier:"LINEMO", category:"sumaho", name:"ベストプラン（10GB）", giga:"10", price:2090, call:{kakehodai:1650, op5:550}, jimu:0, discounts:{}, explain:"段階制。10GBまでの料金。LINEはギガ消費なし。" },
+  { carrier:"LINEMO", category:"sumaho", name:"ベストプラン（3GB）", giga:"3", price:990, call:{kakehodai:1650, op5:550}, jimu:0, discounts:{}, explain:"段階制。3GBまでなら990円。LINEはギガ消費なし。" },
+];
+
+/* ---- 割引の表示名（CSVの種類→画面ラベル） ---- */
+const DISCOUNT_LABELS = {
+  kazoku2: "家族割（2人）",
+  kazoku3: "家族割（3人以上）",
+  card:    "カード払い割",
+  net:     "ネット割（光セット）",
+  denki:   "でんきセット割",
+};
+
+/* ---- 事務手数料の表示（プランのjimuを使う） ---- */
+
+/* ---- 固定注意書き ---- */
+const FIXED_NOTE =
+  "※料金はすべて税込・月額の目安です（龍之介作成の最新料金表をもとにしています）。端末代は機種により異なるため手入力です。" +
+  "割引は代表的なものを選択式にしています（実際は併用条件があります）。事務手数料は契約時に一度かかる費用で、月々には含まれません。" +
+  "残価免除プログラムを利用し所定の時期に端末を返却すると残価分の支払いが免除されます。実際の金額・条件は各社の最新情報をご確認ください。";
+
+
+/* ---- キャリア別の分割回数・残価免除プログラム ----
+   kaisu: 選べる分割回数の配列
+   zanka: 残価免除プログラムがある回数（この回数を選ぶと残価入力欄＋グラフを表示）
+          zanka.kaisu = 残価免除の対象になる分割回数
+          zanka.harai = その中で「実際に支払う回数」（前半）
+          zanka.name  = プログラム名
+   ※残価の金額は機種ごとに違うため、龍之介さんが手入力する。
+   ※ドコモは実態に合わせて「24回払い・前半23回を支払い、残価を免除」とする。
+*/
+const INSTALLMENTS = {
+  "docomo":    { kaisu:[12,24,36],    zanka:{kaisu:24, harai:23, name:"いつでもカエドキプログラム"} },
+  "au":        { kaisu:[24,36,48],    zanka:{kaisu:48, harai:24, name:"スマホトクするプログラム"} },
+  "SoftBank":  { kaisu:[24,36,48],    zanka:{kaisu:48, harai:24, name:"新トクするサポート"} },
+  "Rakuten":   { kaisu:[24,48],       zanka:{kaisu:48, harai:24, name:"買い替え超トクプログラム"} },
+  "Y!mobile":  { kaisu:[24,36,48],    zanka:{kaisu:48, harai:24, name:"新トクするサポート（ソフトバンク系）"} },
+  "UQ mobile": { kaisu:[24,36,48],    zanka:{kaisu:48, harai:24, name:"スマホトクするプログラム（au系）"} },
+  "AEONモバイル": { kaisu:[24],        zanka:null },
+  "LIBMO":      { kaisu:[24],         zanka:null },
+  "IIJmio":     { kaisu:[24],         zanka:null },
+  "日本通信":    { kaisu:[24],         zanka:null },
+  "mineo":      { kaisu:[24],         zanka:null },
+  "LINEMO":     { kaisu:[24,48],      zanka:{kaisu:48, harai:24, name:"（ソフトバンク回線の返却プログラム）"} },
+};
+const INSTALLMENTS_DEFAULT = { kaisu:[24,36,48], zanka:null };
+</script>
+
+<script>
+/* =======================================================================
+   見積もりツール 動作ロジック
+   ======================================================================= */
+
+let state = {
+  group: "major",
+  gigaFilter: "all",
+  category: "sumaho",
+  selected: null,
+  callChoice: "none",
+  discountsChecked: {},
+  payType: "ikkatsu",
+  family: [],   // 家族リスト（ためた1人分の見積もりオブジェクトの配列）
+};
+
+function getInstallment(){
+  if(!state.selected) return INSTALLMENTS_DEFAULT;
+  return INSTALLMENTS[state.selected.carrier] || INSTALLMENTS_DEFAULT;
+}
+function getPlans(group){
+  const base = group === "major" ? PLANS_MAJOR : PLANS_MVNO;
+  return base.filter(p => (p.category || "sumaho") === state.category);
+}
+
+function setCategory(cat){
+  state.category = cat;
+  state.gigaFilter = "all";
+  document.querySelectorAll(".cat-chip").forEach(c => c.classList.toggle("active", c.dataset.cat === cat));
+  // スマホ以外はまだ中身が無い＝準備中表示
+  renderGigaChips();
+  renderPlanList();
+}
+function getDiscounts(group){ return {}; } /* 旧関数（現在は各プランのdiscountsを使用） */
+
+/* 現在選択中の分割回数が「残価免除対象」かどうか */
+function isZankaKaisu(){
+  const inst = getInstallment();
+  if(!inst.zanka) return false;
+  const kaisu = parseInt(document.getElementById("bunkatsuKaisu").value, 10);
+  return inst.zanka.kaisu === kaisu;
+}
+
+/* ---- ギガ帯チップ ---- */
+function renderGigaChips(){
+  const plans = getPlans(state.group);
+  const order = [];
+  plans.forEach(p => { if(!order.includes(p.giga)) order.push(p.giga); });
+  const chips = ['<div class="giga-chip active" data-g="all" onclick="setGiga(\'all\')">すべて</div>'];
+  order.forEach(g => {
+    chips.push(`<div class="giga-chip" data-g="${g}" onclick="setGiga('${g}')">${g==="ポイ活"||g==="無制限"?g:g+"GB"}</div>`);
+  });
+  document.getElementById("gigaChips").innerHTML = chips.join("");
+}
+function setGiga(g){
+  state.gigaFilter = g;
+  document.querySelectorAll(".giga-chip").forEach(c => c.classList.toggle("active", c.dataset.g === g));
+  renderPlanList();
+}
+
+/* ---- プラン一覧 ---- */
+function renderPlanList(){
+  const plans = getPlans(state.group).filter(p => state.gigaFilter === "all" ? true : p.giga === state.gigaFilter);
+  const byCarrier = {};
+  plans.forEach(p => { (byCarrier[p.carrier] = byCarrier[p.carrier] || []).push(p); });
+  let html = "";
+  Object.keys(byCarrier).forEach(carrier => {
+    html += `<div class="carrier-group"><div class="carrier-name">${carrier}</div>`;
+    byCarrier[carrier].forEach(p => {
+      const isSel = state.selected && state.selected.carrier === p.carrier && state.selected.name === p.name && state.selected.giga === p.giga;
+      const gigaLabel = (p.giga==="ポイ活"||p.giga==="無制限") ? p.giga : p.giga+"GB";
+      html += `
+        <div class="plan-item ${isSel?'selected':''}" onclick='selectPlan(${JSON.stringify(p)})'>
+          <div class="pi-left"><div class="pi-name">${p.name}</div><div class="pi-giga">${gigaLabel}</div></div>
+          <div class="pi-price">${p.price.toLocaleString()}<small>円</small></div>
+        </div>`;
+    });
+    html += `</div>`;
+  });
+  let emptyMsg = '<p style="color:#8A8478;font-size:13px;padding:10px;">該当するプランがありません。</p>';
+  if(state.category !== "sumaho"){
+    const catName = ({kids:"キッズ", senior:"シニア", u18:"U18・学割"})[state.category] || "";
+    emptyMsg = `<div style="color:#8A8478;font-size:13px;padding:16px;text-align:center;line-height:1.7;">
+      「${catName}」向けプランは現在準備中です。<br>まずは「スマホ（一般）」からお選びください。</div>`;
+  }
+  document.getElementById("planList").innerHTML = html || emptyMsg;
+}
+
+/* ---- プラン選択 ---- */
+function selectPlan(p){
+  state.selected = p;
+  state.callChoice = "none";
+  state.discountsChecked = {};
+  renderSelected();
+  renderCallOptions();
+  renderDiscounts();
+  renderExplain();
+  renderInstallmentOptions();
+  renderPlanList();
+  calc();
+}
+
+/* ---- 支払い方法トグル ---- */
+function setPay(type){
+  state.payType = type;
+  document.getElementById("ptIkkatsu").classList.toggle("active", type==="ikkatsu");
+  document.getElementById("ptBunkatsu").classList.toggle("active", type==="bunkatsu");
+  document.getElementById("bunkatsuRow").style.display = (type==="bunkatsu") ? "flex" : "none";
+  updateZankaInputVisibility();
+  calc();
+}
+
+/* ---- 分割回数プルダウン ---- */
+function renderInstallmentOptions(){
+  const sel = document.getElementById("bunkatsuKaisu");
+  const inst = getInstallment();
+  sel.innerHTML = inst.kaisu.map(k => {
+    const isZanka = inst.zanka && inst.zanka.kaisu === k;
+    return `<option value="${k}">${k}回${isZanka?"（残価免除プログラム対象）":""}</option>`;
+  }).join("");
+  updateZankaInputVisibility();
+}
+
+/* ---- 分割回数が変わったとき ---- */
+function onKaisuChange(){
+  updateZankaInputVisibility();
+  calc();
+}
+
+/* ---- 残価入力欄の表示/非表示を切り替え ---- */
+function updateZankaInputVisibility(){
+  const row = document.getElementById("zankaInputRow");
+  const show = (state.payType === "bunkatsu") && isZankaKaisu();
+  row.style.display = show ? "block" : "none";
+  if(show){
+    const inst = getInstallment();
+    const kaisu = inst.zanka.kaisu;
+    const harai = inst.zanka.harai;
+    const menjo = kaisu - harai;
+    document.getElementById("zankaHint").textContent =
+      `${inst.zanka.name}：${kaisu}回払いのうち前半${harai}回を支払い、残り${menjo}回分（残価）を返却で免除`;
+  }
+}
+
+/* ---- 選択中プラン表示 ---- */
+function renderSelected(){
+  const el = document.getElementById("selectedPlan");
+  if(!state.selected){ el.innerHTML = '<span class="empty">右の一覧からプランを選んでください</span>'; return; }
+  const p = state.selected;
+  const gigaLabel = (p.giga==="ポイ活"||p.giga==="無制限") ? p.giga : p.giga+"GB";
+  el.innerHTML = `<div class="carrier">${p.carrier} ／ ${gigaLabel}</div><div class="planname">${p.name}</div>`;
+  document.getElementById("basePrice").textContent = p.price.toLocaleString() + " 円";
+}
+
+/* ---- 通話オプション ---- */
+function renderCallOptions(){
+  const box = document.getElementById("callOptions");
+  if(!state.selected){ box.innerHTML = ""; return; }
+  const call = state.selected.call || {};
+  const opts = [];
+  opts.push(callRow("none", "オプションなし", 0, true));
+  if(call.kakehodai !== undefined) opts.push(callRow("kakehodai", "24時間かけ放題", call.kakehodai));
+  if(call.op10 !== undefined)      opts.push(callRow("op10", "10分かけ放題", call.op10));
+  if(call.op5 !== undefined)       opts.push(callRow("op5", "5分かけ放題", call.op5));
+  box.innerHTML = opts.join("");
+}
+function callRow(key, label, val, checked){
+  const price = val === 0 ? "＋0円" : "＋"+val.toLocaleString()+"円";
+  return `<label class="chk">
+    <input type="radio" name="callopt" ${checked?'checked':''} onclick="setCall('${key}')">
+    <span class="cname">${label}</span><span class="cval">${key==='none'?'':price}</span>
+  </label>`;
+}
+function setCall(key){ state.callChoice = key; calc(); }
+
+/* ---- 各種割引 ---- */
+function renderDiscounts(){
+  const box = document.getElementById("discountList");
+  if(!state.selected){ box.innerHTML = ""; return; }
+  const dObj = state.selected.discounts || {};
+  const keys = Object.keys(dObj).filter(k => dObj[k] > 0);
+  if(keys.length === 0){
+    box.innerHTML = '<div style="font-size:12px;color:#8A8478;padding:4px;">このプランは割引の選択項目はありません。</div>';
+    return;
+  }
+  box.innerHTML = keys.map(k => {
+    const label = (typeof DISCOUNT_LABELS !== "undefined" && DISCOUNT_LABELS[k]) ? DISCOUNT_LABELS[k] : k;
+    const val = dObj[k];
+    return `<label class="chk">
+      <input type="checkbox" onclick="toggleDiscount('${label}', ${val}, this.checked)">
+      <span class="cname">${label}</span><span class="cval">−${val.toLocaleString()}円</span>
+    </label>`;
+  }).join("");
+}
+function toggleDiscount(name, val, checked){
+  if(checked) state.discountsChecked[name] = val;
+  else delete state.discountsChecked[name];
+  calc();
+}
+
+/* ---- 端末代の月額を計算し表示とグラフも更新。戻り値＝合計に足す月額 ---- */
+function calcDevice(){
+  const total = num("deviceTotal");
+  const monthlyBox = document.getElementById("deviceMonthly");
+  const graphBox = document.getElementById("zankaGraph");
+
+  if(total <= 0){
+    monthlyBox.style.display = "none";
+    graphBox.style.display = "none";
+    return 0;
+  }
+
+  // 一括
+  if(state.payType === "ikkatsu"){
+    monthlyBox.style.display = "block";
+    monthlyBox.innerHTML = `一括払い：初回に <b>${total.toLocaleString()}円</b>（月々のお支払いには含まれません）`;
+    graphBox.style.display = "none";
+    return 0;
+  }
+
+  // 分割
+  const kaisu = parseInt(document.getElementById("bunkatsuKaisu").value, 10) || 24;
+
+  // 残価免除対象 → 残価を手入力した金額で計算
+  if(isZankaKaisu()){
+    const inst = getInstallment();
+    const harai = inst.zanka.harai;         // 前半に支払う回数
+    const zanka = num("zankaValue");         // 免除される残価（手入力）
+    const haraiSougaku = total - zanka;       // 前半で払う総額
+    const monthly = harai > 0 ? Math.round(haraiSougaku / harai) : 0;
+
+    monthlyBox.style.display = "block";
+    if(zanka <= 0){
+      monthlyBox.innerHTML = `分割 ${kaisu}回（残価免除対象）<br><span style="font-size:11px;color:#C0392B;">↑ 残価の金額を入力すると月々の額が計算されます</span>`;
+      graphBox.style.display = "none";
+      return 0; // 残価未入力のうちは端末分を合計に乗せない
+    }
+
+    monthlyBox.innerHTML =
+      `分割 ${kaisu}回：月々 <b>${monthly.toLocaleString()}円</b>（前半${harai}回）<br>` +
+      `<span style="font-size:11px;color:#5A544C;">` +
+      `${inst.zanka.name}で返却すると、残価 ${zanka.toLocaleString()}円 の支払いが免除されます</span>`;
+
+    // グラフ（金額ベースで比率を出す）
+    const firstPct = Math.round(haraiSougaku / total * 100);
+    graphBox.style.display = "block";
+    graphBox.innerHTML =
+      `<div class="zg-title">${kaisu}回払いのイメージ（総額 ${total.toLocaleString()}円）</div>` +
+      `<div class="zg-bar">` +
+        `<div class="zg-first" style="width:${firstPct}%;">前半 ${harai}回<br>支払う</div>` +
+        `<div class="zg-second" style="width:${100-firstPct}%;">返却で<br>免除</div>` +
+      `</div>` +
+      `<div class="zg-legend">` +
+        `<span class="dot-g">■</span> 実際に支払う分 ${haraiSougaku.toLocaleString()}円　` +
+        `<span class="dot-h">▨</span> 返却で免除される残価 ${zanka.toLocaleString()}円` +
+      `</div>`;
+    return monthly;
+  }
+
+  // 通常分割（残価なし）
+  const monthly = Math.round(total / kaisu);
+  monthlyBox.style.display = "block";
+  monthlyBox.innerHTML = `分割 ${kaisu}回：月々 <b>${monthly.toLocaleString()}円</b>（総額 ${total.toLocaleString()}円）`;
+  graphBox.style.display = "none";
+  return monthly;
+}
+
+/* ---- 合計計算 ---- */
+function calc(){
+  const deviceMonthly = calcDevice();
+  if(!state.selected){ document.getElementById("totalVal").innerHTML = "—<small> 円</small>"; return 0; }
+  let total = state.selected.price;
+  const call = state.selected.call || {};
+  if(state.callChoice !== "none" && call[state.callChoice]) total += call[state.callChoice];
+  Object.values(state.discountsChecked).forEach(v => total -= v);
+  total += deviceMonthly;
+  total += num("hoshoPrice");
+  total += num("otherPrice");
+  if(total < 0) total = 0;
+  document.getElementById("totalVal").innerHTML = total.toLocaleString() + "<small> 円</small>";
+  return total;
+}
+function num(id){ const el = document.getElementById(id); if(!el) return 0; const v = parseInt(el.value, 10); return isNaN(v)?0:v; }
+
+/* =======================================================================
+   家族リスト機能
+   ======================================================================= */
+
+/* 現在の入力内容を1人分のオブジェクトにまとめる */
+function collectCurrentPerson(){
+  if(!state.selected) return null;
+  const p = state.selected;
+
+  // 通話OPの月額と表示名
+  let callLabel = "—", callVal = 0;
+  const call = p.call || {};
+  if(state.callChoice !== "none" && call[state.callChoice] !== undefined){
+    callVal = call[state.callChoice];
+    callLabel = ({kakehodai:"24時間かけ放題", op10:"10分かけ放題", op5:"5分かけ放題"})[state.callChoice] || "通話OP";
+  }
+
+  // 割引の合計と内訳
+  let discountTotal = 0;
+  const discountNames = [];
+  Object.entries(state.discountsChecked).forEach(([name,v]) => { discountTotal += v; discountNames.push(name); });
+
+  // 端末まわり
+  const deviceTotal = num("deviceTotal");
+  const payType = state.payType;
+  const kaisu = parseInt((document.getElementById("bunkatsuKaisu")||{}).value, 10) || 0;
+  const zanka = num("zankaValue");
+  const deviceMonthly = calcDevice(); // 端末の月額（一括は0）
+
+  const monthly = calc();
+
+  return {
+    meigi: (document.getElementById("meigiName").value || "").trim() || "（お名前未記入）",
+    carrier: p.carrier,
+    planName: p.name,
+    giga: p.giga,
+    explain: p.explain || "",
+    deviceName: (document.getElementById("deviceName").value || "").trim(),
+    deviceTotal, payType, kaisu, zanka, deviceMonthly,
+    basePrice: p.price,
+    jimu: (p.jimu !== undefined ? p.jimu : 0),
+    callLabel, callVal,
+    discountTotal, discountNames,
+    hosho: num("hoshoPrice"),
+    other: num("otherPrice"),
+    monthly,
+  };
+}
+
+/* 家族リストに追加 */
+function addToFamily(){
+  const person = collectCurrentPerson();
+  if(!person){
+    alert("先に右の一覧からプランを選んでください。");
+    return;
+  }
+  if(state.family.length >= 5){
+    alert("家族リストは5名までです。6名以上は分けて作成してください。");
+    return;
+  }
+  state.family.push(person);
+  renderFamilyList();
+  // 次の人の入力へ：リセット（家族リストは保持）
+  resetForNext();
+}
+
+/* 家族リストの表示 */
+function renderFamilyList(){
+  const box = document.getElementById("familyList");
+  const items = document.getElementById("familyItems");
+  document.getElementById("familyCount").textContent = state.family.length;
+  if(state.family.length === 0){ box.style.display = "none"; return; }
+  box.style.display = "block";
+  items.innerHTML = state.family.map((f, i) =>
+    `<div class="family-item">
+      <div class="fi-info">
+        <div class="fi-name">${f.meigi}</div>
+        <div class="fi-detail">${f.carrier}／${f.planName}</div>
+      </div>
+      <div class="fi-price">${f.monthly.toLocaleString()}円</div>
+      <button class="fi-del" onclick="removeFromFamily(${i})">×</button>
+    </div>`
+  ).join("");
+}
+
+/* 家族リストから削除 */
+function removeFromFamily(i){
+  state.family.splice(i, 1);
+  renderFamilyList();
+}
+
+/* 次の人の入力へ（家族リストは保持したまま入力欄だけ戻す） */
+function resetForNext(){
+  state.selected = null;
+  state.callChoice = "none";
+  state.discountsChecked = {};
+  state.payType = "ikkatsu";
+  ["meigiName","deviceName","deviceTotal","hoshoPrice","otherPrice","zankaValue"].forEach(id => { const el=document.getElementById(id); if(el) el.value=""; });
+  setPay("ikkatsu");
+  renderSelected();
+  document.getElementById("callOptions").innerHTML = "";
+  document.getElementById("discountList").innerHTML = "";
+  document.getElementById("basePrice").textContent = "— 円";
+  document.getElementById("deviceMonthly").style.display = "none";
+  document.getElementById("zankaGraph").style.display = "none";
+  document.getElementById("zankaInputRow").style.display = "none";
+  renderExplain();
+  renderPlanList();
+  document.getElementById("totalVal").innerHTML = "—<small> 円</small>";
+  // 画面を入力欄の上部へ
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+/* 提案書を作成（次段階で実装） */
+/* ---- ヘルパー：円表示 ---- */
+function yen(n){ return (n||0).toLocaleString(); }
+
+/* ---- 1人分の端末表示文（分割・残価・返却年月）を組み立て ---- */
+function deviceLine(f){
+  if(!f.deviceName && f.deviceTotal<=0) return "";
+  let s = f.deviceName || "端末";
+  if(f.payType === "ikkatsu"){
+    s += (f.deviceTotal>0 ? "／一括 "+yen(f.deviceTotal)+"円" : "");
+  } else {
+    s += "／分割"+f.kaisu+"回";
+    if(f.zanka>0) s += "・残価免除";
+  }
+  return s;
+}
+
+/* ---- 返却予定年月（分割・残価ありのときだけ。今日から kaisu ヶ月後の目安）---- */
+function henkyakuYM(f){
+  if(f.payType!=="bunkatsu" || f.zanka<=0) return "—";
+  const d = new Date();
+  // 残価免除は「払う回数(harai)」経過後が返却タイミングの目安。データが無ければkaisu/2
+  const harai = Math.round(f.deviceTotal>0 ? (f.deviceTotal - f.zanka) / (f.deviceMonthly||1) : f.kaisu/2);
+  const months = harai>0 ? harai : Math.round(f.kaisu/2);
+  d.setMonth(d.getMonth() + months);
+  return d.getFullYear() + "年" + (d.getMonth()+1) + "月";
+}
+
+/* ---- 提案書を作成して新ウィンドウで開く ---- */
+function makeProposal(){
+  if(state.family.length === 0){ alert("先に家族リストに追加してください。"); return; }
+
+  const meigiName = prompt("提案書のあて名を入力してください（例：山田）", "");
+  const atena = (meigiName || "").trim();
+
+  // 各人の列
+  let cols = "";
+  let familyMonthly = 0, jimuTotal = 0;
+  let explainRows = "";
+
+  state.family.forEach(f => {
+    familyMonthly += f.monthly;
+    jimuTotal += (f.jimu||0);
+
+    const gigaLabel = (f.giga==="ポイ活"||f.giga==="無制限") ? f.giga : f.giga+"GB";
+    const callLine = f.callVal>0 ? yen(f.callVal)+"円" : "—";
+    const discountLine = f.discountTotal>0 ? "-"+yen(f.discountTotal)+"円" : "—";
+    const devMonthly = f.deviceMonthly>0 ? yen(f.deviceMonthly)+"円" : (f.payType==="ikkatsu" && f.deviceTotal>0 ? "一括" : "—");
+
+    cols += `
+      <div class="pm-member">
+        <div class="pm-head">
+          <div class="pm-name">${escapeHtml(f.meigi)}</div>
+        </div>
+        <div class="pm-carrier">
+          <div class="pm-cname">${f.carrier}</div>
+          <div class="pm-cplan">${escapeHtml(f.planName)}（${gigaLabel}）</div>
+        </div>
+        <div class="pm-device">${escapeHtml(deviceLine(f)) || "（端末なし）"}</div>
+        <div class="pm-lines">
+          <div class="pm-line"><span>端末(月々)</span><span>${devMonthly}</span></div>
+          <div class="pm-line"><span>基本プラン</span><span>${yen(f.basePrice)}円</span></div>
+          <div class="pm-line"><span>通話OP</span><span>${callLine}</span></div>
+          <div class="pm-line"><span>割引</span><span>${discountLine}</span></div>
+        </div>
+        <div class="pm-sub">
+          <div class="pm-sub-label">おひとり小計(月々)</div>
+          <div class="pm-sub-val">${yen(f.monthly)}<small>円</small></div>
+        </div>
+        <div class="pm-extra">
+          <div class="pm-xrow"><span>初期:事務手数料</span><span>${f.jimu>0?yen(f.jimu)+"円":"無料"}</span></div>
+          <div class="pm-xrow"><span>返却予定</span><span>${henkyakuYM(f)}</span></div>
+        </div>
+      </div>`;
+
+    explainRows += `<li><b>${escapeHtml(f.meigi)}（${f.carrier} ${escapeHtml(f.planName)}）</b>：${escapeHtml(f.explain)}</li>`;
+  });
+
+  const today = new Date();
+  const dateStr = today.getFullYear()+"年"+(today.getMonth()+1)+"月"+today.getDate()+"日";
+
+  const inner = `
+    <div class="proposal" id="proposalSheet">
+      <div class="ph">
+        <div><div class="ph-title">ご家族のスマホ料金 お見積り<small>${atena?escapeHtml(atena)+"様 ご家族":"ご家族"}（${state.family.length}名分）</small></div></div>
+        <div class="ph-date">${dateStr} 作成<div class="ph-brand">街のスマホ相談士</div></div>
+      </div>
+      <div class="pm-members">${cols}</div>
+      <div class="pm-ftotal">
+        <div><div class="pm-ft-label">ご家族合計（月々）</div><div class="pm-ft-sub">${state.family.length}名分・税込のお支払い目安</div></div>
+        <div class="pm-ft-val">${yen(familyMonthly)}<small>円</small></div>
+      </div>
+      ${jimuTotal>0?`<div class="pm-init"><span class="pm-init-label">ご契約時にかかる費用（初回のみ）</span><span class="pm-init-val">事務手数料 合計 ${yen(jimuTotal)}円</span></div>`:""}
+      <div class="pm-ex">
+        <div class="pm-ex-title">お見積りの内容（プランの根拠）</div>
+        <ul>${explainRows}</ul>
+      </div>
+      <div class="pm-ex">
+        <div class="pm-ex-title">担当より一言</div>
+        <div class="pm-note-box" contenteditable="true">（ここをタップして、ご家族へのひとことを入力できます）</div>
+      </div>
+      <div class="pm-footer">${FIXED_NOTE}</div>
+    </div>`;
+
+  document.getElementById("proposalArea").innerHTML = inner;
+  document.getElementById("proposalOverlay").style.display = "block";
+  document.body.classList.add("proposal-open");
+  window.scrollTo({top:0});
+}
+
+/* 提案書を閉じる */
+function closeProposal(){
+  document.getElementById("proposalOverlay").style.display = "none";
+  document.body.classList.remove("proposal-open");
+}
+
+/* 提案書を印刷（PDF保存） */
+function printProposal(){
+  window.print();
+}
+
+/* HTMLエスケープ（入力値の安全表示） */
+function escapeHtml(s){
+  return String(s==null?"":s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+/* ---- 解説 ---- */
+function renderExplain(){
+  const box = document.getElementById("explainBox");
+  if(!state.selected){ box.innerHTML = '<div class="e-title">お見積りの根拠・解説</div><div class="placeholder">プランを選ぶと、ここに解説が表示されます。</div>'; return; }
+  const p = state.selected;
+  box.innerHTML = `<div class="e-title">お見積りの根拠・解説</div>
+    <ul>
+      <li>${p.carrier}「${p.name}」を選んだ場合のお見積りです。</li>
+      <li>${p.explain}</li>
+      <li>基本プランは月々 ${p.price.toLocaleString()}円（税込）です。ここに通話オプションや割引、端末代を足し引きした金額が合計になります。</li>
+    </ul>`;
+}
+
+/* ---- タブ切替 ---- */
+function switchTab(group){
+  state.group = group;
+  state.gigaFilter = "all";
+  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.group === group));
+  renderGigaChips();
+  renderPlanList();
+}
+
+/* ---- リセット ---- */
+function resetAll(){
+  state.selected = null;
+  state.callChoice = "none";
+  state.discountsChecked = {};
+  state.payType = "ikkatsu";
+  state.family = [];
+  ["meigiName","deviceName","deviceTotal","hoshoPrice","otherPrice","zankaValue"].forEach(id => { const el=document.getElementById(id); if(el) el.value=""; });
+  setPay("ikkatsu");
+  renderSelected();
+  document.getElementById("callOptions").innerHTML = "";
+  document.getElementById("discountList").innerHTML = "";
+  document.getElementById("basePrice").textContent = "— 円";
+  document.getElementById("deviceMonthly").style.display = "none";
+  document.getElementById("zankaGraph").style.display = "none";
+  document.getElementById("zankaInputRow").style.display = "none";
+  renderExplain();
+  renderPlanList();
+  document.getElementById("totalVal").innerHTML = "—<small> 円</small>";
+  renderFamilyList();
+}
+
+/* ---- 手入力監視 ---- */
+document.addEventListener("input", e => {
+  if(["deviceTotal","hoshoPrice","otherPrice","zankaValue"].includes(e.target.id)) calc();
+});
+
+/* ---- 初期化 ---- */
+document.getElementById("noteFixed").textContent = FIXED_NOTE;
+renderInstallmentOptions();
+renderGigaChips();
+renderPlanList();
+</script>
+
+<!-- 提案書オーバーレイ（同一画面に重ねて表示） -->
+<div id="proposalOverlay" class="proposal-overlay" style="display:none;">
+  <div class="po-bar">
+    <button class="po-btn print" onclick="printProposal()">PDFで保存／印刷する</button>
+    <button class="po-btn close" onclick="closeProposal()">閉じる</button>
+  </div>
+  <div id="proposalArea" class="po-area"></div>
+</div>
+</body>
+</html>

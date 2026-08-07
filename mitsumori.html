@@ -153,6 +153,19 @@
   }
   .make-proposal-btn:active { opacity: 0.88; }
 
+  /* 保存ボタン */
+  .save-family-btn {
+    margin-top: 8px; width: 100%;
+    padding: 12px; border: 2px solid #B08A4A; background: #fff; color: #B08A4A;
+    border-radius: 8px; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+  }
+  .save-family-btn:active { background: #FBF6EC; }
+  .save-family-btn:disabled { opacity: 0.5; }
+  .save-status { margin-top: 8px; font-size: 12.5px; text-align: center; line-height: 1.6; }
+  .save-status.ok { color: #2F5E58; }
+  .save-status.ng { color: #C0392B; }
+  .save-status.loading { color: #8A8478; }
+
   .explain {
     margin-top: 12px;
     background: #FBF6EC;
@@ -473,6 +486,8 @@
           <div class="fl-title">家族リスト（<span id="familyCount">0</span>名）</div>
           <div id="familyItems"></div>
           <button class="make-proposal-btn" onclick="makeProposal()">家族の提案書を作成する →</button>
+          <button class="save-family-btn" onclick="saveToNotion()">この見積もりを保存する（記録に残す）</button>
+          <div class="save-status" id="saveStatus"></div>
         </div>
 
         <div class="explain" id="explainBox">
@@ -526,6 +541,9 @@
    ======================================================================= */
 
 /* ---- 大手：スマホ一般 ---- */
+/* 保存先GAS（ウェブアプリURL）。トークンではないので秘密ではない */
+const SAVE_GAS_URL = "https://script.google.com/macros/s/AKfycbxR1vxISYV4zeDXGL7ExaaQgKB5RvSOl5JyObdooWeZ7MtXcvTDDhUo587eHKnHTf1D/exec";
+
 const PLANS_MAJOR = [
   // === docomo ===
   { carrier:"docomo", category:"sumaho", name:"ドコモMAX", giga:"無制限", price:8448,
@@ -1164,6 +1182,54 @@ function henkyakuYM(f){
 }
 
 /* ---- 提案書を作成して新ウィンドウで開く ---- */
+function saveToNotion(){
+  if(state.family.length === 0){ setSaveStatus("先に家族リストに追加してください。", "ng"); return; }
+
+  const atena = (prompt("保存するあて名を入力してください（例：山田）", "") || "").trim();
+
+  // 送信データを組み立て（全項目）
+  const familyMonthly = state.family.reduce((s,f)=> s + (f.monthly||0), 0);
+  const jimuTotal = state.family.reduce((s,f)=> s + (f.jimu||0), 0);
+  const payload = {
+    atena: atena,
+    date: (function(){ const d=new Date(); const m=("0"+(d.getMonth()+1)).slice(-2); const day=("0"+d.getDate()).slice(-2); return d.getFullYear()+"-"+m+"-"+day; })(),
+    familyMonthly: familyMonthly,
+    jimuTotal: jimuTotal,
+    source: "個別相談",
+    family: state.family,
+  };
+
+  const btn = document.querySelector(".save-family-btn");
+  if(btn) btn.disabled = true;
+  setSaveStatus("保存中です…", "loading");
+
+  // GASへPOST（no-corsを避けるためtext/plainで送る）
+  fetch(SAVE_GAS_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(payload),
+  })
+  .then(r => r.json())
+  .then(res => {
+    if(res && res.ok){
+      setSaveStatus("保存しました。Notionの見積もり履歴に記録されました。", "ok");
+    } else {
+      setSaveStatus("保存に失敗しました。時間をおいて再度お試しください。", "ng");
+    }
+  })
+  .catch(err => {
+    setSaveStatus("通信エラーが発生しました。電波状況をご確認ください。", "ng");
+  })
+  .finally(() => { if(btn) btn.disabled = false; });
+}
+
+function setSaveStatus(msg, kind){
+  const el = document.getElementById("saveStatus");
+  if(!el) return;
+  el.textContent = msg;
+  el.className = "save-status " + (kind||"");
+}
+
 function makeProposal(){
   if(state.family.length === 0){ alert("先に家族リストに追加してください。"); return; }
 

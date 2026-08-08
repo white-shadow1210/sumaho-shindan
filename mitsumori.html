@@ -1406,19 +1406,65 @@ function closeHistory(){
 }
 
 function selectHistoryItem(item){
-  if(!confirm("現在の家族リストを、保存した内容に置き換えます。よろしいですか？")){
-    return;
-  }
-  let obj;
+  // ★★★ 一時診断UI（原因確定後に剥がす。本番挙動は下に温存）★★★
+  const raw = String(item.payload == null ? "" : item.payload);
+  const rawTypeof = typeof item.payload;
+  const rawPreview = raw.substring(0, 300);
+  const rawStartsWithQuote = raw.charAt(0) === '"';
+
+  let parsedTypeof = "(parse失敗)", parseError = "", obj = null;
   try {
-    obj = JSON.parse(item.payload);
+    obj = JSON.parse(raw);
+    parsedTypeof = (obj === null ? "null" : Array.isArray(obj) ? "array" : typeof obj);
   } catch(e){
-    alert("このデータは読み込めませんでした");
-    return;
+    parseError = String(e);
   }
-  state.family = obj.family || [];
-  renderFamilyList();
-  closeHistory();
+
+  let obj2Typeof = "(未実施)", obj2 = null;
+  if (parsedTypeof === "string") {
+    try {
+      obj2 = JSON.parse(obj);
+      obj2Typeof = (obj2 === null ? "null" : Array.isArray(obj2) ? "array" : typeof obj2);
+    } catch(e2){
+      obj2Typeof = "(2回目parse失敗)";
+    }
+  }
+
+  const src = (obj2 && typeof obj2 === "object") ? obj2 : obj;
+  const family = (src && src.family !== undefined) ? src.family : null;
+  const familyTypeof = family === null ? "(なし)" : (Array.isArray(family) ? ("array[" + family.length + "]") : typeof family);
+  const first = (family && family[0] !== undefined) ? JSON.stringify(family[0], null, 2) : "(family[0] なし)";
+
+  const warn1 = rawStartsWithQuote ? '<div style="color:#C0392B;">⚠️ 先頭が " → 二重stringify疑い</div>' : '';
+  const warn2 = (parsedTypeof === "string") ? '<div style="color:#C0392B;">⚠️ parse結果が string → もう1回parseが必要</div>' : '';
+
+  const html =
+    '<div class="ho-msg" style="text-align:left; font-family:ui-monospace,Menlo,monospace; font-size:11.5px; word-break:break-all; line-height:1.7;">' +
+      '<div style="font-weight:700; color:#B08A4A; margin-bottom:8px; font-size:13px;">🔍 診断（一時UI・確認用）</div>' +
+      '<div>■ typeof item.payload: <b>' + escapeHtml(rawTypeof) + '</b></div>' +
+      warn1 +
+      '<div style="margin-top:6px;">■ payload 先頭300文字:</div>' +
+      '<div style="background:#F5F1E8; padding:6px; border-radius:4px; margin:4px 0;">' + escapeHtml(rawPreview) + (raw.length > 300 ? "…" : "") + '</div>' +
+      '<div style="margin-top:6px;">■ JSON.parse(payload) → typeof: <b>' + escapeHtml(parsedTypeof) + '</b>' + (parseError ? ' <span style="color:#C0392B;">(' + escapeHtml(parseError) + ')</span>' : '') + '</div>' +
+      warn2 +
+      ((parsedTypeof === "string") ? '<div>■ 2回目 parse → typeof: <b>' + escapeHtml(obj2Typeof) + '</b></div>' : '') +
+      '<div style="margin-top:6px;">■ family: <b>' + escapeHtml(familyTypeof) + '</b></div>' +
+      '<div style="margin-top:6px;">■ family[0] の中身:</div>' +
+      '<pre style="background:#F5F1E8; padding:8px; border-radius:4px; overflow-x:auto; font-size:10.5px; white-space:pre-wrap; word-break:break-all;">' + escapeHtml(first) + '</pre>' +
+      '<div style="text-align:center; margin-top:12px;">' +
+        '<button class="ho-btn close" onclick="closeHistory()" style="padding:12px 20px;">確認できた・閉じる</button>' +
+      '</div>' +
+    '</div>';
+
+  showHistoryOverlay(html);
+
+  // ↓↓↓ 診断中は実際の置き換え処理は走らせない（原因確定後、以下を復活させる）↓↓↓
+  //   if(!confirm("現在の家族リストを、保存した内容に置き換えます。よろしいですか？")){ return; }
+  //   let obj;
+  //   try { obj = JSON.parse(item.payload); } catch(e){ alert("このデータは読み込めませんでした"); return; }
+  //   state.family = obj.family || [];
+  //   renderFamilyList();
+  //   closeHistory();
 }
 
 /* 提案書を印刷（PDF保存） */

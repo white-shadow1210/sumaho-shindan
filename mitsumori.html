@@ -166,6 +166,41 @@
   .save-status.ng { color: #C0392B; }
   .save-status.loading { color: #8A8478; }
 
+  /* 呼び出しボタン（保存の隣・緑系で差別化） */
+  .load-family-btn {
+    margin-top: 8px; width: 100%;
+    padding: 12px; border: 2px solid #2F5E58; background: #fff; color: #2F5E58;
+    border-radius: 8px; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+  }
+  .load-family-btn:active { background: #F0F5F4; }
+  .load-family-btn:disabled { opacity: 0.5; }
+
+  /* 履歴オーバーレイ（保存済み見積もりの一覧・提案書オーバーレイと同作法）*/
+  .history-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: #E8E3D8; overflow-y: auto; padding: 12px;
+  }
+  .ho-bar {
+    position: sticky; top: 0; z-index: 2;
+    display: flex; gap: 8px; max-width: 640px; margin: 0 auto 12px;
+  }
+  .ho-btn { flex: 1; padding: 13px; border: none; border-radius: 8px; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+  .ho-btn.close { background: #fff; border: 1px solid #DED6C6; color: #5A544C; }
+  .ho-area { max-width: 640px; margin: 0 auto; }
+  .ho-title { font-size: 15px; font-weight: 700; color: #2F5E58; margin: 4px 4px 12px; }
+  .ho-msg { text-align: center; color: #5A544C; padding: 20px; background: #FBF9F4; border: 1px solid #DED6C6; border-radius: 10px; font-size: 13px; line-height: 1.7; }
+  .ho-item {
+    background: #FBF9F4; border: 1px solid #DED6C6; border-radius: 10px;
+    padding: 14px 16px; margin-bottom: 10px; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .ho-item:active { background: #F5F1E8; }
+  .ho-item-label { font-size: 15px; font-weight: 700; color: #2B2622; margin-bottom: 4px; line-height: 1.4; word-break: break-word; }
+  .ho-item-date { font-size: 12px; color: #5A544C; }
+
+  /* オーバーレイ表示中は裏を隠す（既存 proposal-open と同じ作法）*/
+  body.history-open > .wrap { display: none !important; }
+
   .explain {
     margin-top: 12px;
     background: #FBF6EC;
@@ -487,6 +522,7 @@
           <div id="familyItems"></div>
           <button class="make-proposal-btn" onclick="makeProposal()">家族の提案書を作成する →</button>
           <button class="save-family-btn" onclick="saveToNotion()">この見積もりを保存する（記録に残す）</button>
+          <button class="load-family-btn" onclick="loadFromNotion()">保存した見積もりを呼び出す</button>
           <div class="save-status" id="saveStatus"></div>
         </div>
 
@@ -1317,6 +1353,74 @@ function closeProposal(){
   document.body.classList.remove("proposal-open");
 }
 
+/* ---- 保存済み見積もりを呼び出す（GAS の /exec を GET で叩く） ---- */
+function loadFromNotion(){
+  const btn = document.querySelector(".load-family-btn");
+  if(btn) btn.disabled = true;
+  showHistoryOverlay('<div class="ho-msg">読み込み中です…</div>');
+
+  // カスタムヘッダーは付けない（CORSプリフライトを避けるため）
+  fetch(SAVE_GAS_URL, { method: "GET" })
+    .then(r => r.json())
+    .then(res => {
+      if(!res || res.ok !== true){
+        showHistoryOverlay('<div class="ho-msg">履歴の取得に失敗しました。<br>時間をおいて再度お試しください。</div>');
+        return;
+      }
+      const items = Array.isArray(res.items) ? res.items.slice(0, 10) : [];
+      if(items.length === 0){
+        showHistoryOverlay('<div class="ho-msg">保存済みの見積もりはまだありません。</div>');
+        return;
+      }
+      const html = items.map((it, i) => {
+        const label = escapeHtml(it.label || "(名称なし)");
+        const savedAt = escapeHtml(it.savedAt || "");
+        return '<div class="ho-item" data-idx="' + i + '">' +
+                 '<div class="ho-item-label">' + label + '</div>' +
+                 '<div class="ho-item-date">' + savedAt + '</div>' +
+               '</div>';
+      }).join("");
+      showHistoryOverlay(html);
+      // 各行のtapハンドラを登録
+      const list = document.getElementById("historyList");
+      list.querySelectorAll(".ho-item").forEach((el, i) => {
+        el.addEventListener("click", () => selectHistoryItem(items[i]));
+      });
+    })
+    .catch(err => {
+      showHistoryOverlay('<div class="ho-msg">通信エラーが発生しました。<br>電波状況をご確認ください。</div>');
+    })
+    .finally(() => { if(btn) btn.disabled = false; });
+}
+
+function showHistoryOverlay(innerHtml){
+  document.getElementById("historyList").innerHTML = innerHtml;
+  document.getElementById("historyOverlay").style.display = "block";
+  document.body.classList.add("history-open");
+  window.scrollTo({top:0});
+}
+
+function closeHistory(){
+  document.getElementById("historyOverlay").style.display = "none";
+  document.body.classList.remove("history-open");
+}
+
+function selectHistoryItem(item){
+  if(!confirm("現在の家族リストを、保存した内容に置き換えます。よろしいですか？")){
+    return;
+  }
+  let obj;
+  try {
+    obj = JSON.parse(item.payload);
+  } catch(e){
+    alert("このデータは読み込めませんでした");
+    return;
+  }
+  state.family = obj.family || [];
+  renderFamilyList();
+  closeHistory();
+}
+
 /* 提案書を印刷（PDF保存） */
 function printProposal(){
   window.print();
@@ -1390,6 +1494,17 @@ renderPlanList();
     <button class="po-btn close" onclick="closeProposal()">閉じる</button>
   </div>
   <div id="proposalArea" class="po-area"></div>
+</div>
+
+<!-- 履歴オーバーレイ（保存済み見積もりの呼び出し） -->
+<div id="historyOverlay" class="history-overlay" style="display:none;">
+  <div class="ho-bar">
+    <button class="ho-btn close" onclick="closeHistory()">閉じる</button>
+  </div>
+  <div class="ho-area">
+    <div class="ho-title">保存した見積もり（新しい順・最大10件）</div>
+    <div id="historyList"></div>
+  </div>
 </div>
 </body>
 </html>

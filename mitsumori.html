@@ -411,6 +411,27 @@
   .pm-lines{padding:6px 8px;flex:1;}
   .pm-line{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;color:#4A443C;}
   .pm-line span:first-child{color:#8A8478;}
+  /* タップで開閉できる明細行（割引/補償/その他）*/
+  .pm-collapsible{cursor:pointer;user-select:none;}
+  .pm-collapsible::after{content:" ▸";color:#8A8478;font-size:10px;}
+  .pm-collapsible.open::after{content:" ▾";}
+  .pm-detail{
+    display:none;
+    padding:4px 8px 6px 14px;
+    background:#FBF6EC;
+    border-left:2px solid #DED6C6;
+    margin:2px 0;
+    font-size:10.5px;
+    color:#4A443C;
+    line-height:1.7;
+  }
+  .pm-detail .pm-drow{display:flex;justify-content:space-between;}
+  .pm-detail .pm-drow span:first-child{color:#8A8478;}
+  /* ★ 印刷時（PDF/window.print）は明細を全て展開して固定 */
+  @media print{
+    .pm-collapsible::after{content:"" !important;}
+    .pm-detail{display:block !important;}
+  }
   .pm-sub{background:#FBF6EC;border-top:2px solid #B08A4A;padding:8px 6px;text-align:center;}
   .pm-sub-label{font-size:10px;color:#8A6D2E;}
   .pm-sub-val{font-size:17px;font-weight:800;color:#2F5E58;}
@@ -1096,7 +1117,14 @@ function collectCurrentPerson(){
   // 割引の合計と内訳
   let discountTotal = 0;
   const discountNames = [];
-  Object.entries(state.discountsChecked).forEach(([name,v]) => { discountTotal += v; discountNames.push(name); });
+  // ★ 将来の布石：{name,val} 形式で保持することで、今後の LINEマイページ
+  //   カルーセル表示でも同じ内訳データをそのまま流用できる。
+  //   旧形式（name のみの string 配列）で保存されたデータは、
+  //   makeProposal 側で {name, val:null} に正規化して後方互換を保つ。
+  Object.entries(state.discountsChecked).forEach(([name,v]) => {
+    discountTotal += v;
+    discountNames.push({name: name, val: v});
+  });
 
   // 端末まわり
   const deviceTotal = num("deviceTotal");
@@ -1293,6 +1321,24 @@ function makeProposal(){
       ? yen(f.deviceMonthly) + "円"
       : (f.payType === "ikkatsu" && f.deviceTotal > 0 ? "一括" : "—");
 
+    // 割引の明細：新形式 [{name,val}] / 旧形式 [name] の両方に対応
+    // （旧形式は val:null に正規化 → 明細では「家族割 —」表示、後方互換）
+    const discountList = (Array.isArray(f.discountNames) ? f.discountNames : []).map(function(x){
+      return (typeof x === "string") ? {name: x, val: null} : x;
+    });
+    const discountDetailRows = discountList.length > 0
+      ? discountList.map(function(d){
+          const valTxt = (d.val != null && d.val > 0) ? "-" + yen(d.val) + "円" : "—";
+          return '<div class="pm-drow"><span>' + escapeHtml(d.name) + '</span><span>' + valTxt + '</span></div>';
+        }).join("")
+      : '<div class="pm-drow"><span>（明細なし）</span><span></span></div>';
+
+    // 補償・その他は名前欄が未実装のため、金額のみを1行の明細として出す
+    const hoshoVal = Number(f.hosho || 0);
+    const otherVal = Number(f.other || 0);
+    const hoshoLine = hoshoVal > 0 ? yen(hoshoVal) + "円" : "—";
+    const otherLine = otherVal > 0 ? yen(otherVal) + "円" : "—";
+
     cols += `
       <div class="pm-member">
         <div class="pm-head">
@@ -1307,7 +1353,12 @@ function makeProposal(){
           <div class="pm-line"><span>端末(月々)</span><span>${devMonthly}</span></div>
           <div class="pm-line"><span>基本プラン</span><span>${yen(f.basePrice)}円</span></div>
           <div class="pm-line"><span>通話OP</span><span>${callLine}</span></div>
-          <div class="pm-line"><span>割引</span><span>${discountLine}</span></div>
+          <div class="pm-line pm-collapsible" onclick="togglePmDetail(this)"><span>割引</span><span>${discountLine}</span></div>
+          <div class="pm-detail">${discountDetailRows}</div>
+          <div class="pm-line pm-collapsible" onclick="togglePmDetail(this)"><span>補償(月々)</span><span>${hoshoLine}</span></div>
+          <div class="pm-detail"><div class="pm-drow"><span>補償</span><span>${hoshoLine}</span></div></div>
+          <div class="pm-line pm-collapsible" onclick="togglePmDetail(this)"><span>その他(月々)</span><span>${otherLine}</span></div>
+          <div class="pm-detail"><div class="pm-drow"><span>その他</span><span>${otherLine}</span></div></div>
         </div>
         <div class="pm-sub">
           <div class="pm-sub-label">おひとり小計(月々)</div>
@@ -1358,6 +1409,16 @@ function makeProposal(){
 function closeProposal(){
   document.getElementById("proposalOverlay").style.display = "none";
   document.body.classList.remove("proposal-open");
+}
+
+/* 提案書の pm-line タップ開閉（明細のアコーディオン）
+   ★ 印刷時（PDF/window.print）は @media print で全展開される */
+function togglePmDetail(el){
+  el.classList.toggle("open");
+  const detail = el.nextElementSibling;
+  if(detail && detail.classList.contains("pm-detail")){
+    detail.style.display = (detail.style.display === "block") ? "none" : "block";
+  }
 }
 
 /* ---- 保存済み見積もりを呼び出す（GAS の /exec を GET で叩く） ---- */

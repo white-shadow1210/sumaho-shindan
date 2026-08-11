@@ -995,6 +995,72 @@ function findCustomerByLineDisplayName(displayName) {
 }
 
 // ==========================================
+// 氏名/LINE表示名 で顧客マスターを部分一致検索する
+// （mitsumori.html から呼び出す氏名検索窓口・doGet の action=searchCustomer から呼ばれる）
+// ==========================================
+function searchCustomerByName(query) {
+  const q = String(query || "").trim();
+  if (q.length < 2) {
+    return ContentService.createTextOutput(JSON.stringify({
+      ok: false,
+      message: "2文字以上で検索してください"
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+  try {
+    const searchRes = UrlFetchApp.fetch(
+      "https://api.notion.com/v1/databases/" + CUSTOMER_MASTER_ID + "/query",
+      {
+        method: "post", headers: notionHeaders(),
+        payload: JSON.stringify({
+          filter: {
+            or: [
+              { property: "氏名",             title:     { contains: q } },
+              { property: "LINE_displayName", rich_text: { contains: q } }
+            ]
+          },
+          page_size: 10
+        }),
+        muteHttpExceptions: true
+      }
+    );
+    if (searchRes.getResponseCode() !== 200) {
+      return ContentService.createTextOutput(JSON.stringify({
+        ok: false,
+        message: "検索に失敗しました"
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    const results = JSON.parse(searchRes.getContentText()).results || [];
+    const items = results.map(function(page) {
+      const p = page.properties || {};
+      // 各プロパティの安全取得
+      const name     = (p["氏名"]              && p["氏名"].title           && p["氏名"].title[0]           && p["氏名"].title[0].plain_text)           || "";
+      const lineName = (p["LINE_displayName"] && p["LINE_displayName"].rich_text && p["LINE_displayName"].rich_text[0] && p["LINE_displayName"].rich_text[0].plain_text) || "";
+      const telFull  = (p["電話番号"]          && p["電話番号"].rich_text     && p["電話番号"].rich_text[0]     && p["電話番号"].rich_text[0].plain_text)     || "";
+      // 電話番号は末尾4桁だけ返す（識別用・機密最小化）
+      const digits = String(telFull).replace(/[^\d]/g, "");
+      const tel = digits.length >= 4 ? "***" + digits.substring(digits.length - 4) : "";
+      const firstDate = (p["初回登録日"] && p["初回登録日"].date && p["初回登録日"].date.start) || "";
+      return {
+        pageId: page.id,
+        name: name,
+        lineName: lineName,
+        tel: tel,
+        firstDate: firstDate
+      };
+    });
+    return ContentService.createTextOutput(JSON.stringify({
+      ok: true,
+      items: items
+    })).setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({
+      ok: false,
+      message: "検索中にエラーが発生しました"
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// ==========================================
 // ★ v6.9: karte送信時に困りごとDB自動転記
 // ==========================================
 function registerKomariFromKarte(data, customerPageId) {
@@ -1081,6 +1147,9 @@ function doGet(e) {
     return result;
   }
   if (action === 'chiikiPost') return handleChiikiPostGet(e.parameter);
+  if (action === 'searchCustomer') {
+    return searchCustomerByName(e.parameter.q);
+  }
   try {
     const calendar = CalendarApp.getDefaultCalendar();
     const today    = new Date();

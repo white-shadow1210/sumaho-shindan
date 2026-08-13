@@ -198,6 +198,46 @@
   .ho-item-label { font-size: 15px; font-weight: 700; color: #2B2622; margin-bottom: 4px; line-height: 1.4; word-break: break-word; }
   .ho-item-date { font-size: 12px; color: #5A544C; }
 
+  /* 顧客検索オーバーレイ用（history-overlay を流用しつつ検索UI固有の要素）*/
+  .cs-search-row {
+    display: flex; gap: 8px; margin-bottom: 8px;
+  }
+  .cs-input {
+    flex: 1; padding: 12px 10px; border: 1px solid #DED6C6; border-radius: 8px;
+    background: #fff; color: #2B2622; font-family: inherit; font-size: 15px;
+    box-sizing: border-box; -webkit-appearance: none;
+  }
+  .cs-input:focus { outline: none; border-color: #2F5E58; }
+  .cs-search-btn {
+    padding: 12px 18px; border: none; border-radius: 8px;
+    background: #2F5E58; color: #fff; font-family: inherit;
+    font-size: 14px; font-weight: 700; cursor: pointer;
+  }
+  .cs-search-btn:active { background: #24504A; }
+  .cs-note {
+    font-size: 11.5px; color: #8A8478; line-height: 1.6;
+    margin: 4px 2px 12px; text-align: left;
+  }
+  .cs-item {
+    background: #FBF9F4; border: 1px solid #DED6C6; border-radius: 10px;
+    padding: 12px 14px; margin-bottom: 8px; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .cs-item:active { background: #F5F1E8; }
+  .cs-item-name {
+    font-size: 15px; font-weight: 700; color: #2B2622;
+    margin-bottom: 4px; line-height: 1.4; word-break: break-word;
+  }
+  .cs-item-meta {
+    font-size: 11.5px; color: #5A544C; line-height: 1.5;
+  }
+  .cs-skip-btn {
+    padding: 10px 18px; border: 1px solid #8A8478; border-radius: 8px;
+    background: #fff; color: #5A544C; font-family: inherit;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+  }
+  .cs-skip-btn:active { background: #F5F1E8; }
+
   /* オーバーレイ表示中は裏を隠す（既存 proposal-open と同じ作法）*/
   body.history-open > .wrap { display: none !important; }
 
@@ -600,6 +640,8 @@
 /* ---- 大手：スマホ一般 ---- */
 /* 保存先GAS（ウェブアプリURL）。トークンではないので秘密ではない */
 const SAVE_GAS_URL = "https://script.google.com/macros/s/AKfycbxR1vxISYV4zeDXGL7ExaaQgKB5RvSOl5JyObdooWeZ7MtXcvTDDhUo587eHKnHTf1D/exec";
+/* 本体GAS（顧客マスター検索用・doGet の action=searchCustomer を叩く）*/
+const SEARCH_GAS_URL = "https://script.google.com/macros/s/AKfycbyX_iaLnrh8BCCCjsqWT5m3KRmUDzHPaxqtMhXJcOc9Ws9t252VmVPxWEOvMP5BskU/exec";
 
 const PLANS_MAJOR = [
   // === docomo ===
@@ -1246,13 +1288,98 @@ function henkyakuYM(f){
   return d.getFullYear() + "年" + (d.getMonth()+1) + "月";
 }
 
-/* ---- 提案書を作成して新ウィンドウで開く ---- */
+/* ---- 保存フロー：まず顧客検索オーバーレイを開く ----
+   選択→prompt(あて名)→postSaveToGAS  もしくは
+   紐付けずに保存→prompt(あて名)→postSaveToGAS
+*/
 function saveToNotion(){
   if(state.family.length === 0){ setSaveStatus("先に家族リストに追加してください。", "ng"); return; }
+  openCustomerSearch();
+}
 
+/* ---- 顧客検索オーバーレイ 開閉 ---- */
+function openCustomerSearch(){
+  document.getElementById("customerSearchInput").value = "";
+  document.getElementById("customerSearchResults").innerHTML = "";
+  document.getElementById("customerSearchOverlay").style.display = "block";
+  document.body.classList.add("history-open");
+  window.scrollTo({top: 0});
+  // iOS Safari で focus を少し遅らせると安定
+  setTimeout(function(){
+    const inp = document.getElementById("customerSearchInput");
+    if(inp) inp.focus();
+  }, 100);
+}
+function closeCustomerSearch(){
+  document.getElementById("customerSearchOverlay").style.display = "none";
+  document.body.classList.remove("history-open");
+}
+
+/* ---- 検索実行（本体GAS の action=searchCustomer を GET）---- */
+function runCustomerSearch(){
+  const q = (document.getElementById("customerSearchInput").value || "").trim();
+  const box = document.getElementById("customerSearchResults");
+  if(q.length < 2){
+    box.innerHTML = '<div class="ho-msg">2文字以上で検索してください</div>';
+    return;
+  }
+  box.innerHTML = '<div class="ho-msg">検索中です…</div>';
+  const url = SEARCH_GAS_URL + "?action=searchCustomer&q=" + encodeURIComponent(q);
+  // カスタムヘッダーは付けない（CORSプリフライト回避）
+  fetch(url, { method: "GET" })
+    .then(r => r.json())
+    .then(res => {
+      if(!res || res.ok !== true){
+        const msg = (res && res.message) ? res.message : "検索に失敗しました";
+        box.innerHTML = '<div class="ho-msg">' + escapeHtml(msg) + '</div>';
+        return;
+      }
+      const items = Array.isArray(res.items) ? res.items : [];
+      if(items.length === 0){
+        box.innerHTML = '<div class="ho-msg">該当が見つかりませんでした。<br>お名前を正確に入れてみてください</div>';
+        return;
+      }
+      box.innerHTML = items.map(function(it, i){
+        const name = escapeHtml(it.name || "(名前なし)");
+        const meta = [
+          it.lineName ? "LINE: " + escapeHtml(it.lineName) : "",
+          it.firstDate ? "初回: " + escapeHtml(it.firstDate) : "",
+          it.tel ? escapeHtml(it.tel) : ""
+        ].filter(Boolean).join(" ／ ");
+        return '<div class="cs-item" data-idx="' + i + '">' +
+                 '<div class="cs-item-name">' + name + '</div>' +
+                 '<div class="cs-item-meta">' + meta + '</div>' +
+               '</div>';
+      }).join("");
+      // 各行に click ハンドラ
+      box.querySelectorAll(".cs-item").forEach(function(el, i){
+        el.addEventListener("click", function(){
+          const it = items[i] || {};
+          selectCustomer(it.pageId || "", it.name || "");
+        });
+      });
+    })
+    .catch(err => {
+      box.innerHTML = '<div class="ho-msg">通信エラーが発生しました</div>';
+    });
+}
+
+/* ---- 顧客を選択して保存へ ---- */
+function selectCustomer(pageId, name){
+  closeCustomerSearch();
+  const atena = (prompt("保存するあて名を入力してください（例：山田）", name || "") || "").trim();
+  postSaveToGAS(pageId, atena);
+}
+
+/* ---- 紐付けずに保存 ---- */
+function saveWithoutCustomer(){
+  closeCustomerSearch();
   const atena = (prompt("保存するあて名を入力してください（例：山田）", "") || "").trim();
+  postSaveToGAS("", atena);
+}
 
-  // 送信データを組み立て（全項目）
+/* ---- 保存GAS へ POST（既存 saveToNotion の POST 部分をヘルパー化）---- */
+function postSaveToGAS(customerPageId, atena){
   const familyMonthly = state.family.reduce((s,f)=> s + (f.monthly||0), 0);
   const jimuTotal = state.family.reduce((s,f)=> s + (f.jimu||0), 0);
   const payload = {
@@ -1263,6 +1390,12 @@ function saveToNotion(){
     source: "個別相談",
     family: state.family,
   };
+  // customerPageId が空/null のときはキー自体を含めない
+  // （保存GAS が if(data.customerPageId) で判定しているので害はないが、
+  //   将来 null/空文字が Notion リレーションに渡ってエラー化する可能性をゼロにする）
+  if(customerPageId){
+    payload.customerPageId = customerPageId;
+  }
 
   const btn = document.querySelector(".save-family-btn");
   if(btn) btn.disabled = true;
@@ -1572,6 +1705,27 @@ renderPlanList();
   <div class="ho-area">
     <div class="ho-title">保存した見積もり（新しい順・最大10件）</div>
     <div id="historyList"></div>
+  </div>
+</div>
+
+<!-- 顧客検索オーバーレイ（保存前の顧客紐付け）-->
+<div id="customerSearchOverlay" class="history-overlay" style="display:none;">
+  <div class="ho-bar">
+    <button class="ho-btn close" onclick="closeCustomerSearch()">閉じる</button>
+  </div>
+  <div class="ho-area">
+    <div class="ho-title">保存する顧客を選ぶ</div>
+    <div class="cs-search-row">
+      <input type="text" class="cs-input" id="customerSearchInput"
+             placeholder="お名前（2文字以上）"
+             onkeydown="if(event.key==='Enter'){event.preventDefault();runCustomerSearch();}">
+      <button class="cs-search-btn" onclick="runCustomerSearch()">検索</button>
+    </div>
+    <p class="cs-note">顧客マスターに登録されている お名前で検索してください（一部だと出ないことがあります）</p>
+    <div id="customerSearchResults"></div>
+    <div style="margin-top:20px; padding-top:16px; border-top:1px solid #DED6C6; text-align:center;">
+      <button class="cs-skip-btn" onclick="saveWithoutCustomer()">紐付けずに保存</button>
+    </div>
   </div>
 </div>
 </body>

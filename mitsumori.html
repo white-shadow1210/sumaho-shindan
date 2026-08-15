@@ -1397,6 +1397,17 @@ function postSaveToGAS(customerPageId, atena){
     payload.customerPageId = customerPageId;
   }
 
+  // ★★★ 一時診断UI（原因確定後に剥がす。alert の OK で送信続行）★★★
+  //   customerPageId 引数の値・型・truthy判定・最終 payload を1画面に集約して
+  //   「顧客選択時に customerPageId が送信直前まで正しく届いているか」を目視確認する。
+  //   剥がすときはこの alert ブロック(このコメント含む10行)だけを削除すればよい。
+  alert("【送信内容の確認】\n"
+    + "customerPageId 引数: " + JSON.stringify(customerPageId) + "\n"
+    + "typeof: " + typeof customerPageId + "\n"
+    + "truthy判定: " + (customerPageId ? "true (payloadに含める)" : "false (含めない)") + "\n\n"
+    + "--- payload 全体 ---\n"
+    + JSON.stringify(payload, null, 2));
+
   const btn = document.querySelector(".save-family-btn");
   if(btn) btn.disabled = true;
   setSaveStatus("保存中です…", "loading");

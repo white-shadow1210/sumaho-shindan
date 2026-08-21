@@ -30,6 +30,7 @@ const props = PropertiesService.getScriptProperties();
 const NOTION_API_KEY     = props.getProperty("NOTION_API_KEY");
 const DIAGNOSIS_DB_ID    = "333b9755785480acb1a2e46850b5edca";
 const CUSTOMER_MASTER_ID = "34cb9755785480df9465d156cd572bd9";
+const MITSUMORI_DB_ID    = "3490d14e49c445bc963d1378f4a96e12";
 const 困りごとDB_ID       = "34eb9755785480ea912ed485d1a23c39";
 const MAP_DATABASE_ID    = props.getProperty("MAP_DATABASE_ID");
 const MAP_SHEET_ID       = props.getProperty("MAP_SHEET_ID");
@@ -2929,6 +2930,67 @@ function replyMyPage(userId, replyToken) {
       { type: "uri", label: "定期点検を予約する", uri: reserveUrl + "?menu=" + encodeURIComponent("【会員限定】定期点検サポート") }
     );
 
+    // ★ card8: ご家族の見積もり（見積もり履歴DBから、この人の最新1件を「本人=family[0]」の要約で表示）
+    let mitsumoriRows = null;   // rows for card8. null なら「見積もり無し」扱い
+    try {
+      const mitsRes = UrlFetchApp.fetch(
+        "https://api.notion.com/v1/databases/" + MITSUMORI_DB_ID + "/query",
+        {
+          method: "post", headers: notionHeaders(),
+          payload: JSON.stringify({
+            filter: { property: "顧客マスター", relation: { contains: page.id } },
+            sorts:  [{ property: "作成日", direction: "descending" }],
+            page_size: 1
+          }),
+          muteHttpExceptions: true
+        }
+      );
+      if (mitsRes.getResponseCode() === 200) {
+        const mitsResults = JSON.parse(mitsRes.getContentText()).results || [];
+        if (mitsResults.length > 0) {
+          const mp = mitsResults[0].properties || {};
+          const jsonStr = safeRichText(mp["明細JSON"]);  // 2000字超は複数chunkを連結
+          let mitsumoriObj = null;
+          if (jsonStr) {
+            try { mitsumoriObj = JSON.parse(jsonStr); } catch(_je) { mitsumoriObj = null; }
+          }
+          if (mitsumoriObj && mitsumoriObj.family && mitsumoriObj.family[0]) {
+            const me = mitsumoriObj.family[0];
+            const mDate = (mitsumoriObj.date || "").replace(/-/g, "/");
+            function yen_(n){ var num = Number(n) || 0; return "¥" + num.toLocaleString(); }
+            const rows = [
+              { label: "最終作成日", value: mDate || "未記録" },
+              { type: "separator" },
+              { label: "キャリア",   value: me.carrier  || "未記録" },
+              { label: "プラン",     value: (me.planName || "未記録") + "  " + yen_(me.basePrice) }
+            ];
+            if (Number(me.callVal)       > 0) rows.push({ label: "通話OP",    value: yen_(me.callVal) });
+            if (Number(me.hosho)         > 0) rows.push({ label: "補償",       value: yen_(me.hosho) });
+            if (Number(me.other)         > 0) rows.push({ label: "その他",     value: yen_(me.other) });
+            if (Number(me.deviceMonthly) > 0) rows.push({ label: "端末(分割)", value: yen_(me.deviceMonthly) });
+            rows.push({ type: "separator" });
+            rows.push({ label: "月額合計", value: yen_(me.monthly), bold: true });
+            mitsumoriRows = rows;
+          }
+        }
+      }
+    } catch(mitsErr) { console.error("見積もり履歴取得エラー: " + mitsErr); }
+
+    const card8 = mitsumoriRows
+      ? makeMyPageBubble(
+          "#b0894a", "📄", "ご家族の見積もり",
+          mitsumoriRows,
+          { type: "uri", label: "見積もりを詳しく見る", uri: reserveUrl }
+        )
+      : makeMyPageBubble(
+          "#b0894a", "📄", "ご家族の見積もり",
+          [
+            { label: "状態", value: "まだ見積もりがありません" },
+            { label: "",     value: "対面でご家族の見積もりをお作りします" }
+          ],
+          { type: "uri", label: "見積もりを相談する", uri: reserveUrl }
+        );
+
     UrlFetchApp.fetch("https://api.line.me/v2/bot/message/reply", {
       method: "post",
       headers: { "Content-Type": "application/json", "Authorization": "Bearer " + LINE_TOKEN },
@@ -2939,7 +3001,7 @@ function replyMyPage(userId, replyToken) {
           {
             type: "flex",
             altText: name + " さんのマイページ",
-            contents: { type: "carousel", contents: [card1, card2, card3, card4, card5, card6, card7] }
+            contents: { type: "carousel", contents: [card1, card2, card3, card4, card5, card6, card7, card8] }
           }
         ]
       }),

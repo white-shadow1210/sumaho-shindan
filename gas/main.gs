@@ -2964,10 +2964,30 @@ function replyMyPage(userId, replyToken) {
               { label: "キャリア",   value: me.carrier  || "未記録" },
               { label: "プラン",     value: (me.planName || "未記録") + "  " + yen_(me.basePrice) }
             ];
-            if (Number(me.callVal)       > 0) rows.push({ label: "通話OP",    value: yen_(me.callVal) });
-            if (Number(me.hosho)         > 0) rows.push({ label: "補償",       value: yen_(me.hosho) });
-            if (Number(me.other)         > 0) rows.push({ label: "その他",     value: yen_(me.other) });
-            if (Number(me.deviceMonthly) > 0) rows.push({ label: "端末(分割)", value: yen_(me.deviceMonthly) });
+            // 通話OP: callVal>0 かつ callLabel が有効な文字列（"—"/空でない）
+            const callLabelStr = String(me.callLabel || "").trim();
+            if (Number(me.callVal) > 0 && callLabelStr && callLabelStr !== "—") {
+              rows.push({ label: "通話OP", value: callLabelStr + "  " + yen_(me.callVal) });
+            }
+            // 割引: discountTotal>0 のときマイナス表記
+            if (Number(me.discountTotal) > 0) {
+              rows.push({ label: "割引", value: "−" + yen_(me.discountTotal) });
+            }
+            if (Number(me.hosho) > 0) rows.push({ label: "補償",   value: yen_(me.hosho) });
+            if (Number(me.other) > 0) rows.push({ label: "その他", value: yen_(me.other) });
+            // 端末名: deviceName があれば端末名の行
+            const deviceNameStr = String(me.deviceName || "").trim();
+            if (deviceNameStr) {
+              rows.push({ label: "端末", value: deviceNameStr });
+            }
+            // 端末月額: deviceMonthly>0 のとき、payType/kaisu でラベルを分岐
+            if (Number(me.deviceMonthly) > 0) {
+              if (me.payType === "bunkatsu" && Number(me.kaisu) > 0) {
+                rows.push({ label: "端末/分割" + Number(me.kaisu) + "回", value: yen_(me.deviceMonthly) });
+              } else {
+                rows.push({ label: "端末(月々)", value: yen_(me.deviceMonthly) });
+              }
+            }
             rows.push({ type: "separator" });
             rows.push({ label: "月額合計", value: yen_(me.monthly), bold: true });
             mitsumoriRows = rows;
@@ -2980,7 +3000,7 @@ function replyMyPage(userId, replyToken) {
       ? makeMyPageBubble(
           "#b0894a", "📄", "ご家族の見積もり",
           mitsumoriRows,
-          { type: "uri", label: "見積もりを詳しく見る", uri: reserveUrl }
+          { type: "uri", label: "相談を予約する", uri: reserveUrl }
         )
       : makeMyPageBubble(
           "#b0894a", "📄", "ご家族の見積もり",

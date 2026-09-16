@@ -7,12 +7,29 @@ const MITSUMORI_DB_ID = "3490d14e49c445bc963d1378f4a96e12";
 
 const NOTION_VERSION = "2022-06-28";
 
+// 運営者キー（スクリプトプロパティ OWNER_KEY）。未設定なら全リクエスト拒否（fail-safe）
+const OWNER_KEY = PropertiesService.getScriptProperties().getProperty("OWNER_KEY");
+
+/**
+ * 運営者キー検証。OWNER_KEY 未設定 / 不一致は false。
+ */
+function checkOwnerKey_(key) {
+  if (!OWNER_KEY) { console.warn("OWNER_KEY 未設定のため拒否"); return false; }
+  return String(key || "") === String(OWNER_KEY);
+}
+
 /**
  * mitsumori.html からの POST を受ける入口（見積もりを保存）
  */
 function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
+
+    if (!checkOwnerKey_(data.ownerKey)) {
+      console.warn("doPost: 認証失敗");
+      return json_({ ok: false, message: "Unauthorized" });
+    }
+    delete data.ownerKey;   // 明細JSON（safeJson_(data)）に鍵が書き込まれないよう検証後に除去
 
     const atena = (data.atena || "").trim();
     const ninzu = (data.family && data.family.length) ? data.family.length : 0;
@@ -71,6 +88,12 @@ function doPost(e) {
  */
 function doGet(e) {
   try {
+    const key = (e && e.parameter) ? e.parameter.key : "";
+    if (!checkOwnerKey_(key)) {
+      console.warn("doGet: 認証失敗");
+      return json_({ ok: false, message: "Unauthorized" });
+    }
+
     const res = UrlFetchApp.fetch(
       "https://api.notion.com/v1/databases/" + MITSUMORI_DB_ID + "/query",
       {

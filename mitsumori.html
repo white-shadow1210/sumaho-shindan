@@ -643,6 +643,26 @@ const SAVE_GAS_URL = "https://script.google.com/macros/s/AKfycbxR1vxISYV4zeDXGL7
 /* 本体GAS（顧客マスター検索用・doGet の action=searchCustomer を叩く）*/
 const SEARCH_GAS_URL = "https://script.google.com/macros/s/AKfycbyX_iaLnrh8BCCCjsqWT5m3KRmUDzHPaxqtMhXJcOc9Ws9t252VmVPxWEOvMP5BskU/exec";
 
+/* ---- 運営者キー（sessionStorage 保持。HTMLには直書きしない）---- */
+function getOwnerKey(){
+  let k = "";
+  try { k = sessionStorage.getItem("ownerKey") || ""; } catch(e){ k = ""; }
+  if(k) return k;
+  const input = prompt("運営者キーを入力してください");
+  if(input === null) return null;
+  k = input.trim();
+  if(!k) return null;
+  try { sessionStorage.setItem("ownerKey", k); } catch(e){}
+  return k;
+}
+function clearOwnerKey(){
+  try { sessionStorage.removeItem("ownerKey"); } catch(e){}
+}
+function isUnauthorized(res){
+  return !!(res && res.ok === false && String(res.message || "") === "Unauthorized");
+}
+const KEY_NG_MSG = "鍵が違います。再読み込みして入力し直してください";
+
 const PLANS_MAJOR = [
   // === docomo ===
   { carrier:"docomo", category:"sumaho", name:"ドコモMAX", giga:"無制限", price:8448,
@@ -1324,11 +1344,18 @@ function runCustomerSearch(){
     return;
   }
   box.innerHTML = '<div class="ho-msg">検索中です…</div>';
-  const url = SEARCH_GAS_URL + "?action=searchCustomer&q=" + encodeURIComponent(q);
+  const ownerKey = getOwnerKey();
+  if(!ownerKey){ box.innerHTML = '<div class="ho-msg">運営者キーが未入力のため検索できません。</div>'; return; }
+  const url = SEARCH_GAS_URL + "?action=searchCustomer&q=" + encodeURIComponent(q) + "&key=" + encodeURIComponent(ownerKey);
   // カスタムヘッダーは付けない（CORSプリフライト回避）
   fetch(url, { method: "GET" })
     .then(r => r.json())
     .then(res => {
+      if(isUnauthorized(res)){
+        clearOwnerKey();
+        box.innerHTML = '<div class="ho-msg">' + escapeHtml(KEY_NG_MSG) + '</div>';
+        return;
+      }
       if(!res || res.ok !== true){
         const msg = (res && res.message) ? res.message : "検索に失敗しました";
         box.innerHTML = '<div class="ho-msg">' + escapeHtml(msg) + '</div>';
@@ -1380,9 +1407,12 @@ function saveWithoutCustomer(){
 
 /* ---- 保存GAS へ POST（既存 saveToNotion の POST 部分をヘルパー化）---- */
 function postSaveToGAS(customerPageId, atena){
+  const ownerKey = getOwnerKey();
+  if(!ownerKey){ setSaveStatus("運営者キーが未入力のため保存できません。", "ng"); return; }
   const familyMonthly = state.family.reduce((s,f)=> s + (f.monthly||0), 0);
   const jimuTotal = state.family.reduce((s,f)=> s + (f.jimu||0), 0);
   const payload = {
+    ownerKey: ownerKey,
     atena: atena,
     date: (function(){ const d=new Date(); const m=("0"+(d.getMonth()+1)).slice(-2); const day=("0"+d.getDate()).slice(-2); return d.getFullYear()+"-"+m+"-"+day; })(),
     familyMonthly: familyMonthly,
@@ -1411,6 +1441,9 @@ function postSaveToGAS(customerPageId, atena){
   .then(res => {
     if(res && res.ok){
       setSaveStatus("保存しました。Notionの見積もり履歴に記録されました。", "ok");
+    } else if(isUnauthorized(res)){
+      clearOwnerKey();
+      setSaveStatus(KEY_NG_MSG, "ng");
     } else {
       setSaveStatus("保存に失敗しました。時間をおいて再度お試しください。", "ng");
     }
@@ -1557,13 +1590,20 @@ function togglePmDetail(el){
 /* ---- 保存済み見積もりを呼び出す（GAS の /exec を GET で叩く） ---- */
 function loadFromNotion(){
   const btn = document.querySelector(".load-family-btn");
+  const ownerKey = getOwnerKey();
+  if(!ownerKey){ showHistoryOverlay('<div class="ho-msg">運営者キーが未入力のため読み込めません。</div>'); return; }
   if(btn) btn.disabled = true;
   showHistoryOverlay('<div class="ho-msg">読み込み中です…</div>');
 
   // カスタムヘッダーは付けない（CORSプリフライトを避けるため）
-  fetch(SAVE_GAS_URL, { method: "GET" })
+  fetch(SAVE_GAS_URL + "?key=" + encodeURIComponent(ownerKey), { method: "GET" })
     .then(r => r.json())
     .then(res => {
+      if(isUnauthorized(res)){
+        clearOwnerKey();
+        showHistoryOverlay('<div class="ho-msg">' + escapeHtml(KEY_NG_MSG) + '</div>');
+        return;
+      }
       if(!res || res.ok !== true){
         showHistoryOverlay('<div class="ho-msg">履歴の取得に失敗しました。<br>時間をおいて再度お試しください。</div>');
         return;

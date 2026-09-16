@@ -35,6 +35,7 @@ const 困りごとDB_ID       = "34eb9755785480ea912ed485d1a23c39";
 const MAP_DATABASE_ID    = props.getProperty("MAP_DATABASE_ID");
 const MAP_SHEET_ID       = props.getProperty("MAP_SHEET_ID");
 const IMAGE_FOLDER_ID    = props.getProperty("IMAGE_FOLDER_ID");
+const OWNER_KEY          = props.getProperty("OWNER_KEY");   // 運営者専用API用。未設定なら拒否（fail-safe）
 
 const FREE_SLOT_MAX_PER_MONTH = 3;
 
@@ -63,6 +64,12 @@ function notionHeaders() {
     "Authorization":  "Bearer " + NOTION_API_KEY,
     "Notion-Version": "2022-06-28"
   };
+}
+
+// 運営者キー検証（searchCustomer 等、運営者本人だけが使うAPI用）
+function checkOwnerKey_(key) {
+  if (!OWNER_KEY) { console.warn("OWNER_KEY 未設定のため拒否"); return false; }
+  return String(key || "") === String(OWNER_KEY);
 }
 
 // ==========================================
@@ -1149,6 +1156,12 @@ function doGet(e) {
   }
   if (action === 'chiikiPost') return handleChiikiPostGet(e.parameter);
   if (action === 'searchCustomer') {
+    const key = (e && e.parameter) ? e.parameter.key : "";
+    if (!checkOwnerKey_(key)) {
+      console.warn("searchCustomer: 認証失敗");
+      return ContentService.createTextOutput(JSON.stringify({ ok: false, message: "Unauthorized" }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
     return searchCustomerByName(e.parameter.q);
   }
   try {
@@ -1191,7 +1204,7 @@ function getMapData() {
       const row = rows[i];
       const lat = parseFloat(row[3]), lng = parseFloat(row[4]);
       if (!lat || !lng || isNaN(lat) || isNaN(lng)) continue;
-      records.push({ date: row[0] ? String(row[0]).substring(0,19) : '', title: row[1]||'巡回ポイント', address: row[2]||'', lat, lng, url: row[5]||'', userId: row[6]||'', displayName: row[7]||'' });
+      records.push({ date: row[0] ? String(row[0]).substring(0,19) : '', title: row[1]||'巡回ポイント', address: row[2]||'', lat, lng, url: row[5]||'', displayName: row[7]||'' });
     }
     return ContentService.createTextOutput(JSON.stringify({ status: "success", records })).setMimeType(ContentService.MimeType.JSON);
   } catch (err) {
@@ -1231,7 +1244,7 @@ function getChiikiData() {
       if (diffDays > expireDays && String(approved).toUpperCase() !== 'TRUE') continue;
       records.push({
         date: row[0] ? String(row[0]).substring(0,19) : '', category, title: row[2]||'地域発見',
-        address: row[3]||'', lat, lng, url: row[6]||'', userId: row[7]||'', displayName: row[8]||'',
+        address: row[3]||'', lat, lng, url: row[6]||'', displayName: row[8]||'',
         imageUrl: row[9]||'', likes: parseInt(row[10]||0)
       });
     }
@@ -3234,7 +3247,7 @@ function testKarteV2() {
   console.log('===== karte v2 動作テスト =====');
   
   const testData = {
-    token: 'smaho2026sakurai',
+    token: props.getProperty('SECRET_TOKEN'),   // 直書き廃止。スクリプトプロパティから読む
     formType: 'karte',
     name: 'テスト v2 太郎',
     tel: '090-0000-9999',

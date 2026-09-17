@@ -750,7 +750,7 @@ function upsertCustomerMaster(params) {
   const todayStr = jstNow.toISOString().substring(0, 10);
   let existingPageId = null;
   try {
-    const searchRes = UrlFetchApp.fetch("https://api.notion.com/v1/databases/" + CUSTOMER_MASTER_ID + "/query",
+    const searchRes = checkedNotionFetch_("https://api.notion.com/v1/databases/" + CUSTOMER_MASTER_ID + "/query",
       { method: "post", headers: notionHeaders(),
         payload: JSON.stringify({ filter: { property: "電話番号", rich_text: { contains: tel } } }),
         muteHttpExceptions: true });
@@ -758,7 +758,7 @@ function upsertCustomerMaster(params) {
       const results = JSON.parse(searchRes.getContentText()).results;
       if (results && results.length > 0) existingPageId = results[0].id;
     }
-  } catch (e) { console.error("顧客マスター検索例外: " + e); }
+  } catch (e) { console.error("顧客マスター検索例外: " + e); return null; }
 
   if (existingPageId) {
     try {
@@ -800,19 +800,19 @@ function upsertCustomerMaster(params) {
       // ★ スマホ遍歴（最新を上書き保持・マイページ card7 で表示。改行区切り・年順ソート済み）
       if (params.timeline)      updatePayload.properties["スマホ遍歴"]        = { rich_text: memoToRichText_(params.timeline) };
 
-      UrlFetchApp.fetch("https://api.notion.com/v1/pages/" + existingPageId, {
+      checkedNotionFetch_("https://api.notion.com/v1/pages/" + existingPageId, {
         method: "patch", headers: notionHeaders(), payload: JSON.stringify(updatePayload), muteHttpExceptions: true
       });
-    } catch (e) { console.error("顧客マスター更新エラー: " + e); }
+    } catch (e) { console.error("顧客マスター更新エラー: " + e); return null; }
     if (params.historyText) {
       try {
-        UrlFetchApp.fetch("https://api.notion.com/v1/blocks/" + existingPageId + "/children", {
+        checkedNotionFetch_("https://api.notion.com/v1/blocks/" + existingPageId + "/children", {
           method: "patch", headers: notionHeaders(),
           payload: JSON.stringify({ children: [{ object: "block", type: "paragraph",
             paragraph: { rich_text: [{ type: "text", text: { content: "▶ " + todayStr + "  " + params.historyText } }] }
           }]}), muteHttpExceptions: true
         });
-      } catch (e) { console.error("顧客マスター履歴追記エラー: " + e); }
+      } catch (e) { console.error("顧客マスター履歴追記エラー: " + e); return null; }
     }
     return existingPageId;
   } else {
@@ -865,13 +865,13 @@ function upsertCustomerMaster(params) {
       // ★ スマホ遍歴（更新ブロックと等価）
       if (params.timeline)     createPayload.properties["スマホ遍歴"]    = { rich_text: memoToRichText_(params.timeline) };
 
-      const createRes = UrlFetchApp.fetch("https://api.notion.com/v1/pages", {
+      const createRes = checkedNotionFetch_("https://api.notion.com/v1/pages", {
         method: "post", headers: notionHeaders(), payload: JSON.stringify(createPayload), muteHttpExceptions: true
       });
       if (createRes.getResponseCode() === 200) {
         const newPageId = JSON.parse(createRes.getContentText()).id;
         if (params.historyText) {
-          UrlFetchApp.fetch("https://api.notion.com/v1/blocks/" + newPageId + "/children", {
+          checkedNotionFetch_("https://api.notion.com/v1/blocks/" + newPageId + "/children", {
             method: "patch", headers: notionHeaders(),
             payload: JSON.stringify({ children: [{ object: "block", type: "paragraph",
               paragraph: { rich_text: [{ type: "text", text: { content: "▶ " + todayStr + "  " + params.historyText } }] }
@@ -880,7 +880,7 @@ function upsertCustomerMaster(params) {
         }
         return newPageId;
       }
-    } catch (e) { console.error("顧客マスター新規作成例外: " + e); }
+    } catch (e) { console.error("顧客マスター新規作成例外: " + e); return null; }
   }
   return null;
 }
@@ -895,7 +895,7 @@ function upsertCustomerMasterByLineId(data) {
 
   let existingPageId = null;
   try {
-    const searchRes = UrlFetchApp.fetch("https://api.notion.com/v1/databases/" + CUSTOMER_MASTER_ID + "/query",
+    const searchRes = checkedNotionFetch_("https://api.notion.com/v1/databases/" + CUSTOMER_MASTER_ID + "/query",
       { method: "post", headers: notionHeaders(),
         payload: JSON.stringify({ filter: { property: "LINE_userid", rich_text: { equals: data.lineUserId } } }),
         muteHttpExceptions: true });
@@ -903,7 +903,7 @@ function upsertCustomerMasterByLineId(data) {
       const results = JSON.parse(searchRes.getContentText()).results;
       if (results && results.length > 0) existingPageId = results[0].id;
     }
-  } catch(e) { console.error("LINE ID検索エラー: " + e); }
+  } catch (e) { console.error("LINE ID検索エラー: " + e); return null; }
 
   const historyText = "【スマホ診断】キャリア:" + (data.q1||'不明') + " 料金:" + (data.q2||'不明') +
     (data.q6 ? " 買替:" + data.q6 : '') + " 名前:" + (data.name||'未入力');
@@ -924,16 +924,16 @@ function upsertCustomerMasterByLineId(data) {
       // ★ v6.9.1: 流入経路
       if (data.source) updatePayload.properties["流入経路"] = { select: { name: data.source } };
 
-      UrlFetchApp.fetch("https://api.notion.com/v1/pages/" + existingPageId, {
+      checkedNotionFetch_("https://api.notion.com/v1/pages/" + existingPageId, {
         method: "patch", headers: notionHeaders(), payload: JSON.stringify(updatePayload), muteHttpExceptions: true
       });
-      UrlFetchApp.fetch("https://api.notion.com/v1/blocks/" + existingPageId + "/children", {
+      checkedNotionFetch_("https://api.notion.com/v1/blocks/" + existingPageId + "/children", {
         method: "patch", headers: notionHeaders(),
         payload: JSON.stringify({ children: [{ object: "block", type: "paragraph",
           paragraph: { rich_text: [{ type: "text", text: { content: "▶ " + todayStr + "  " + historyText } }] }
         }]}), muteHttpExceptions: true
       });
-    } catch(e) { console.error("LINE ID更新エラー: " + e); }
+    } catch (e) { console.error("LINE ID更新エラー: " + e); return null; }
     return existingPageId;
   } else {
     try {
@@ -955,12 +955,12 @@ function upsertCustomerMasterByLineId(data) {
       // ★ v6.9.1: 流入経路
       if (data.source) createPayload.properties["流入経路"] = { select: { name: data.source } };
 
-      const createRes = UrlFetchApp.fetch("https://api.notion.com/v1/pages", {
+      const createRes = checkedNotionFetch_("https://api.notion.com/v1/pages", {
         method: "post", headers: notionHeaders(), payload: JSON.stringify(createPayload), muteHttpExceptions: true
       });
       if (createRes.getResponseCode() === 200) {
         const newPageId = JSON.parse(createRes.getContentText()).id;
-        UrlFetchApp.fetch("https://api.notion.com/v1/blocks/" + newPageId + "/children", {
+        checkedNotionFetch_("https://api.notion.com/v1/blocks/" + newPageId + "/children", {
           method: "patch", headers: notionHeaders(),
           payload: JSON.stringify({ children: [{ object: "block", type: "paragraph",
             paragraph: { rich_text: [{ type: "text", text: { content: "▶ " + todayStr + "  " + historyText } }] }
@@ -968,7 +968,7 @@ function upsertCustomerMasterByLineId(data) {
         });
         return newPageId;
       }
-    } catch(e) { console.error("LINE ID新規作成エラー: " + e); }
+    } catch (e) { console.error("LINE ID新規作成エラー: " + e); return null; }
   }
   return null;
 }
@@ -1929,6 +1929,21 @@ function handleLineEvent(event) {
 // ==========================================
 // B. Web フォーム処理 (v6.9.1: 流入トラッキング統合)
 // ==========================================
+function formSaveError_(message) {
+  return ContentService.createTextOutput(JSON.stringify({ status: "error", message: message }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+function confirmedFormSave_(extra) {
+  return ContentService.createTextOutput(JSON.stringify(Object.assign({ status: "success", confirmed: true }, extra || {})))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+function checkedNotionFetch_(url, options) {
+  const response = UrlFetchApp.fetch(url, options);
+  if (response.getResponseCode() < 200 || response.getResponseCode() >= 300) {
+    throw new Error("Notion request failed");
+  }
+  return response;
+}
 function handleWebForm(data) {
   // Task 2: トークン照合（新+旧 併用）
   const tokenCheck = isTokenValid_(data.token);
@@ -2148,68 +2163,16 @@ function handleWebForm(data) {
       historyText = "【スマホ診断】" + (data.q1 ? "キャリア:" + data.q1 : '') + (data.q2 ? " 料金:" + data.q2 : '');
       if (cleanSource) historyText += ' [流入:' + cleanSource + ']';
       upsertParams.carrier = data.q1 || '';
-      // ★ Task 3: 二重付与解消。送信時の +3 は廃止し、LINEで「カルテ診断完了」送信時の
-      //   +3（linkLineIdToCustomer 経由 / "スマホ診断完了"）に統一。
+      // 診断完了の自動ポイント付与は、本人と受付を安全に検証できるまで停止。
 
-      const cleanTel = normalizeTel_(data.tel);
-      if (cleanTel.length >= 10) {
-        CacheService.getScriptCache().put('diag_latest_tel', cleanTel, 3600);
-        CacheService.getScriptCache().put('diag_tel_' + cleanTel, '1', 3600);
-        console.log("Cache保存: diag_latest_tel = " + cleanTel);
-      }
+      // 電話番号の共有キャッシュによる自動LINE紐付けは廃止。
     }
     upsertParams.historyText = historyText;
     customerMasterPageId = upsertCustomerMaster(upsertParams);
   }
 
-  // ★ v6.9: karte v2 LINE表示名フォールバック検索
-  if (!customerMasterPageId && data.formType === 'karte' && data.lineName) {
-    customerMasterPageId = findCustomerByLineDisplayName(data.lineName);
-    if (customerMasterPageId) {
-      console.log('[karte v2] LINE表示名で既存顧客を発見し紐付け: ' + data.lineName);
-      try {
-        const updatePayload = { properties: {} };
-        if (data.name)        updatePayload.properties["氏名"]              = { title: [{ text: { content: data.name } }] };
-        if (data.tel)         updatePayload.properties["電話番号"]          = { rich_text: [{ text: { content: normalizeTel_(data.tel) } }] };
-        if (data.email)       updatePayload.properties["メールアドレス"]    = { rich_text: [{ text: { content: data.email } }] };
-        if (data.carrier)     updatePayload.properties["利用キャリア"]      = { rich_text: [{ text: { content: data.carrier } }] };
-        if (data.device)      updatePayload.properties["利用端末"]          = { rich_text: [{ text: { content: data.device } }] };
-        if (data.battery)     updatePayload.properties["バッテリー状態"]    = { rich_text: [{ text: { content: data.battery } }] };
-        if (data.storage)     updatePayload.properties["ストレージ空き"]    = { rich_text: [{ text: { content: data.storage } }] };
-        if (data.buyTime)     updatePayload.properties["買い替え時期"]      = { rich_text: [{ text: { content: data.buyTime } }] };
-        if (data.propCarrier) updatePayload.properties["提案キャリア"]      = { rich_text: [{ text: { content: data.propCarrier } }] };
-        if (data.propPlanName)updatePayload.properties["提案プラン名"]      = { rich_text: [{ text: { content: data.propPlanName } }] };
-        if (data.discounts)   updatePayload.properties["適用割引"]          = { rich_text: [{ text: { content: data.discounts } }] };
-        if (data.nextFollow)  updatePayload.properties["次回フォロー予定"]  = { rich_text: [{ text: { content: data.nextFollow } }] };
-        if (data.target)      updatePayload.properties["対象者"]            = { select: { name: data.target } };
-        if (data.wifi)        updatePayload.properties["自宅Wi-Fi"]          = { rich_text: [{ text: { content: data.wifi } }] };
-        if (data.simConfig)   updatePayload.properties["SIM構成"]            = { select: { name: data.simConfig } };
-        if (data.contractType)updatePayload.properties["申込区分"]          = { rich_text: [{ text: { content: data.contractType } }] };
-        if (cleanSource)      updatePayload.properties["流入経路"]          = { select: { name: cleanSource } };
-        if (data.currentCost  !== undefined) updatePayload.properties["現在の月額"]  = { number: Number(data.currentCost) || 0 };
-        if (data.proposedCost !== undefined) updatePayload.properties["提案後月額"]  = { number: Number(data.proposedCost) || 0 };
-        if (data.savingCost   !== undefined) updatePayload.properties["月額節約額"]  = { number: Number(data.savingCost) || 0 };
-        if (data.appUsed)     updatePayload.properties["利用中アプリ"]      = { rich_text: [{ text: { content: data.appUsed } }] };
-        if (data.appTransfer) updatePayload.properties["移行必須アプリ"]    = { rich_text: [{ text: { content: data.appTransfer } }] };
-        updatePayload.properties["最終来店日"]       = { date: { start: todayStr } };
-        updatePayload.properties["スマホカルテ更新日"] = { date: { start: todayStr } };
-        
-        UrlFetchApp.fetch("https://api.notion.com/v1/pages/" + customerMasterPageId, {
-          method: "patch", headers: notionHeaders(), payload: JSON.stringify(updatePayload), muteHttpExceptions: true
-        });
-        
-        if (data.historyText) {
-          UrlFetchApp.fetch("https://api.notion.com/v1/blocks/" + customerMasterPageId + "/children", {
-            method: "patch", headers: notionHeaders(),
-            payload: JSON.stringify({ children: [{ object: "block", type: "paragraph",
-              paragraph: { rich_text: [{ type: "text", text: { content: "▶ " + todayStr + "  " + data.historyText } }] }
-            }]}), muteHttpExceptions: true
-          });
-        }
-      } catch(e) { console.error('LINE表示名紐付け更新エラー: ' + e); }
-    }
-  }
-
+  // LINE表示名は一意ではない。失敗時に別顧客へのフォールバックをしない。
+  if (data.tel && !customerMasterPageId) return formSaveError_('Customer save not confirmed');
   if (!customerMasterPageId && data.lineUserId) {
     const lineData = Object.assign({}, data, { source: cleanSource });
     customerMasterPageId = upsertCustomerMasterByLineId(lineData);
@@ -2223,9 +2186,10 @@ function handleWebForm(data) {
     }
   }
 
-  if (data.formType === 'app_check') return ContentService.createTextOutput(JSON.stringify({ status: "success" })).setMimeType(ContentService.MimeType.JSON);
-  if (data.formType === 'karte')      return ContentService.createTextOutput(JSON.stringify({ status: "success", customerPageId: customerMasterPageId })).setMimeType(ContentService.MimeType.JSON);
-  if (data.formType === 'simulation') return ContentService.createTextOutput(JSON.stringify({ status: "success" })).setMimeType(ContentService.MimeType.JSON);
+  if (['app_check', 'karte', 'simulation'].indexOf(data.formType) !== -1) {
+    if (!customerMasterPageId) return formSaveError_('Customer save not confirmed');
+    return confirmedFormSave_({ customerPageId: customerMasterPageId });
+  }
   if (data.formType === 'chiiki_like') return handleChiikiLike(data);
 
   const payload = { parent: { database_id: DIAGNOSIS_DB_ID }, properties: {} };
@@ -2261,6 +2225,7 @@ function handleWebForm(data) {
       const dateStr  = data.date.replace(/-/g,'/').replace(/年/g,'/').replace(/月/g,'/').replace(/日/g,'').trim();
       const timeStr  = data.time.replace(/時/g,':').replace(/分/g,'').trim();
       const start    = new Date(dateStr + " " + timeStr);
+      if (isNaN(start.getTime())) return formSaveError_("Invalid booking date");
       if (!isNaN(start.getTime())) {
         const end = new Date(start.getTime() + ((durationMinutes + 30) * 60 * 1000));
         calendar.createEvent("【スマホ相談】" + (data.name||'不明') + "様", start, end, {
@@ -2268,7 +2233,15 @@ function handleWebForm(data) {
                        (cleanSource ? "\n流入経路: " + cleanSource : '')
         });
       }
-    } catch (e) { console.error("Calendar Error: " + e); }
+    } catch (e) { console.error("Calendar Error: " + e); return formSaveError_("Calendar save not confirmed"); }
+  }
+  try {
+    checkedNotionFetch_("https://api.notion.com/v1/pages", {
+      method: "post", headers: notionHeaders(), payload: JSON.stringify(payload), muteHttpExceptions: true
+    });
+  } catch (e) {
+    console.error("Diagnosis save failed");
+    return formSaveError_("Record save not confirmed");
   }
   if (data.email) {
     try {
@@ -2288,13 +2261,7 @@ function handleWebForm(data) {
       (customerMasterPageId ? "\n\n★顧客マスター紐付け: 完了" : "\n\n★顧客マスター紐付け: 電話番号なし(スキップ)")
     );
   } catch (e) { console.error("Owner Email Error: " + e); }
-  try {
-    const notionRes = UrlFetchApp.fetch("https://api.notion.com/v1/pages", {
-      method: "post", headers: notionHeaders(), payload: JSON.stringify(payload), muteHttpExceptions: true
-    });
-    if (notionRes.getResponseCode() !== 200) console.error("Notion エラー: " + notionRes.getContentText());
-  } catch (e) { console.error("Notion Error: " + e); }
-  return ContentService.createTextOutput(JSON.stringify({ status: "success" })).setMimeType(ContentService.MimeType.JSON);
+  return confirmedFormSave_();
 }
 
 // ==========================================
@@ -3045,149 +3012,25 @@ function replyMyPage(userId, replyToken) {
 // カルテ診断完了 → LINE IDを顧客マスターに紐付ける
 // ==========================================
 function linkLineIdToCustomer(userId, replyToken, LINE_TOKEN, jstNow) {
+  // 電話番号の共有キャッシュや表示名から本人を推測しない。
+  // 未連携・重複時には顧客情報を更新せず、人による確認へ案内する。
   try {
-    const todayStr = jstNow.toISOString().substring(0, 10);
-
-    const searchByLine = UrlFetchApp.fetch("https://api.notion.com/v1/databases/" + CUSTOMER_MASTER_ID + "/query",
-      { method: "post", headers: notionHeaders(),
-        payload: JSON.stringify({ filter: { property: "LINE_userid", rich_text: { equals: userId } } }),
-        muteHttpExceptions: true });
-    if (searchByLine.getResponseCode() === 200) {
-      const lineResults = JSON.parse(searchByLine.getContentText()).results;
-      if (lineResults && lineResults.length > 0) {
-        addMachiPoint(userId, 3, "スマホ診断完了");
-        replyMyPage(userId, replyToken);
-        return;
-      }
+    if (!userId) throw new Error("Missing LINE user");
+    const response = UrlFetchApp.fetch("https://api.notion.com/v1/databases/" + CUSTOMER_MASTER_ID + "/query", {
+      method: "post", headers: notionHeaders(),
+      payload: JSON.stringify({ filter: { property: "LINE_userid", rich_text: { equals: userId } }, page_size: 2 }),
+      muteHttpExceptions: true
+    });
+    if (response.getResponseCode() !== 200) throw new Error("Customer lookup failed");
+    const result = JSON.parse(response.getContentText());
+    if (result.results && result.results.length === 1 && !result.has_more) {
+      replyMyPage(userId, replyToken);
+      return;
     }
-
-    let displayName = '';
-    try {
-      const pr = UrlFetchApp.fetch("https://api.line.me/v2/bot/profile/" + userId,
-        { headers: { "Authorization": "Bearer " + LINE_TOKEN }, muteHttpExceptions: true });
-      if (pr.getResponseCode() === 200) displayName = JSON.parse(pr.getContentText()).displayName || '';
-    } catch(e) { console.error("Profile取得エラー: " + e); }
-
-    let linked = false;
-    let linkedPageId = null;
-
-    const cachedTel = CacheService.getScriptCache().get('diag_latest_tel');
-    console.log("Cache検索: diag_latest_tel → " + cachedTel);
-
-    if (cachedTel && cachedTel.length > 0) {
-      try {
-        const searchByTel = UrlFetchApp.fetch("https://api.notion.com/v1/databases/" + CUSTOMER_MASTER_ID + "/query",
-          { method: "post", headers: notionHeaders(),
-            payload: JSON.stringify({
-              filter: {
-                and: [
-                  { property: "電話番号",   rich_text: { contains: cachedTel } },
-                  { property: "LINE_userid", rich_text: { is_empty: true } }
-                ]
-              },
-              sorts: [{ property: "初回登録日", direction: "descending" }],
-              page_size: 1
-            }),
-            muteHttpExceptions: true });
-        if (searchByTel.getResponseCode() === 200) {
-          const telResults = JSON.parse(searchByTel.getContentText()).results;
-          if (telResults && telResults.length > 0) {
-            linkedPageId = telResults[0].id;
-            UrlFetchApp.fetch("https://api.notion.com/v1/pages/" + linkedPageId, {
-              method: "patch", headers: notionHeaders(),
-              payload: JSON.stringify({ properties: {
-                "LINE_userid":      { rich_text: [{ text: { content: userId } }] },
-                "LINE_displayName": { rich_text: [{ text: { content: displayName } }] },
-                "最終来店日":       { date: { start: todayStr } }
-              }}), muteHttpExceptions: true
-            });
-            UrlFetchApp.fetch("https://api.notion.com/v1/blocks/" + linkedPageId + "/children", {
-              method: "patch", headers: notionHeaders(),
-              payload: JSON.stringify({ children: [{ object: "block", type: "paragraph",
-                paragraph: { rich_text: [{ type: "text", text: { content:
-                  "▶ " + todayStr + "  【LINE ID紐付け完了】電話番号で照合 → " + displayName
-                }}]}}]}), muteHttpExceptions: true
-            });
-            linked = true;
-            console.log("電話番号で紐付け成功: " + cachedTel + " → " + userId);
-
-            try {
-              const searchDupLine = UrlFetchApp.fetch("https://api.notion.com/v1/databases/" + CUSTOMER_MASTER_ID + "/query",
-                { method: "post", headers: notionHeaders(),
-                  payload: JSON.stringify({
-                    filter: {
-                      and: [
-                        { property: "LINE_userid",  rich_text: { equals: userId } },
-                        { property: "電話番号",     rich_text: { is_empty: true } }
-                      ]
-                    }
-                  }),
-                  muteHttpExceptions: true });
-              if (searchDupLine.getResponseCode() === 200) {
-                const dupResults = JSON.parse(searchDupLine.getContentText()).results;
-                dupResults.forEach(function(dupPage) {
-                  UrlFetchApp.fetch("https://api.notion.com/v1/pages/" + dupPage.id, {
-                    method: "patch", headers: notionHeaders(),
-                    payload: JSON.stringify({ archived: true }),
-                    muteHttpExceptions: true
-                  });
-                  console.log("重複行を削除: " + dupPage.id);
-                });
-              }
-            } catch(dupErr) { console.error("重複行削除エラー: " + dupErr); }
-
-            CacheService.getScriptCache().remove('diag_latest_tel');
-          }
-        }
-      } catch(e) { console.error("電話番号検索エラー: " + e); }
-    }
-
-    if (!linked) {
-      try {
-        const searchLineDup = UrlFetchApp.fetch("https://api.notion.com/v1/databases/" + CUSTOMER_MASTER_ID + "/query",
-          { method: "post", headers: notionHeaders(),
-            payload: JSON.stringify({
-              filter: { property: "LINE_userid", rich_text: { equals: userId } }
-            }),
-            muteHttpExceptions: true });
-        if (searchLineDup.getResponseCode() === 200) {
-          const dupRes = JSON.parse(searchLineDup.getContentText()).results;
-          if (dupRes && dupRes.length > 0) {
-            linkedPageId = dupRes[0].id;
-            UrlFetchApp.fetch("https://api.notion.com/v1/pages/" + linkedPageId, {
-              method: "patch", headers: notionHeaders(),
-              payload: JSON.stringify({ properties: {
-                "最終来店日": { date: { start: todayStr } }
-              }}), muteHttpExceptions: true
-            });
-            linked = true;
-          }
-        }
-      } catch(e) { console.error("仮登録行更新エラー: " + e); }
-    }
-
-    if (!linked) {
-      try {
-        UrlFetchApp.fetch("https://api.notion.com/v1/pages", {
-          method: "post", headers: notionHeaders(),
-          payload: JSON.stringify({ parent: { database_id: CUSTOMER_MASTER_ID }, properties: {
-            "氏名":             { title:     [{ text: { content: displayName || "（LINE診断）" } }] },
-            "LINE_userid":      { rich_text: [{ text: { content: userId } }] },
-            "LINE_displayName": { rich_text: [{ text: { content: displayName } }] },
-            "初回登録日":       { date: { start: todayStr } },
-            "最終来店日":       { date: { start: todayStr } },
-            "対応ステータス":   { select: { name: "新規" } }
-          }}), muteHttpExceptions: true
-        });
-      } catch(e) { console.error("新規仮登録エラー: " + e); }
-    }
-
-    addMachiPoint(userId, 3, "スマホ診断完了");
-    replyMyPage(userId, replyToken);
-
-  } catch(e) {
-    console.error("linkLineIdToCustomer エラー: " + e);
-    replyToLine(replyToken, "診断結果を受け取りました！\n\nLINEカルテを作成中です。しばらくお待ちください😊");
+    replyToLine(replyToken, "ご連絡ありがとうございます。カルテとの連携を確認します。このトークに、診断で入力したお名前をお知らせください。確認後にご案内します。");
+  } catch (e) {
+    console.error("診断連携の確認に失敗");
+    replyToLine(replyToken, "現在カルテとの連携を確認できません。このトークに診断で入力したお名前をお知らせください。確認後にご案内します。");
   }
 }
 

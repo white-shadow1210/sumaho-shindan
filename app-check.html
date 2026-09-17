@@ -3,7 +3,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>アプリ利用状況チェック｜スマホの相談士</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
@@ -334,11 +334,19 @@ async function send() {
   if(!u.length&&!t.length){alert('アプリを1つ以上選択してください。');return;}
   const btn=document.getElementById('sbtn'); btn.disabled=true; btn.textContent='送信中...';
   try {
-    await fetch(GAS_URL,{method:'POST',body:JSON.stringify({
+    const response = await fetch(GAS_URL,{method:'POST',body:JSON.stringify({
       token:'1d9dc0f0780a4fe18a8d46ddfac6971d',formType:'app_check',
       appUsed:u.join('、'),appTransfer:t.join('、')
     })});
-  } catch(e){console.warn(e);}
+    if (!response.ok) throw new Error('HTTP error');
+    const result = await response.json();
+    if (result.status !== 'success' || result.confirmed !== true || !result.customerPageId) throw new Error('Save not confirmed');
+  } catch(e){
+    console.warn('アプリ情報の保存を確認できません');
+    alert('カルテへの保存を確認できません。選択内容は残っています。この画面を担当者にお見せいただくか、LINEでお知らせください。');
+    btn.disabled=false; btn.textContent='カルテに記録して送信する →';
+    return;
+  }
   document.getElementById('osum').innerHTML =
     `<b>利用中 (${u.length}件)</b><br>${u.join(' / ')||'なし'}<br><br>`+
     `<b>移行必須 (${t.length}件)</b><br>${t.join(' / ')||'なし'}`;

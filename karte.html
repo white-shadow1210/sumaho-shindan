@@ -1274,7 +1274,10 @@ async function submitKarte() {
     source:       sourceVal  // ★ v6.9.1: 流入経路
   };
   try {
-    await fetch(GAS_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'}, body: JSON.stringify(karteData) });
+    var response = await fetch(GAS_URL, { method:'POST', headers:{'Content-Type':'text/plain'}, body: JSON.stringify(karteData) });
+    if (!response.ok) throw new Error('HTTP error');
+    var result = await response.json();
+    if (result.status !== 'success' || result.confirmed !== true || !result.customerPageId) throw new Error('Save not confirmed');
     var save = curTotal - propTotal;
     document.getElementById('sov-summary').innerHTML =
       '<b>お名前：</b>' + name + '<br>' +
@@ -1289,7 +1292,7 @@ async function submitKarte() {
     document.getElementById('success-ov').classList.add('show');
     btn.textContent = '✅ 保存完了';
   } catch(e) {
-    alert('送信エラーが発生しました。ネットワークを確認してください。');
+    alert('保存結果を確認できません。入力内容は残っています。重複を避けるため、再送する前にNotionの記録を確認してください。');
     btn.disabled = false;
     btn.textContent = '📋 Notionに保存してマイページに反映する';
   }

@@ -28,9 +28,11 @@
 
 1. 現在の本番GASとGitHubの差分を確認する。本番だけの変更がある場合は取り込んでから進め、現在のデプロイ版を記録する。
 2. 本体GASに `gas/main.gs`、見積もり保存用の別GASに `gas/mitsumori-save.gs` をそれぞれ反映する。同一GASプロジェクトに両ファイルをまとめて追加しない（doGet/doPost等が重複する）。既存のスクリプトプロパティやURLは保持する。
-3. それぞれ既存ウェブアプリのデプロイを新しい版へ更新し、実際のリダイレクト先まで含めてブラウザからJSON応答が読み取れることを、テスト用データで確認する。
-4. PRをmainへ反映し、GitHub Pagesの更新を確認する。GASとHTMLの切替は受付が少ない時間帯に近接して実施する。
-5. iPhoneのSafari／LINE内ブラウザとiPadで下記を確認する。完了確認後、テスト用の顧客・予約・見積もりを識別して整理する。
+3. 本体GASの新しいデプロイURLへ `?action=health` を付けて開き、`status:success`、`version:phase1`、`confirmedFormResponse:true` が返ることを確認する。この確認は顧客情報・予約・カレンダーを読み書きしない。
+4. GitHub Pagesと同じブラウザ起点でhealth応答をJSONとして読めることを確認する。読めない場合はHTMLを公開せず、受信口の構成を先に見直す。
+5. 見積もり保存用GASも既存ウェブアプリのデプロイを新しい版へ更新し、テスト用データで保存・読込みを確認する。
+6. PRをmainへ反映し、GitHub Pagesの更新を確認する。GASとHTMLの切替は受付が少ない時間帯に近接して実施する。
+7. iPhoneのSafari／LINE内ブラウザとiPadで下記を確認する。完了確認後、テスト用の顧客・予約・見積もりを識別して整理する。
 
 新HTML＋旧GASの組合せでは、旧GASが成功を返しても `confirmed:true` がないので「結果を確認できません」になる。これは未確認の完了を防ぐための意図した扱い。逆の旧HTML＋新GASには古い誤完了表示が残るため、切替期間を長くしない。
 
@@ -40,7 +42,7 @@ CORS等で応答が読めない場合に `no-cors` へ戻して完了扱いに�
 
 ローカル：`node --test tests/regression.test.cjs`
 
-Node.js標準機能のみ。Google・Notion・LINE通信はすべてモック。テスト結果：21件合格。
+Node.js標準機能のみ。Google・Notion・LINE通信はすべてモック。テスト結果：22件合格。
 
 - 未連携・重複するLINE IDで、別顧客への書込みがない。
 - 一意な既存LINE IDでは従来のマイページ呼出しを維持。

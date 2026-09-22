@@ -41,6 +41,22 @@ test('all inline scripts and GAS files parse', () => {
   for (const name of fs.readdirSync(path.join(root, 'gas'))) new vm.Script(read('gas/'+name), { filename: name });
 });
 
+test('health endpoint advertises readable confirmed responses without touching customer data', () => {
+  const ctx = gas({
+    Utilities: {
+      DigestAlgorithm: { MD5: 'md5' },
+      computeDigest: () => [1, 2, 3, 4, 5, 6]
+    }
+  });
+  ctx.checkRateLimit = () => false;
+  const result = JSON.parse(ctx.doGet({ parameter: { action: 'health' } }).text);
+  assert.deepEqual(JSON.parse(JSON.stringify(result)), {
+    status: 'success',
+    version: 'phase1',
+    capabilities: { confirmedFormResponse: true }
+  });
+});
+
 for (const count of [0, 2]) test(`LINE completion with ${count} matches never writes or displays another card`, () => {
   const calls = [], replies = [];
   const ctx = gas({ UrlFetchApp: { fetch: (url, options) => {

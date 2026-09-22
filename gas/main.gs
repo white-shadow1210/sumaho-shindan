@@ -1140,6 +1140,13 @@ function doGet(e) {
   }
 
   const action = e && e.parameter && e.parameter.action;
+  if (action === 'health') {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: 'success',
+      version: 'phase1',
+      capabilities: { confirmedFormResponse: true }
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
   if (action === 'getFreeSlot') {
     const slot = getFreeSlotCount();
     return ContentService.createTextOutput(JSON.stringify(slot)).setMimeType(ContentService.MimeType.JSON);

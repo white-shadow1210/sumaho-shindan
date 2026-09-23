@@ -26,6 +26,7 @@
 
 ### Field Tests
 - [FT-001 西浜スマホ相談会 2026-09-22](./field-tests/FT-001-nishihama-2026-09-22.md)
+- [FT-002 次回スマホ相談会 実証計画](./field-tests/FT-002-plan.md)
 - [Field Test Template](./field-tests/template.md)
 
 ### Case Notes

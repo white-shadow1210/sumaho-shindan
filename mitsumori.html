@@ -666,41 +666,65 @@ const KEY_NG_MSG = "鍵が違います。再読み込みして入力し直して
 const PLANS_MAJOR = [
   // === docomo ===
   { carrier:"docomo", category:"sumaho", name:"ドコモMAX", giga:"無制限", price:8448,
-    call:{kakehodai:1980, op5:880}, jimu:0,
+    call:{kakehodai:1980, op5:880}, jimu:4950,
     discounts:{kazoku2:550, kazoku3:1210, card:550, net:1210, denki:110},
     explain:"無制限プラン。家族割・ドコモ光セット割・dカード払い・ドコモでんきを重ねると大きく下がる。DAZNなどの特典付き。" },
   { carrier:"docomo", category:"sumaho", name:"ドコモMAX（〜3GB）", giga:"3", price:6798,
-    call:{kakehodai:1980, op5:880}, jimu:0,
+    call:{kakehodai:1980, op5:880}, jimu:4950,
     discounts:{kazoku2:550, kazoku3:1210, card:550, net:1210, denki:110},
     explain:"段階制。3GBまでの料金。使わない月は自動で安くなるが、割引前は割高。" },
   { carrier:"docomo", category:"sumaho", name:"ドコモMAX（〜1GB）", giga:"1", price:5698,
-    call:{kakehodai:1980, op5:880}, jimu:0,
+    call:{kakehodai:1980, op5:880}, jimu:4950,
     discounts:{kazoku2:550, kazoku3:1210, card:550, net:1210, denki:110},
     explain:"段階制。1GBまでの料金。" },
   { carrier:"docomo", category:"sumaho", name:"ドコモポイ活MAX", giga:"無制限", price:11748,
-    call:{kakehodai:1980, op5:880}, jimu:0,
+    call:{kakehodai:1980, op5:880}, jimu:4950,
     discounts:{kazoku2:550, kazoku3:1210, card:550, net:1210, denki:110},
     explain:"ドコモMAXをベースに、対象決済でdポイント還元が増えるプラン。決済額が多い方向け。" },
-  { carrier:"docomo", category:"sumaho", name:"ドコモポイ活20", giga:"20", price:7898,
-    call:{kakehodai:1980, op5:880}, jimu:0,
+  { carrier:"docomo", category:"sumaho", name:"ドコモポイ活20（〜20GB）", giga:"20", price:7898,
+    call:{kakehodai:1980, op5:880}, jimu:4950,
     discounts:{kazoku2:550, kazoku3:1210, card:550, net:1210, denki:110},
     explain:"20GB＋ポイ活。13〜20GB前後でdカード・d払いを使う方向け。" },
   { carrier:"docomo", category:"sumaho", name:"ドコモmini（10GB）", giga:"10", price:3850,
-    call:{kakehodai:1980, op5:880}, jimu:0,
+    call:{kakehodai:1980, op5:880}, jimu:4950,
     discounts:{card:550, net:1210, denki:110},
     explain:"少〜中容量プラン。10GBまで。家族割は対象外だが、光・dカード・でんきで下がる。" },
   { carrier:"docomo", category:"sumaho", name:"ドコモmini（4GB）", giga:"4", price:2750,
-    call:{kakehodai:1980, op5:880}, jimu:0,
+    call:{kakehodai:1980, op5:880}, jimu:4950,
     discounts:{card:550, net:1210, denki:110},
     explain:"少容量プラン。4GBまで。家族割対象外。光・dカード・でんきで最安880円まで下がる。" },
   { carrier:"docomo", category:"sumaho", name:"ahamo", giga:"30", price:2970,
-    call:{op5:0, kakehodai:1100}, jimu:0,
+    call:{op5:0, kakehodai:1100}, jimu:4950,
     discounts:{},
     explain:"30GBで5分かけ放題込み。海外もそのまま使える。手続きは基本オンライン。割引対象外。" },
   { carrier:"docomo", category:"sumaho", name:"ahamo大盛り", giga:"110", price:4950,
-    call:{op5:0, kakehodai:1100}, jimu:0,
+    call:{op5:0, kakehodai:1100}, jimu:4950,
     discounts:{},
     explain:"110GBの大容量。5分かけ放題込み。割引対象外。" },
+  { carrier:"docomo", category:"sumaho", name:"ドコモポイ活20（無制限）", giga:"無制限", price:9570,
+    call:{kakehodai:1980, op5:880}, jimu:4950,
+    discounts:{kazoku2:550, kazoku3:1210, card:550, net:1210, denki:110},
+    explain:"無制限＋ポイ活。上限を気にせず使いたい方向け。決済額が多いほどdポイント還元が増える。" },
+  { carrier:"docomo", category:"senior", name:"ケータイプラン", giga:"0.1", price:1507,
+    call:{kakehodai:1980, op5:880}, jimu:4950,
+    discounts:{card:187},
+    explain:"通話中心のシニア向けケータイプラン。データは100MBまで。" },
+  { carrier:"docomo", category:"senior", name:"はじめてスマホプラン", giga:"1", price:1815,
+    call:{op5:0, kakehodai:1100}, jimu:4950,
+    discounts:{card:187},
+    explain:"初めてスマホを持つシニア向け。5分かけ放題込み。1GB。" },
+  { carrier:"docomo", category:"u18", name:"はじめてスマホプランU15（10GB）", giga:"10", price:2695,
+    call:{op5:0, kakehodai:1100}, jimu:4950,
+    discounts:{card:187},
+    explain:"U15（15歳以下）向け。5分かけ放題込み。10GB。" },
+  { carrier:"docomo", category:"u18", name:"はじめてスマホプランU15（5GB）", giga:"5", price:1815,
+    call:{op5:0, kakehodai:1100}, jimu:4950,
+    discounts:{card:187},
+    explain:"U15（15歳以下）向け。5分かけ放題込み。5GB。" },
+  { carrier:"docomo", category:"kids", name:"キッズケータイプラン", giga:"無制限", price:550,
+    call:{}, jimu:4950,
+    discounts:{},
+    explain:"キッズ向けの見守り用ケータイプラン。通話オプションなし。" },
 
   // === au ===
   { carrier:"au", category:"sumaho", name:"auバリューリンクプラン マネ活", giga:"無制限", price:9328,
@@ -723,6 +747,34 @@ const PLANS_MAJOR = [
     call:{kakehodai:1980, op5:880}, jimu:4950,
     discounts:{kazoku2:660, kazoku3:1210, card:220, net:1100},
     explain:"段階制。1GBまでの料金。" },
+  { carrier:"au", category:"u18", name:"U18バリュープラン（〜20GB）", giga:"20", price:4048,
+    call:{}, jimu:4950,
+    discounts:{kazoku3:550, card:220, net:550},
+    explain:"U18（18歳以下）向け。〜20GBまで使える。" },
+  { carrier:"au", category:"u18", name:"U18バリュープラン（〜10GB）", giga:"10", price:2398,
+    call:{}, jimu:4950,
+    discounts:{kazoku3:550, card:220, net:550},
+    explain:"U18（18歳以下）向け。〜10GBまで使える。" },
+  { carrier:"au", category:"kids", name:"U12バリュープラン", giga:"300kbps", price:1870,
+    call:{}, jimu:4950,
+    discounts:{card:220},
+    explain:"U12（12歳以下）向け。通信速度は300kbpsに制限。" },
+  { carrier:"au", category:"kids", name:"ジュニアケータイプランME", giga:"無制限", price:847,
+    call:{}, jimu:4950,
+    discounts:{card:187},
+    explain:"ジュニア向けの見守りケータイプラン。" },
+  { carrier:"au", category:"senior", name:"ケータイプラン（通話のみ）", giga:"通話のみ", price:1375,
+    call:{kakehodai:1980, op5:880}, jimu:4950,
+    discounts:{card:187},
+    explain:"通話専用のシニア向けケータイプラン。" },
+  { carrier:"au", category:"senior", name:"ケータイプラン（300MB）", giga:"0.3", price:1705,
+    call:{kakehodai:1980, op5:880}, jimu:4950,
+    discounts:{card:187},
+    explain:"通話＋300MBのシニア向けケータイプラン。" },
+  { carrier:"au", category:"senior", name:"シニアバリュープラン", giga:"5", price:4048,
+    call:{op5:0, kakehodai:1100}, jimu:4950,
+    discounts:{card:220, net:1100},
+    explain:"5分かけ放題込み。シニア向け。" },
 
   // === SoftBank ===
   { carrier:"SoftBank", category:"sumaho", name:"ペイトク2", giga:"無制限", price:10538,
@@ -741,6 +793,30 @@ const PLANS_MAJOR = [
     call:{kakehodai:1980, op5:880}, jimu:4950,
     discounts:{kazoku2:220, kazoku3:550, card:550, net:1100, denki:110},
     explain:"段階制。2GBまでの料金。" },
+  { carrier:"SoftBank", category:"senior", name:"スマホデビュープラン+（ベーシック）", giga:"20", price:4246,
+    call:{kakehodai:1980, op5:880}, jimu:4950,
+    discounts:{denki:110},
+    explain:"初めてスマホの方向け。期間限定の割引あり（条件は要確認）。20GB。" },
+  { carrier:"SoftBank", category:"senior", name:"スマホデビュープラン+（ライト）", giga:"4", price:2596,
+    call:{kakehodai:1980, op5:880}, jimu:4950,
+    discounts:{denki:110},
+    explain:"初めてスマホの方向け。期間限定の割引あり（条件は要確認）。4GB。" },
+  { carrier:"SoftBank", category:"senior", name:"ケータイプラン（通話のみ）", giga:"通話のみ", price:1078,
+    call:{kakehodai:1980, op5:880}, jimu:4950,
+    discounts:{},
+    explain:"通話専用のシニア向けケータイプラン。" },
+  { carrier:"SoftBank", category:"senior", name:"ケータイプラン（通話＋100MB）", giga:"0.1", price:1408,
+    call:{kakehodai:1980, op5:880}, jimu:4950,
+    discounts:{},
+    explain:"通話＋100MBのシニア向けケータイプラン。" },
+  { carrier:"SoftBank", category:"senior", name:"ケータイプラン（通話＋4GB）", giga:"4", price:2266,
+    call:{kakehodai:1980, op5:880}, jimu:4950,
+    discounts:{},
+    explain:"通話＋4GBのシニア向けケータイプラン。" },
+  { carrier:"SoftBank", category:"kids", name:"キッズフォンプラン", giga:"無制限", price:748,
+    call:{}, jimu:4950,
+    discounts:{},
+    explain:"親が対象プランならキッズフォンセット割で半年間割引。" },
 
   // === Rakuten ===
   { carrier:"Rakuten", category:"sumaho", name:"最強プラン（無制限）", giga:"無制限", price:3278,
@@ -758,60 +834,75 @@ const PLANS_MAJOR = [
 
   // === Y!mobile ===
   { carrier:"Y!mobile", category:"sumaho", name:"シンプル3 S", giga:"5", price:3058,
-    call:{kakehodai:1980, op10:880}, jimu:0,
-    discounts:{kazoku2:1100, kazoku3:1100, card:550, net:1650, denki:110},
+    call:{kakehodai:1980, op10:880}, jimu:4950,
+    discounts:{kazoku2:1100, kazoku3:1100, card:550, net:1650, denki:1100},
     explain:"5GB。家族割・おうち割・PayPayカード割で下がる。60歳以上は24時間かけ放題が割引。" },
   { carrier:"Y!mobile", category:"sumaho", name:"シンプル3 M", giga:"30", price:4158,
-    call:{kakehodai:1980, op10:880}, jimu:0,
-    discounts:{kazoku2:1100, kazoku3:1100, card:550, net:1650, denki:110},
+    call:{kakehodai:1980, op10:880}, jimu:4950,
+    discounts:{kazoku2:1100, kazoku3:1100, card:550, net:1650, denki:1100},
     explain:"30GB。バランス型。家族割・おうち割・カード割の対象。" },
-  { carrier:"Y!mobile", category:"sumaho", name:"シンプル3 L", giga:"35", price:5258,
-    call:{kakehodai:1980, op10:0}, jimu:0,
-    discounts:{kazoku2:1100, kazoku3:1100, card:550, net:1650, denki:110},
-    explain:"35GB。10分かけ放題込み。家族割・おうち割・カード割の対象。" },
+  { carrier:"Y!mobile", category:"sumaho", name:"シンプル3 L", giga:"35", price:5478,
+    call:{kakehodai:1980, op10:880}, jimu:4950,
+    discounts:{kazoku2:1100, kazoku3:1100, card:550, net:1650, denki:1100},
+    explain:"35GB。家族割・おうち割・カード割の対象。" },
 
   // === UQ mobile ===
   { carrier:"UQ mobile", category:"sumaho", name:"トクトクプラン2（〜5GB）", giga:"5", price:4048,
-    call:{kakehodai:1980, op10:880}, jimu:4950,
+    call:{kakehodai:1980, op10:880}, jimu:3850,
     discounts:{kazoku2:550, kazoku3:550, card:220, net:1100},
     explain:"段階制。5GBまでの料金。auでんき・自宅セット割の対象。" },
   { carrier:"UQ mobile", category:"sumaho", name:"トクトクプラン2（〜30GB）", giga:"30", price:4048,
-    call:{kakehodai:1980, op10:880}, jimu:4950,
+    call:{kakehodai:1980, op10:880}, jimu:3850,
     discounts:{kazoku2:550, kazoku3:550, card:220, net:1100},
     explain:"段階制。30GBまで使っても同額。auでんき・自宅セット割の対象。" },
   { carrier:"UQ mobile", category:"sumaho", name:"コミコミプランバリュー", giga:"35", price:3828,
-    call:{kakehodai:1980, op10:0}, jimu:4950,
+    call:{kakehodai:1980, op10:0}, jimu:3850,
     discounts:{card:660},
     explain:"35GB＋10分かけ放題込みで3,828円。単体で完結する分かりやすさが強み。" },
 ];
 
 /* ---- 格安：スマホ一般 ---- */
 const PLANS_MVNO = [
-  // === AEON Mobile（主要ギガのみ抜粋。全ギガはCSVにあり後日追加可）===
+  // === AEON Mobile（容量の大きい順）===
+  { carrier:"AEONモバイル", category:"sumaho", name:"ベーシック 200GB", giga:"200", price:11858, call:{kakehodai:1650, op10:935, op5:550}, jimu:0, discounts:{}, explain:"200GB。大容量帯の最上位。" },
+  { carrier:"AEONモバイル", category:"sumaho", name:"ベーシック 150GB", giga:"150", price:9108, call:{kakehodai:1650, op10:935, op5:550}, jimu:0, discounts:{}, explain:"150GB。" },
+  { carrier:"AEONモバイル", category:"sumaho", name:"ベーシック 100GB", giga:"100", price:6358, call:{kakehodai:1650, op10:935, op5:550}, jimu:0, discounts:{}, explain:"100GB。" },
+  { carrier:"AEONモバイル", category:"sumaho", name:"ベーシック 90GB", giga:"90", price:5808, call:{kakehodai:1650, op10:935, op5:550}, jimu:0, discounts:{}, explain:"90GB。" },
+  { carrier:"AEONモバイル", category:"sumaho", name:"ベーシック 80GB", giga:"80", price:5258, call:{kakehodai:1650, op10:935, op5:550}, jimu:0, discounts:{}, explain:"80GB。" },
+  { carrier:"AEONモバイル", category:"sumaho", name:"ベーシック 70GB", giga:"70", price:4708, call:{kakehodai:1650, op10:935, op5:550}, jimu:0, discounts:{}, explain:"70GB。" },
   { carrier:"AEONモバイル", category:"sumaho", name:"ベーシック 60GB", giga:"60", price:4158, call:{kakehodai:1650, op10:935, op5:550}, jimu:0, discounts:{}, explain:"イオンモバイルの大容量。全国のイオンで対面サポート。" },
   { carrier:"AEONモバイル", category:"sumaho", name:"ベーシック 50GB", giga:"50", price:3608, call:{kakehodai:1650, op10:935, op5:550}, jimu:0, discounts:{}, explain:"50GB。容量を1GB刻みで細かく選べるのが特徴。" },
+  { carrier:"AEONモバイル", category:"sumaho", name:"ベーシック 40GB", giga:"40", price:3058, call:{kakehodai:1650, op10:935, op5:550}, jimu:0, discounts:{}, explain:"40GB。" },
   { carrier:"AEONモバイル", category:"sumaho", name:"ベーシック 30GB", giga:"30", price:2508, call:{kakehodai:1650, op10:935, op5:550}, jimu:0, discounts:{}, explain:"30GB。" },
   { carrier:"AEONモバイル", category:"sumaho", name:"ベーシック 20GB", giga:"20", price:1958, call:{kakehodai:1650, op10:935, op5:550}, jimu:0, discounts:{}, explain:"20GB。" },
   { carrier:"AEONモバイル", category:"sumaho", name:"ベーシック 10GB", giga:"10", price:1848, call:{kakehodai:1650, op10:935, op5:550}, jimu:0, discounts:{}, explain:"10GB。少〜中容量向け。" },
+  { carrier:"AEONモバイル", category:"sumaho", name:"ベーシック 9GB", giga:"9", price:1738, call:{kakehodai:1650, op10:935, op5:550}, jimu:0, discounts:{}, explain:"9GB。" },
+  { carrier:"AEONモバイル", category:"sumaho", name:"ベーシック 8GB", giga:"8", price:1628, call:{kakehodai:1650, op10:935, op5:550}, jimu:0, discounts:{}, explain:"8GB。" },
+  { carrier:"AEONモバイル", category:"sumaho", name:"ベーシック 7GB", giga:"7", price:1518, call:{kakehodai:1650, op10:935, op5:550}, jimu:0, discounts:{}, explain:"7GB。" },
+  { carrier:"AEONモバイル", category:"sumaho", name:"ベーシック 6GB", giga:"6", price:1408, call:{kakehodai:1650, op10:935, op5:550}, jimu:0, discounts:{}, explain:"6GB。" },
   { carrier:"AEONモバイル", category:"sumaho", name:"ベーシック 5GB", giga:"5", price:1298, call:{kakehodai:1650, op10:935, op5:550}, jimu:0, discounts:{}, explain:"5GB。" },
+  { carrier:"AEONモバイル", category:"sumaho", name:"ベーシック 4GB", giga:"4", price:1188, call:{kakehodai:1650, op10:935, op5:550}, jimu:0, discounts:{}, explain:"4GB。" },
+  { carrier:"AEONモバイル", category:"sumaho", name:"ベーシック 3GB", giga:"3", price:1078, call:{kakehodai:1650, op10:935, op5:550}, jimu:0, discounts:{}, explain:"3GB。" },
+  { carrier:"AEONモバイル", category:"sumaho", name:"ベーシック 2GB", giga:"2", price:968, call:{kakehodai:1650, op10:935, op5:550}, jimu:0, discounts:{}, explain:"2GB。少容量向け。" },
   { carrier:"AEONモバイル", category:"sumaho", name:"ベーシック 1GB", giga:"1", price:858, call:{kakehodai:1650, op10:935, op5:550}, jimu:0, discounts:{}, explain:"1GB。通話中心の方向け。" },
+  { carrier:"AEONモバイル", category:"sumaho", name:"ベーシック 0.5GB", giga:"0.5", price:803, call:{kakehodai:1650, op10:935, op5:550}, jimu:0, discounts:{}, explain:"0.5GB。ほぼ通話専用・サブ回線向け。" },
 
   // === LIBMO ===
-  { carrier:"LIBMO", category:"sumaho", name:"なっとくプラン 60GB", giga:"60", price:3960, call:{kakehodai:1430, op10:770, op5:550}, jimu:0, discounts:{}, explain:"TOKAIグループのMVNO。60GB。" },
-  { carrier:"LIBMO", category:"sumaho", name:"なっとくプラン 30GB", giga:"30", price:2728, call:{kakehodai:1430, op10:770, op5:550}, jimu:0, discounts:{}, explain:"30GB。" },
-  { carrier:"LIBMO", category:"sumaho", name:"なっとくプラン 20GB", giga:"20", price:1991, call:{kakehodai:1430, op10:770, op5:550}, jimu:0, discounts:{}, explain:"20GB。" },
-  { carrier:"LIBMO", category:"sumaho", name:"なっとくプラン 8GB", giga:"8", price:1518, call:{kakehodai:1430, op10:770, op5:550}, jimu:0, discounts:{}, explain:"8GB。" },
-  { carrier:"LIBMO", category:"sumaho", name:"なっとくプラン 3GB", giga:"3", price:980, call:{kakehodai:1430, op10:770, op5:550}, jimu:0, discounts:{}, explain:"3GB。" },
+  { carrier:"LIBMO", category:"sumaho", name:"なっとくプラン 60GB", giga:"60", price:3960, call:{kakehodai:1430, op10:770, op5:550}, jimu:0, discounts:{net:220}, explain:"TOKAIグループのMVNO。60GB。" },
+  { carrier:"LIBMO", category:"sumaho", name:"なっとくプラン 30GB", giga:"30", price:2728, call:{kakehodai:1430, op10:770, op5:550}, jimu:0, discounts:{net:220}, explain:"30GB。" },
+  { carrier:"LIBMO", category:"sumaho", name:"なっとくプラン 20GB", giga:"20", price:1991, call:{kakehodai:1430, op10:770, op5:550}, jimu:0, discounts:{net:220}, explain:"20GB。" },
+  { carrier:"LIBMO", category:"sumaho", name:"なっとくプラン 8GB", giga:"8", price:1518, call:{kakehodai:1430, op10:770, op5:550}, jimu:0, discounts:{net:220}, explain:"8GB。" },
+  { carrier:"LIBMO", category:"sumaho", name:"なっとくプラン 3GB", giga:"3", price:980, call:{kakehodai:1430, op10:770, op5:550}, jimu:0, discounts:{net:220}, explain:"3GB。" },
 
   // === iijmio ===
-  { carrier:"IIJmio", category:"sumaho", name:"ギガプラン 55GB", giga:"55", price:3900, call:{kakehodai:1400, op10:700, op5:500}, jimu:0, discounts:{}, explain:"IIJmioの大容量。eSIMやデータ専用など柔軟。" },
-  { carrier:"IIJmio", category:"sumaho", name:"ギガプラン 45GB", giga:"45", price:3300, call:{kakehodai:1400, op10:700, op5:500}, jimu:0, discounts:{}, explain:"45GB。" },
-  { carrier:"IIJmio", category:"sumaho", name:"ギガプラン 35GB", giga:"35", price:2400, call:{kakehodai:1400, op10:700, op5:500}, jimu:0, discounts:{}, explain:"35GB。" },
-  { carrier:"IIJmio", category:"sumaho", name:"ギガプラン 25GB", giga:"25", price:2000, call:{kakehodai:1400, op10:700, op5:500}, jimu:0, discounts:{}, explain:"25GB。" },
-  { carrier:"IIJmio", category:"sumaho", name:"ギガプラン 15GB", giga:"15", price:1600, call:{kakehodai:1400, op10:700, op5:500}, jimu:0, discounts:{}, explain:"15GB。" },
-  { carrier:"IIJmio", category:"sumaho", name:"ギガプラン 10GB", giga:"10", price:1400, call:{kakehodai:1400, op10:700, op5:500}, jimu:0, discounts:{}, explain:"10GB。" },
-  { carrier:"IIJmio", category:"sumaho", name:"ギガプラン 5GB", giga:"5", price:950, call:{kakehodai:1400, op10:700, op5:500}, jimu:0, discounts:{}, explain:"5GB。" },
-  { carrier:"IIJmio", category:"sumaho", name:"ギガプラン 2GB", giga:"2", price:850, call:{kakehodai:1400, op10:700, op5:500}, jimu:0, discounts:{}, explain:"2GB。最小構成でコスパ重視。" },
+  { carrier:"IIJmio", category:"sumaho", name:"ギガプラン 55GB", giga:"55", price:3900, call:{kakehodai:1400, op10:700, op5:550}, jimu:0, discounts:{kazoku2:100, kazoku3:100, net:660}, explain:"IIJmioの大容量。eSIMやデータ専用など柔軟。" },
+  { carrier:"IIJmio", category:"sumaho", name:"ギガプラン 45GB", giga:"45", price:3300, call:{kakehodai:1400, op10:700, op5:550}, jimu:0, discounts:{kazoku2:100, kazoku3:100, net:660}, explain:"45GB。" },
+  { carrier:"IIJmio", category:"sumaho", name:"ギガプラン 35GB", giga:"35", price:2400, call:{kakehodai:1400, op10:700, op5:550}, jimu:0, discounts:{kazoku2:100, kazoku3:100, net:660}, explain:"35GB。" },
+  { carrier:"IIJmio", category:"sumaho", name:"ギガプラン 25GB", giga:"25", price:2000, call:{kakehodai:1400, op10:700, op5:550}, jimu:0, discounts:{kazoku2:100, kazoku3:100, net:660}, explain:"25GB。" },
+  { carrier:"IIJmio", category:"sumaho", name:"ギガプラン 15GB", giga:"15", price:1600, call:{kakehodai:1400, op10:700, op5:550}, jimu:0, discounts:{kazoku2:100, kazoku3:100, net:660}, explain:"15GB。" },
+  { carrier:"IIJmio", category:"sumaho", name:"ギガプラン 10GB", giga:"10", price:1400, call:{kakehodai:1400, op10:700, op5:550}, jimu:0, discounts:{kazoku2:100, kazoku3:100, net:660}, explain:"10GB。" },
+  { carrier:"IIJmio", category:"sumaho", name:"ギガプラン 5GB", giga:"5", price:950, call:{kakehodai:1400, op10:700, op5:550}, jimu:0, discounts:{kazoku2:100, kazoku3:100, net:660}, explain:"5GB。" },
+  { carrier:"IIJmio", category:"sumaho", name:"ギガプラン 2GB", giga:"2", price:850, call:{kakehodai:1400, op10:700, op5:550}, jimu:0, discounts:{kazoku2:100, kazoku3:100, net:660}, explain:"2GB。最小構成でコスパ重視。" },
 
   // === 日本通信 ===
   { carrier:"日本通信", category:"sumaho", name:"合理的50GBプラン", giga:"50", price:2178, call:{kakehodai:1600, op5:390}, jimu:3300, discounts:{}, explain:"50GBで2,178円と割安。通話は別途オプション。" },
@@ -839,6 +930,11 @@ const DISCOUNT_LABELS = {
   net:     "ネット割（光セット）",
   denki:   "でんきセット割",
 };
+
+/* ---- ギガ表示ラベル（数値なら+GB、それ以外（無制限/ポイ活/通話のみ/300kbps等）はそのまま） ---- */
+function gigaLabel_(g){
+  return (g !== "" && !isNaN(Number(g))) ? g + "GB" : g;
+}
 
 /* ---- 事務手数料の表示（プランのjimuを使う） ---- */
 
@@ -925,7 +1021,7 @@ function renderGigaChips(){
   plans.forEach(p => { if(!order.includes(p.giga)) order.push(p.giga); });
   const chips = ['<div class="giga-chip active" data-g="all" onclick="setGiga(\'all\')">すべて</div>'];
   order.forEach(g => {
-    chips.push(`<div class="giga-chip" data-g="${g}" onclick="setGiga('${g}')">${g==="ポイ活"||g==="無制限"?g:g+"GB"}</div>`);
+    chips.push(`<div class="giga-chip" data-g="${g}" onclick="setGiga('${g}')">${gigaLabel_(g)}</div>`);
   });
   document.getElementById("gigaChips").innerHTML = chips.join("");
 }
@@ -945,7 +1041,7 @@ function renderPlanList(){
     html += `<div class="carrier-group"><div class="carrier-name">${carrier}</div>`;
     byCarrier[carrier].forEach(p => {
       const isSel = state.selected && state.selected.carrier === p.carrier && state.selected.name === p.name && state.selected.giga === p.giga;
-      const gigaLabel = (p.giga==="ポイ活"||p.giga==="無制限") ? p.giga : p.giga+"GB";
+      const gigaLabel = gigaLabel_(p.giga);
       html += `
         <div class="plan-item ${isSel?'selected':''}" onclick='selectPlan(${JSON.stringify(p)})'>
           <div class="pi-left"><div class="pi-name">${p.name}</div><div class="pi-giga">${gigaLabel}</div></div>
@@ -1024,7 +1120,7 @@ function renderSelected(){
   const el = document.getElementById("selectedPlan");
   if(!state.selected){ el.innerHTML = '<span class="empty">右の一覧からプランを選んでください</span>'; return; }
   const p = state.selected;
-  const gigaLabel = (p.giga==="ポイ活"||p.giga==="無制限") ? p.giga : p.giga+"GB";
+  const gigaLabel = gigaLabel_(p.giga);
   el.innerHTML = `<div class="carrier">${p.carrier} ／ ${gigaLabel}</div><div class="planname">${p.name}</div>`;
   document.getElementById("basePrice").textContent = p.price.toLocaleString() + " 円";
 }
@@ -1479,7 +1575,7 @@ function makeProposal(){
     // giga が未入力/空なら空文字（描画側で括弧ごと省略）
     const gigaLabel = (!f.giga)
       ? ""
-      : ((f.giga==="ポイ活"||f.giga==="無制限") ? f.giga : f.giga+"GB");
+      : gigaLabel_(f.giga);
     const callLine = f.callVal>0 ? yen(f.callVal)+"円" : "—";
     const discountLine = f.discountTotal>0 ? "-"+yen(f.discountTotal)+"円" : "—";
     // deviceMonthly が未入力/0 なら "―"（現状のfallbackを明示化・堅牢化）

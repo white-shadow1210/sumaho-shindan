@@ -45,7 +45,7 @@ function doPost(e) {
       "人数":     { number: ninzu },
       "家族合計月々": { number: toNum_(data.familyMonthly) },
       "初回費用合計": { number: toNum_(data.jimuTotal) },
-      "明細JSON": { rich_text: [ { text: { content: safeJson_(data) } } ] },
+      "明細JSON": { rich_text: jsonRichText_(data) },
     };
 
     if (data.source) {
@@ -146,13 +146,23 @@ function toNum_(v) {
   return isNaN(n) ? 0 : n;
 }
 function safeJson_(obj) {
-  try {
-    let s = JSON.stringify(obj);
-    if (s.length > 1900) s = s.slice(0, 1900) + "...(省略)";
-    return s;
-  } catch (e) {
-    return "{}";
+  return JSON.stringify(obj);
+}
+function jsonRichText_(obj) {
+  const json = safeJson_(obj);
+  const chunks = [];
+  // UTF-16のサロゲートペアを分断せず、Notionの各textを2000文字以内にする。
+  let chunk = '';
+  for (const char of json) {
+    if (chunk.length + char.length > 1900) {
+      chunks.push({ text: { content: chunk } });
+      chunk = '';
+    }
+    chunk += char;
   }
+  if (chunk) chunks.push({ text: { content: chunk } });
+  if (chunks.length > 100) throw new Error('見積もりが大きすぎます。人数や明細を分けて保存してください。');
+  return chunks;
 }
 function json_(obj) {
   return ContentService

@@ -37,7 +37,11 @@ function reserveContext(extra = {}) {
 
 test('all inline scripts and GAS files parse', () => {
   for (const name of fs.readdirSync(root).filter(n => n.endsWith('.html'))) {
-    for (const [, script] of read(name).matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)) new vm.Script(script, { filename: name });
+    for (const [, attrs, script] of read(name).matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)) {
+      const type = (attrs.match(/\btype\s*=\s*["']([^"']+)["']/i) || [])[1] || '';
+      if (type && !/^(?:text|application)\/javascript$/i.test(type) && type.toLowerCase() !== 'module') continue;
+      new vm.Script(script, { filename: name });
+    }
   }
   for (const name of fs.readdirSync(path.join(root, 'gas'))) new vm.Script(read('gas/'+name), { filename: name });
 });

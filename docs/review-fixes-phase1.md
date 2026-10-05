@@ -30,7 +30,7 @@
 2. 本体GASに `gas/main.gs`、見積もり保存用の別GASに `gas/mitsumori-save.gs` をそれぞれ反映する。同一GASプロジェクトに両ファイルをまとめて追加しない（doGet/doPost等が重複する）。既存のスクリプトプロパティやURLは保持する。
 3. 本体GASの新しいデプロイURLへ `?action=health` を付けて開き、`status:success`、`version:phase1`、`confirmedFormResponse:true` が返ることを確認する。この確認は顧客情報・予約・カレンダーを読み書きしない。
 4. GitHub Pagesと同じブラウザ起点でhealth応答をJSONとして読めることを確認する。読めない場合はHTMLを公開せず、受信口の構成を先に見直す。
-5. 見積もり保存用GASも既存ウェブアプリのデプロイを新しい版へ更新し、テスト用データで保存・読込みを確認する。
+5. 見積もり保存用GASも既存ウェブアプリのデプロイを新しい版へ更新する。まず `?action=health` で `ok:true`、`version:phase1`、`chunkedRichText:true` を確認し、その後テスト用データで保存・読込みを確認する。health確認はNotionを読み書きしない。
 6. PRをmainへ反映し、GitHub Pagesの更新を確認する。GASとHTMLの切替は受付が少ない時間帯に近接して実施する。
 7. iPhoneのSafari／LINE内ブラウザとiPadで下記を確認する。完了確認後、テスト用の顧客・予約・見積もりを識別して整理する。
 

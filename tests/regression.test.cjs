@@ -8,6 +8,7 @@ const vm = require('node:vm');
 const root = path.join(__dirname, '..');
 const read = name => fs.readFileSync(path.join(root, name), 'utf8');
 const main = read('gas/main.gs');
+const estimateGas = read('gas/mitsumori-save.gs');
 const reserve = read('reserve.html');
 const quiet = { log() {}, warn() {}, error() {} };
 const response = (code, body) => ({ getResponseCode: () => code, getContentText: () => JSON.stringify(body) });
@@ -39,6 +40,24 @@ test('all inline scripts and GAS files parse', () => {
     for (const [, script] of read(name).matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)) new vm.Script(script, { filename: name });
   }
   for (const name of fs.readdirSync(path.join(root, 'gas'))) new vm.Script(read('gas/'+name), { filename: name });
+});
+
+test('estimate health endpoint reports chunked storage without touching Notion', () => {
+  let fetches = 0;
+  const ctx = vm.createContext({
+    console: quiet,
+    PropertiesService: { getScriptProperties: () => ({ getProperty: () => 'test-only' }) },
+    ContentService: { MimeType: { JSON: 'json' }, createTextOutput: text => ({ text, setMimeType() { return this; } }) },
+    UrlFetchApp: { fetch() { fetches++; throw Error('health must not contact Notion'); } }
+  });
+  vm.runInContext(estimateGas, ctx);
+  const result = JSON.parse(ctx.doGet({ parameter: { action: 'health' } }).text);
+  assert.deepEqual(JSON.parse(JSON.stringify(result)), {
+    ok: true,
+    version: 'phase1',
+    capabilities: { chunkedRichText: true }
+  });
+  assert.equal(fetches, 0);
 });
 
 test('health endpoint advertises readable confirmed responses without touching customer data', () => {

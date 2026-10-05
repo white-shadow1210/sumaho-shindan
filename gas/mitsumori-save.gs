@@ -88,6 +88,15 @@ function doPost(e) {
  */
 function doGet(e) {
   try {
+    const action = (e && e.parameter) ? e.parameter.action : "";
+    if (action === "health") {
+      return json_({
+        ok: true,
+        version: "phase1",
+        capabilities: { chunkedRichText: true }
+      });
+    }
+
     const key = (e && e.parameter) ? e.parameter.key : "";
     if (!checkOwnerKey_(key)) {
       console.warn("doGet: 認証失敗");

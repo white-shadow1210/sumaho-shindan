@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>スマホ相談士 - 無料スマホ診断</title>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <style>
@@ -199,7 +199,7 @@
       <input type="tel" inputmode="numeric" id="tel-input" class="tel-input"
         placeholder="例：09012345678" maxlength="11"
         oninput="this.value=this.value.replace(/[^0-9]/g,'')">
-      <p class="tel-note">※ ハイフンなしの半角数字でご入力ください。マイページに診断結果が即時反映されます。</p>
+      <p class="tel-note">※ ハイフンなしの半角数字でご入力ください。回答を確認し、LINEでご案内します。カルテとの連携は確認後に行います。</p>
     </div>
 
     <!-- ★ LIFF取得状況バッジ -->
@@ -402,8 +402,11 @@
   }
 
   async function finish() {
-    const nameInput = document.getElementById('name').value;
-    if (!nameInput) { alert("お名前(LINE名)を入力してください。"); return; }
+    const nameInput = document.getElementById('name').value.trim();
+    if (!nameInput) { alert("お名前を入力してください。"); return; }
+    if (document.getElementById('detail-text').value.length > 1000) {
+      alert('相談内容は1,000文字以内で入力してください。'); return;
+    }
 
     const telInput = document.getElementById('tel-input');
     const tel = telInput ? telInput.value.trim() : '';
@@ -442,11 +445,14 @@
       </div>`;
 
     try {
-      await fetch(GAS_URL, {
-        method: "POST", mode: "no-cors",
+      const response = await fetch(GAS_URL, {
+        method: "POST",
         headers: { "Content-Type": "text/plain" },
         body: JSON.stringify(answers)
       });
+      if (!response.ok) throw new Error('HTTP error');
+      const result = await response.json();
+      if (result.status !== 'success' || result.confirmed !== true) throw new Error('Save not confirmed');
       document.getElementById('loading-status').innerHTML = "✅ 送信が完了しました！";
       document.getElementById('guide-area').style.display = 'block';
       const btn = document.createElement('button');
@@ -457,7 +463,7 @@
       document.getElementById('guide-area').parentNode.appendChild(btn);
     } catch(e) {
       console.error(e);
-      alert("送信中にエラーが発生しました。");
+      alert("送信結果を確認できません。入力内容は残っています。重複を避けるため、再送せずLINEでお名前と送信した旨をお知らせください。");
       loading.style.display = 'none';
     }
   }

@@ -432,12 +432,12 @@
         const priceDisplays = document.querySelectorAll('.price-display');
         const memberPrices = ['¥2,640', '¥4,400', '¥8,800'];
         priceDisplays.forEach((el, i) => { if(memberPrices[i]) el.innerText = memberPrices[i]; });
-        if(selected.id) selectMenu(selected.id, selected.name, selected.price / (selected.price > 0 ? 0.8 : 1), selected.duration);
+        if(selected.id) selectMenu(selected.id, selected.name, selected.basePrice, selected.duration);
     }
 
     function selectMenu(menuId, name, basePrice, duration) {
         document.getElementById(menuId).checked = true;
-        selected = { id: menuId, name: name, price: (isMemberMode && basePrice > 0) ? basePrice * 0.8 : basePrice, duration: duration };
+        selected = { id: menuId, name: name, basePrice: basePrice, price: (isMemberMode && basePrice > 0) ? basePrice * 0.8 : basePrice, duration: duration };
     }
 
     let calendarMatrix = [];
@@ -448,15 +448,25 @@
         thead.innerHTML = '<tr><td colspan="15" style="text-align:center; padding:20px; color:#888;">📅 空き状況を読み込み中...</td></tr>';
         tbody.innerHTML = '';
         calendarMatrix = [];
+        selected.dateRaw = ''; selected.time = '';
         document.getElementById('display-duration').innerText = selected.duration;
 
         let busySlots = [];
         try {
             const res = await fetch(CALENDAR_GAS_URL);
+            if (!res.ok) throw new Error('Calendar HTTP error');
             const json = await res.json();
-            busySlots = json.busy || [];
+            if (json.status === 'error' || !Array.isArray(json.busy) ||
+                !json.busy.every(slot => slot && Number.isFinite(new Date(slot.start).getTime()) &&
+                    Number.isFinite(new Date(slot.end).getTime()) && new Date(slot.end) > new Date(slot.start))) {
+                throw new Error('Invalid calendar response');
+            }
+            busySlots = json.busy;
         } catch(err) {
             console.warn("カレンダー取得エラー:", err);
+            thead.innerHTML = '<tr><td colspan="15" style="padding:20px;text-align:center;">空き状況を確認できません。<br><button type="button" onclick="generateCalendar()">もう一度確認する</button><br>解決しない場合はLINEでご相談ください。</td></tr>';
+            document.getElementById('btn-next').innerText = '空き状況を確認してください';
+            return;
         }
 
         const busySet = new Set();
@@ -618,12 +628,16 @@
             })()
         };
 
-        localStorage.setItem('nishidate_last_booking', JSON.stringify({
-            menu: data.menu, date: data.date, time: data.time
-        }));
-
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify(data) })
-        .then(() => {
+        .then(async response => {
+            if (!response.ok) throw new Error('HTTP error');
+            const result = await response.json();
+            if (result.status !== 'success' || result.confirmed !== true) throw new Error('Booking not confirmed');
+            try {
+                localStorage.setItem('nishidate_last_booking', JSON.stringify({
+                    menu: data.menu, date: data.date, time: data.time
+                }));
+            } catch (_) { /* 端末への保存失敗は予約結果に影響させない */ }
             updateOverlayToSuccess();
             setTimeout(() => {
                 hideSendingOverlay();
@@ -636,7 +650,7 @@
         })
         .catch(() => {
             hideSendingOverlay();
-            Swal.fire("エラー", "送信に失敗しました。もう一度お試しください。", "error");
+            Swal.fire("予約結果を確認できません", "重複を避けるため、再送せずLINEでご希望の日時をお知らせください。", "warning");
             btnNext.disabled = false;
             btnNext.innerText = 'この内容で予約を確定する';
         });

@@ -633,5 +633,39 @@
 })();
 </script>
 
+<script>
+/* lp page-view beacon (new; independent of the flow-source cookie above) */
+(function () {
+  try {
+    var GAS_URL = "https://script.google.com/macros/s/AKfycbyX_iaLnrh8BCCCjsqWT5m3KRmUDzHPaxqtMhXJcOc9Ws9t252VmVPxWEOvMP5BskU/exec";
+    var raw = new URL(window.location.href).searchParams.get('src');
+    var src = raw ? raw.replace(/[^a-zA-Z0-9_-]/g, '').substring(0, 50) : '';
+    if (!src) src = 'direct';
+
+    var d = new Date();
+    var y = d.getFullYear();
+    var m = ('0' + (d.getMonth() + 1)).slice(-2);
+    var day = ('0' + d.getDate()).slice(-2);
+    var dedupKey = 'sumaho_pv_lp_' + y + '-' + m + '-' + day + '_' + src;
+
+    var already = false;
+    try { already = !!localStorage.getItem(dedupKey); } catch (e) {}
+    if (already) return;
+    try { localStorage.setItem(dedupKey, '1'); } catch (e) {}
+
+    var url = GAS_URL + '?action=pv&src=' + encodeURIComponent(src) + '&page=lp';
+    try {
+      if (window.fetch) {
+        fetch(url, { mode: 'no-cors', keepalive: true }).catch(function () {});
+      } else {
+        new Image().src = url;
+      }
+    } catch (e2) {
+      try { new Image().src = url; } catch (e3) {}
+    }
+  } catch (e) {}
+})();
+</script>
+
 </body>
 </html>

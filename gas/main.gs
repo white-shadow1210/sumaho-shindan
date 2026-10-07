@@ -36,6 +36,7 @@ const MAP_DATABASE_ID    = props.getProperty("MAP_DATABASE_ID");
 const MAP_SHEET_ID       = props.getProperty("MAP_SHEET_ID");
 const IMAGE_FOLDER_ID    = props.getProperty("IMAGE_FOLDER_ID");
 const OWNER_KEY          = props.getProperty("OWNER_KEY");   // 運営者専用API用。未設定なら拒否（fail-safe）
+const LP_VIEW_LOG_DB_ID  = "c8016744-4a6f-427b-ac2c-d20b4eb432f8";   // LP閲覧ログ（doGet?action=pv が書き込む）
 
 const FREE_SLOT_MAX_PER_MONTH = 3;
 
@@ -1125,9 +1126,85 @@ function registerKomariFromKarte(data, customerPageId) {
 }
 
 // ==========================================
+// ▼ LP閲覧ログ（doGet?action=pv が呼ぶ）
+// ==========================================
+
+// LP(machi-sumaho-soudanshi.html)の1回の表示を「LP閲覧ログ」DBに1行書き込む。
+// 例外を外に出さず、必ず { status: 'success' } か { status: 'error' } を返す。
+// params: { src: string, page: string }
+function recordLpView_(params) {
+  try {
+    const rawSrc = (params && params.src) ? String(params.src) : "";
+    const src = rawSrc.replace(/[^a-zA-Z0-9_-]/g, "").substring(0, 50) || "direct";
+
+    const page = (params && params.page) ? String(params.page) : "";
+    const allowedPages = ["lp"];
+    if (allowedPages.indexOf(page) === -1) {
+      console.warn("recordLpView_: 許可されていないpage: " + page);
+      return { status: "success" }; // 不明なpageは静かに無視（記録しない）
+    }
+
+    // 暴走防止：1時間あたりの書き込み上限（CacheServiceのTTL上限は21600秒。3600秒は十分に余裕あり）
+    const hourKey  = Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyyMMddHH");
+    const cache    = CacheService.getScriptCache();
+    const cacheKey = "pv_hour_" + hourKey;
+    const countSoFar = parseInt(cache.get(cacheKey) || "0", 10);
+    const HOURLY_LIMIT = 200;
+    if (countSoFar >= HOURLY_LIMIT) {
+      console.warn("recordLpView_: 1時間あたりの上限到達 (" + countSoFar + "/" + HOURLY_LIMIT + ")");
+      return { status: "success" }; // 上限超過も成功を装って終了（LP側の表示に影響させない）
+    }
+    cache.put(cacheKey, String(countSoFar + 1), 3600);
+
+    const jstNow = new Date(new Date().getTime() + 9 * 60 * 60 * 1000);
+    const isoJst = jstNow.toISOString().replace("Z", "+09:00");
+
+    const createRes = UrlFetchApp.fetch("https://api.notion.com/v1/pages", {
+      method: "post",
+      headers: notionHeaders(),
+      payload: JSON.stringify({
+        parent: { database_id: LP_VIEW_LOG_DB_ID },
+        properties: {
+          "名前":     { title:     [{ text: { content: src + " " + page } }] },
+          "流入経路": { rich_text: [{ text: { content: src } }] },
+          "ページ":   { rich_text: [{ text: { content: page } }] },
+          "閲覧日時": { date:      { start: isoJst } }
+        }
+      }),
+      muteHttpExceptions: true
+    });
+
+    if (createRes.getResponseCode() !== 200) {
+      console.error("recordLpView_: Notion書き込み失敗: " + createRes.getContentText());
+      return { status: "error" };
+    }
+    return { status: "success" };
+  } catch (e) {
+    console.error("recordLpView_ エラー: " + e);
+    return { status: "error" };
+  }
+}
+
+// 手動テスト用：Apps Scriptエディタから直接実行する。src=test_gas で1件だけ書き込む。
+// トリガーには登録しない。
+function testLpViewRecord() {
+  const result = recordLpView_({ src: "test_gas", page: "lp" });
+  console.log("testLpViewRecord result: " + JSON.stringify(result));
+}
+
+// ==========================================
 // ▼ doGet
 // ==========================================
 function doGet(e) {
+  // LP閲覧ビーコン（?action=pv）は既存のレート制限より前に分岐させる。
+  // ビーコンは userAgent パラメータを送らないため、下の checkRateLimit に通すと
+  // 全員が同じ fp("unknown")になり、1分20件の上限を本来のアクセスと共有してしまう。
+  const pvAction = e && e.parameter && e.parameter.action;
+  if (pvAction === 'pv') {
+    const pvResult = recordLpView_({ src: e.parameter.src, page: e.parameter.page });
+    return ContentService.createTextOutput(JSON.stringify(pvResult)).setMimeType(ContentService.MimeType.JSON);
+  }
+
   const ua = (e.parameter && e.parameter.userAgent) || 'unknown';
   const fp = Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, ua)
               .map(function(b){ return ('0' + (b & 0xff).toString(16)).slice(-2); }).join('').substring(0, 12);
@@ -2283,16 +2360,112 @@ function handleWebForm(data) {
 // ==========================================
 // ★ v6.9.1: 流入経路レポート(週次自動メール)
 // ==========================================
+
+// ---- 週次集計：ここから下4つは純粋関数（Notion/GASに依存しない。tests/で単体テスト可能） ----
+
+// 直近N日の新規登録を流入経路ごとに集計する。
+// customers: [{ source: string, isMember: boolean, firstDateStr: 'YYYY-MM-DD' または '' }]
+// nowMs: 基準時刻（ms）。テストで固定できるよう引数化。
+// windowDays: 遡る日数（7を渡す）
+// 戻り値: { [source]: { signups: number, members: number } }
+function aggregateWeeklySignups_(customers, nowMs, windowDays) {
+  const cutoff = nowMs - windowDays * 24 * 60 * 60 * 1000;
+  const bySource = {};
+  (customers || []).forEach(function (c) {
+    if (!c || !c.firstDateStr) return;
+    const t = new Date(c.firstDateStr + "T00:00:00+09:00").getTime();
+    if (isNaN(t) || t < cutoff || t > nowMs) return;
+    const src = c.source || "direct";
+    if (!bySource[src]) bySource[src] = { signups: 0, members: 0 };
+    bySource[src].signups++;
+    if (c.isMember) bySource[src].members++;
+  });
+  return bySource;
+}
+
+// 直近N日のLP閲覧を流入経路ごとに集計する。
+// views: [{ source: string, viewedAtMs: number }]
+// 戻り値: { [source]: number }
+function aggregateWeeklyPageViews_(views, nowMs, windowDays) {
+  const cutoff = nowMs - windowDays * 24 * 60 * 60 * 1000;
+  const bySource = {};
+  (views || []).forEach(function (v) {
+    if (!v || typeof v.viewedAtMs !== "number" || isNaN(v.viewedAtMs)) return;
+    if (v.viewedAtMs < cutoff || v.viewedAtMs > nowMs) return;
+    const src = v.source || "direct";
+    bySource[src] = (bySource[src] || 0) + 1;
+  });
+  return bySource;
+}
+
+// 閲覧集計と新規登録集計を1つの表（行の配列）にまとめ、閲覧数の多い順に並べる。
+// 戻り値: [{ source, views, signups, members, rate }]（rateは閲覧0のとき null。表示側で"-"にする）
+function buildWeeklyReportRows_(signupsBySource, viewsBySource) {
+  const sources = {};
+  Object.keys(signupsBySource || {}).forEach(function (s) { sources[s] = true; });
+  Object.keys(viewsBySource || {}).forEach(function (s) { sources[s] = true; });
+
+  const rows = Object.keys(sources).map(function (src) {
+    const views   = (viewsBySource && viewsBySource[src]) || 0;
+    const signups = (signupsBySource && signupsBySource[src] && signupsBySource[src].signups) || 0;
+    const members = (signupsBySource && signupsBySource[src] && signupsBySource[src].members) || 0;
+    const rate = views > 0 ? Math.round((signups / views) * 1000) / 10 : null;
+    return { source: src, views: views, signups: signups, members: members, rate: rate };
+  });
+
+  rows.sort(function (a, b) { return (b.views - a.views) || (b.signups - a.signups); });
+  return rows;
+}
+
+// ---- ここからNotionに実際に問い合わせる関数（pureではない） ----
+
+// 「LP閲覧ログ」DBから直近の閲覧行を取得する。100件区切りでページングし、最大maxRows件まで。
+// 失敗時は例外を投げる（呼び出し元のtry/catchで「取得失敗」として扱う想定）。
+function fetchRecentLpViews_(dbId, pageSize, maxRows) {
+  const out = [];
+  let hasMore = true;
+  let cursor = null;
+
+  while (hasMore && out.length < maxRows) {
+    const payload = {
+      page_size: pageSize,
+      sorts: [{ property: "閲覧日時", direction: "descending" }]
+    };
+    if (cursor) payload.start_cursor = cursor;
+
+    const res = UrlFetchApp.fetch(
+      "https://api.notion.com/v1/databases/" + dbId + "/query",
+      { method: "post", headers: notionHeaders(), payload: JSON.stringify(payload), muteHttpExceptions: true }
+    );
+    if (res.getResponseCode() !== 200) {
+      throw new Error("LP閲覧ログ取得失敗: " + res.getContentText());
+    }
+    const data = JSON.parse(res.getContentText());
+    (data.results || []).forEach(function (page) {
+      const p = page.properties || {};
+      const srcProp = p["流入経路"];
+      const source = (srcProp && srcProp.rich_text && srcProp.rich_text[0]) ? srcProp.rich_text[0].plain_text : "direct";
+      const dateProp = p["閲覧日時"];
+      const startStr = (dateProp && dateProp.date && dateProp.date.start) || "";
+      const viewedAtMs = startStr ? new Date(startStr).getTime() : NaN;
+      out.push({ source: source, viewedAtMs: viewedAtMs });
+    });
+    hasMore = !!data.has_more;
+    cursor = data.next_cursor;
+  }
+  return out.slice(0, maxRows);
+}
+
 function generateSourceReport() {
   try {
     var results = [];
     var hasMore = true;
     var nextCursor = null;
-    
+
     while (hasMore) {
       var payload = { page_size: 100 };
       if (nextCursor) payload.start_cursor = nextCursor;
-      
+
       var res = UrlFetchApp.fetch(
         "https://api.notion.com/v1/databases/" + CUSTOMER_MASTER_ID + "/query",
         {
@@ -2363,7 +2536,51 @@ function generateSourceReport() {
     lines.push('── 改善のヒント ──');
     lines.push('・転換率が高い場所 → チラシ追加配布を検討');
     lines.push('・来訪0の場所 → 設置場所の見直し or チラシ刷新');
-    
+
+    // --- 今週(直近7日)：LP閲覧 → 新規登録（既存の累計表はそのまま。ここから追加） ---
+    lines.push('');
+    lines.push('━━━━━━━━━━━━━━━━━━━━');
+    lines.push('【今週(直近7日)】LP閲覧 → 新規登録');
+    lines.push('━━━━━━━━━━━━━━━━━━━━');
+    try {
+      var nowMs = Date.now();
+      var WEEK_DAYS = 7;
+
+      var weeklyCustomers = results.map(function (page) {
+        var p = page.properties;
+        var src = (p["流入経路"] && p["流入経路"].select) ? p["流入経路"].select.name : "direct";
+        var isMember = (p["かかりつけ会員"] && p["かかりつけ会員"].checkbox) || false;
+        var firstDateStr = (p["初回登録日"] && p["初回登録日"].date && p["初回登録日"].date.start) || "";
+        return { source: src, isMember: isMember, firstDateStr: firstDateStr };
+      });
+      var signupsBySource = aggregateWeeklySignups_(weeklyCustomers, nowMs, WEEK_DAYS);
+
+      var lpViews = fetchRecentLpViews_(LP_VIEW_LOG_DB_ID, 100, 5000);
+      var viewsBySource = aggregateWeeklyPageViews_(lpViews, nowMs, WEEK_DAYS);
+
+      var weeklyRows = buildWeeklyReportRows_(signupsBySource, viewsBySource);
+
+      lines.push('流入経路              閲覧  新規  会員  閲覧→新規');
+      if (weeklyRows.length === 0) {
+        lines.push('(データなし)');
+      } else {
+        weeklyRows.forEach(function (row) {
+          var srcPad  = (row.source + '                    ').substring(0, 20);
+          var vPad    = ('   ' + row.views).slice(-4);
+          var sPad    = ('   ' + row.signups).slice(-4);
+          var mPad    = ('   ' + row.members).slice(-4);
+          var ratePad = (row.rate === null) ? '    -' : ('   ' + row.rate + '%');
+          lines.push(srcPad + vPad + sPad + mPad + '   ' + ratePad);
+        });
+      }
+    } catch (weeklyErr) {
+      console.error('generateSourceReport 週次集計エラー: ' + weeklyErr);
+      lines.push('(LP閲覧ログの取得に失敗しました: 取得失敗)');
+    }
+    lines.push('');
+    lines.push('※閲覧=LPが開かれた回数(同じ端末・同じ日は1回)');
+    lines.push('※新規=診断・予約などで電話番号を送信した人(LPを見ただけの人は含まない)');
+
     var body = lines.join('\n');
     console.log(body);
     

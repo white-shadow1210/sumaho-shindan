@@ -11,6 +11,11 @@ const main = read('gas/main.gs');
 const estimateGas = read('gas/mitsumori-save.gs');
 const reserve = read('reserve.html');
 const quiet = { log() {}, warn() {}, error() {} };
+// Objects returned from inside a vm context belong to that realm, so plain
+// deepEqual fails on prototype identity even when the structure matches.
+// Round-trip through JSON (as the existing health-endpoint tests already do)
+// to compare by value only.
+const plain = v => JSON.parse(JSON.stringify(v));
 const response = (code, body) => ({ getResponseCode: () => code, getContentText: () => JSON.stringify(body) });
 function gas(extra = {}) {
   const ctx = vm.createContext({ console: quiet,
@@ -194,4 +199,116 @@ for (const result of [{ status: 'error' }, { status: 'success' }]) test(`reserva
   ctx.submitToGAS();
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(saved, false); assert.match(alerts[0][0], /確認できません/);
+});
+
+// --- LP page-view beacon (doGet?action=pv) and weekly source report ---
+
+const LP_DB_ID = 'c8016744-4a6f-427b-ac2c-d20b4eb432f8';
+
+function cacheService(initial) {
+  const store = new Map(Object.entries(initial || {}));
+  return { getScriptCache: () => ({
+    get: key => (store.has(key) ? store.get(key) : null),
+    put: (key, value) => { store.set(key, value); }
+  }) };
+}
+function pvContext(extra = {}) {
+  return gas({ Utilities: { formatDate: () => '2026100712' }, CacheService: cacheService(), ...extra });
+}
+
+test('doGet?action=pv bypasses the shared rate limiter', () => {
+  const ctx = pvContext({ UrlFetchApp: { fetch: () => response(200, { id: 'ok' }) } });
+  ctx.checkRateLimit = () => { throw Error('Must not share rate limit with real browser traffic'); };
+  const result = JSON.parse(ctx.doGet({ parameter: { action: 'pv', src: 'insta', page: 'lp' } }).text);
+  assert.deepEqual(plain(result), { status: 'success' });
+});
+test('doGet?action=pv sanitizes src before writing it to the LP view log', () => {
+  let payload;
+  const ctx = pvContext({ UrlFetchApp: { fetch: (url, opts) => { payload = JSON.parse(opts.payload); return response(200, { id: 'ok' }); } } });
+  ctx.doGet({ parameter: { action: 'pv', src: '  insta!! <script>'.padEnd(80, 'x'), page: 'lp' } });
+  const saved = payload.properties['流入経路'].rich_text[0].text.content;
+  assert.ok(saved.length <= 50);
+  assert.doesNotMatch(saved, /[^a-zA-Z0-9_-]/);
+});
+test('recordLpView_ defaults an empty src to "direct"', () => {
+  let payload;
+  const ctx = pvContext({ UrlFetchApp: { fetch: (url, opts) => { payload = JSON.parse(opts.payload); return response(200, {}); } } });
+  ctx.recordLpView_({ src: '', page: 'lp' });
+  assert.equal(payload.properties['流入経路'].rich_text[0].text.content, 'direct');
+});
+test('recordLpView_ ignores unknown page values without writing to Notion', () => {
+  let calls = 0;
+  const ctx = pvContext({ UrlFetchApp: { fetch: () => { calls++; return response(200, {}); } } });
+  const result = ctx.recordLpView_({ src: 'insta', page: 'prices' });
+  assert.equal(calls, 0);
+  assert.deepEqual(plain(result), { status: 'success' });
+});
+test('recordLpView_ stops writing once the hourly cap is reached but still reports success', () => {
+  let calls = 0;
+  const ctx = pvContext({ UrlFetchApp: { fetch: () => { calls++; return response(200, {}); } },
+    CacheService: cacheService({ pv_hour_2026100712: '200' }) });
+  const result = ctx.recordLpView_({ src: 'insta', page: 'lp' });
+  assert.equal(calls, 0);
+  assert.deepEqual(plain(result), { status: 'success' });
+});
+test('recordLpView_ reports an error when the Notion write fails, without throwing', () => {
+  const ctx = pvContext({ UrlFetchApp: { fetch: () => response(500, { message: 'down' }) } });
+  assert.deepEqual(plain(ctx.recordLpView_({ src: 'insta', page: 'lp' })), { status: 'error' });
+});
+test('recordLpView_ never throws even if the cache itself is broken', () => {
+  const ctx = pvContext({ CacheService: { getScriptCache() { throw Error('cache offline'); } } });
+  assert.deepEqual(plain(ctx.recordLpView_({ src: 'insta', page: 'lp' })), { status: 'error' });
+});
+
+test('aggregateWeeklySignups_ only counts the last N days and groups by source', () => {
+  const ctx = gas();
+  const now = new Date('2026-10-07T00:00:00+09:00').getTime();
+  const customers = [
+    { source: 'insta', isMember: false, firstDateStr: '2026-10-05' },
+    { source: 'insta', isMember: true,  firstDateStr: '2026-10-01' },
+    { source: 'insta', isMember: false, firstDateStr: '2026-09-20' },
+    { source: '',      isMember: false, firstDateStr: '2026-10-06' },
+    { source: 'insta', isMember: false, firstDateStr: '' }
+  ];
+  assert.deepEqual(plain(ctx.aggregateWeeklySignups_(customers, now, 7)),
+    { insta: { signups: 2, members: 1 }, direct: { signups: 1, members: 0 } });
+});
+test('aggregateWeeklyPageViews_ only counts the last N days and defaults missing source to direct', () => {
+  const ctx = gas();
+  const now = new Date('2026-10-07T12:00:00Z').getTime();
+  const views = [
+    { source: 'insta', viewedAtMs: now - 1 * 86400000 },
+    { source: 'insta', viewedAtMs: now - 6 * 86400000 },
+    { source: 'insta', viewedAtMs: now - 8 * 86400000 },
+    { source: '',      viewedAtMs: now - 2 * 86400000 },
+    { source: 'insta', viewedAtMs: NaN }
+  ];
+  assert.deepEqual(plain(ctx.aggregateWeeklyPageViews_(views, now, 7)), { insta: 2, direct: 1 });
+});
+test('buildWeeklyReportRows_ computes the view-to-signup rate and sorts by views desc, using "-" (null) when views are 0', () => {
+  const ctx = gas();
+  const rows = plain(ctx.buildWeeklyReportRows_(
+    { insta: { signups: 2, members: 1 }, flyer: { signups: 1, members: 0 } },
+    { insta: 10, flyer: 0, direct: 5 }
+  ));
+  assert.deepEqual(rows, [
+    { source: 'insta', views: 10, signups: 2, members: 1, rate: 20 },
+    { source: 'direct', views: 5, signups: 0, members: 0, rate: 0 },
+    { source: 'flyer', views: 0, signups: 1, members: 0, rate: null }
+  ]);
+});
+
+test('generateSourceReport still emails the cumulative table when the LP view log fetch fails', () => {
+  let emailBody;
+  const ctx = gas({
+    UrlFetchApp: { fetch: url => url.includes('databases/' + LP_DB_ID)
+      ? response(500, { message: 'down' })
+      : response(200, { results: [], has_more: false }) },
+    MailApp: { sendEmail: (to, subject, body) => { emailBody = body; } },
+    Session: { getEffectiveUser: () => ({ getEmail: () => 'owner@example.invalid' }) }
+  });
+  const body = ctx.generateSourceReport();
+  assert.ok(emailBody, 'email must still be sent even when the LP log fetch fails');
+  assert.match(emailBody, /取得失敗/);
+  assert.equal(body, emailBody);
 });

@@ -1129,9 +1129,11 @@ function registerKomariFromKarte(data, customerPageId) {
 // ▼ LP閲覧ログ（doGet?action=pv が呼ぶ）
 // ==========================================
 
-// LP(machi-sumaho-soudanshi.html)の1回の表示を「LP閲覧ログ」DBに1行書き込む。
+// LP(machi-sumaho-soudanshi.html)の1回の表示／イベントを「LP閲覧ログ」DBに1行書き込む。
 // 例外を外に出さず、必ず { status: 'success' } か { status: 'error' } を返す。
-// params: { src: string, page: string }
+// params: { src: string, page: string, type?: string, dev?: string }
+// type: 'view'（既定・後方互換）/ 'line_click' / 'scroll50' / 'scroll90'
+// dev : 'other'（既定）/ 'ios' / 'android' / 'pc'
 function recordLpView_(params) {
   try {
     const rawSrc = (params && params.src) ? String(params.src) : "";
@@ -1144,12 +1146,21 @@ function recordLpView_(params) {
       return { status: "success" }; // 不明なpageは静かに無視（記録しない）
     }
 
+    const allowedTypes = ["view", "line_click", "scroll50", "scroll90"];
+    const rawType = (params && params.type) ? String(params.type) : "view";
+    const type = allowedTypes.indexOf(rawType) !== -1 ? rawType : "view"; // 不明なtypeは後方互換でview扱い
+
+    const allowedDevs = ["ios", "android", "pc", "other"];
+    const rawDev = (params && params.dev) ? String(params.dev) : "other";
+    const dev = allowedDevs.indexOf(rawDev) !== -1 ? rawDev : "other";
+
     // 暴走防止：1時間あたりの書き込み上限（CacheServiceのTTL上限は21600秒。3600秒は十分に余裕あり）
+    // ※1閲覧あたり最大4行（view + line_click + scroll50 + scroll90）になるため、200→600に引き上げ
     const hourKey  = Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyyMMddHH");
     const cache    = CacheService.getScriptCache();
     const cacheKey = "pv_hour_" + hourKey;
     const countSoFar = parseInt(cache.get(cacheKey) || "0", 10);
-    const HOURLY_LIMIT = 200;
+    const HOURLY_LIMIT = 600;
     if (countSoFar >= HOURLY_LIMIT) {
       console.warn("recordLpView_: 1時間あたりの上限到達 (" + countSoFar + "/" + HOURLY_LIMIT + ")");
       return { status: "success" }; // 上限超過も成功を装って終了（LP側の表示に影響させない）
@@ -1158,6 +1169,7 @@ function recordLpView_(params) {
 
     const jstNow = new Date(new Date().getTime() + 9 * 60 * 60 * 1000);
     const isoJst = jstNow.toISOString().replace("Z", "+09:00");
+    const nameText = (type === "view") ? (src + " " + page) : (src + " " + page + " " + type);
 
     const createRes = UrlFetchApp.fetch("https://api.notion.com/v1/pages", {
       method: "post",
@@ -1165,10 +1177,12 @@ function recordLpView_(params) {
       payload: JSON.stringify({
         parent: { database_id: LP_VIEW_LOG_DB_ID },
         properties: {
-          "名前":     { title:     [{ text: { content: src + " " + page } }] },
+          "名前":     { title:     [{ text: { content: nameText } }] },
           "流入経路": { rich_text: [{ text: { content: src } }] },
           "ページ":   { rich_text: [{ text: { content: page } }] },
-          "閲覧日時": { date:      { start: isoJst } }
+          "閲覧日時": { date:      { start: isoJst } },
+          "種別":     { rich_text: [{ text: { content: type } }] },
+          "端末":     { rich_text: [{ text: { content: dev } }] }
         }
       }),
       muteHttpExceptions: true
@@ -1192,6 +1206,15 @@ function testLpViewRecord() {
   console.log("testLpViewRecord result: " + JSON.stringify(result));
 }
 
+// 手動テスト用（第2弾）：src=test_gas / dev=ios で line_click・scroll50・scroll90 を1件ずつ書き込む。
+// トリガーには登録しない。
+function testLpEventRecord() {
+  ["line_click", "scroll50", "scroll90"].forEach(function (type) {
+    const result = recordLpView_({ src: "test_gas", page: "lp", type: type, dev: "ios" });
+    console.log("testLpEventRecord(" + type + ") result: " + JSON.stringify(result));
+  });
+}
+
 // ==========================================
 // ▼ doGet
 // ==========================================
@@ -1201,7 +1224,12 @@ function doGet(e) {
   // 全員が同じ fp("unknown")になり、1分20件の上限を本来のアクセスと共有してしまう。
   const pvAction = e && e.parameter && e.parameter.action;
   if (pvAction === 'pv') {
-    const pvResult = recordLpView_({ src: e.parameter.src, page: e.parameter.page });
+    const pvResult = recordLpView_({
+      src:  e.parameter.src,
+      page: e.parameter.page,
+      type: e.parameter.type,
+      dev:  e.parameter.dev
+    });
     return ContentService.createTextOutput(JSON.stringify(pvResult)).setMimeType(ContentService.MimeType.JSON);
   }
 
@@ -2417,6 +2445,120 @@ function buildWeeklyReportRows_(signupsBySource, viewsBySource) {
   return rows;
 }
 
+// 直近N日の指定イベント種別（line_click/scroll50/scroll90）を流入経路ごとに集計する汎用関数。
+// rows: [{ source: string, viewedAtMs: number, type: string }]（viewも混ざっていてよい。typeで絞る）
+// 戻り値: { [source]: number }
+function aggregateWeeklyEventCounts_(rows, nowMs, windowDays, type) {
+  const cutoff = nowMs - windowDays * 24 * 60 * 60 * 1000;
+  const bySource = {};
+  (rows || []).forEach(function (r) {
+    if (!r || r.type !== type) return;
+    if (typeof r.viewedAtMs !== "number" || isNaN(r.viewedAtMs)) return;
+    if (r.viewedAtMs < cutoff || r.viewedAtMs > nowMs) return;
+    const src = r.source || "direct";
+    bySource[src] = (bySource[src] || 0) + 1;
+  });
+  return bySource;
+}
+
+// 閲覧数と「あるイベント」の件数を組み合わせて1つの表にまとめる（LINEクリック用）。閲覧数の多い順。
+// 戻り値: [{ source, views, count, rate }]（rateは閲覧0のとき null。表示側で"-"にする）
+function buildWeeklyRateRows_(viewsBySource, countsBySource) {
+  const sources = {};
+  Object.keys(viewsBySource || {}).forEach(function (s) { sources[s] = true; });
+  Object.keys(countsBySource || {}).forEach(function (s) { sources[s] = true; });
+
+  const rows = Object.keys(sources).map(function (src) {
+    const views = (viewsBySource && viewsBySource[src]) || 0;
+    const count = (countsBySource && countsBySource[src]) || 0;
+    const rate = views > 0 ? Math.round((count / views) * 1000) / 10 : null;
+    return { source: src, views: views, count: count, rate: rate };
+  });
+
+  rows.sort(function (a, b) { return (b.views - a.views) || (b.count - a.count); });
+  return rows;
+}
+
+// 閲覧数・50%到達・90%到達を1つの表にまとめる（流入経路ごと、閲覧数の多い順）。
+// 戻り値: [{ source, views, scroll50, scroll90, rate50, rate90 }]（閲覧0のときrateはnull）
+function buildWeeklyScrollRows_(viewsBySource, scroll50BySource, scroll90BySource) {
+  const sources = {};
+  Object.keys(viewsBySource || {}).forEach(function (s) { sources[s] = true; });
+  Object.keys(scroll50BySource || {}).forEach(function (s) { sources[s] = true; });
+  Object.keys(scroll90BySource || {}).forEach(function (s) { sources[s] = true; });
+
+  const rows = Object.keys(sources).map(function (src) {
+    const views = (viewsBySource && viewsBySource[src]) || 0;
+    const s50 = (scroll50BySource && scroll50BySource[src]) || 0;
+    const s90 = (scroll90BySource && scroll90BySource[src]) || 0;
+    return {
+      source: src, views: views, scroll50: s50, scroll90: s90,
+      rate50: views > 0 ? Math.round((s50 / views) * 1000) / 10 : null,
+      rate90: views > 0 ? Math.round((s90 / views) * 1000) / 10 : null
+    };
+  });
+
+  rows.sort(function (a, b) { return (b.views - a.views) || (b.scroll50 - a.scroll50); });
+  return rows;
+}
+
+// 直近N日の view を端末区分ごとに集計する（view以外は数えない。空欄/未知の端末は other）。
+// rows: [{ viewedAtMs: number, type: string, dev: string }]
+// 戻り値: { ios, android, pc, other }
+function aggregateWeeklyDeviceBreakdown_(rows, nowMs, windowDays) {
+  const cutoff = nowMs - windowDays * 24 * 60 * 60 * 1000;
+  const counts = { ios: 0, android: 0, pc: 0, other: 0 };
+  (rows || []).forEach(function (r) {
+    if (!r || (r.type && r.type !== "view")) return;
+    if (typeof r.viewedAtMs !== "number" || isNaN(r.viewedAtMs)) return;
+    if (r.viewedAtMs < cutoff || r.viewedAtMs > nowMs) return;
+    const dev = (r.dev && Object.prototype.hasOwnProperty.call(counts, r.dev)) ? r.dev : "other";
+    counts[dev]++;
+  });
+  return counts;
+}
+
+// 端末内訳の集計結果を、表示用の配列（割合つき）に整形する。
+function buildDeviceBreakdownRows_(counts) {
+  const order = ["ios", "android", "pc", "other"];
+  const total = order.reduce(function (sum, k) { return sum + ((counts && counts[k]) || 0); }, 0);
+  return order.map(function (k) {
+    const n = (counts && counts[k]) || 0;
+    const pct = total > 0 ? Math.round((n / total) * 1000) / 10 : null;
+    return { dev: k, count: n, pct: pct };
+  });
+}
+
+// 時間帯の区分（JST、固定7区分）。
+const HOUR_BUCKETS_ = [
+  { label: "0-5時",   from: 0,  to: 5  },
+  { label: "6-8時",   from: 6,  to: 8  },
+  { label: "9-11時",  from: 9,  to: 11 },
+  { label: "12-14時", from: 12, to: 14 },
+  { label: "15-17時", from: 15, to: 17 },
+  { label: "18-20時", from: 18, to: 20 },
+  { label: "21-23時", from: 21, to: 23 }
+];
+
+// 直近N日の view を時間帯(JST)ごとに集計する（view以外は数えない）。
+// rows: [{ viewedAtMs: number, type: string }]
+// 戻り値: { [bucketLabel]: number }（HOUR_BUCKETS_の順）
+function aggregateWeeklyHourlyViews_(rows, nowMs, windowDays) {
+  const cutoff = nowMs - windowDays * 24 * 60 * 60 * 1000;
+  const counts = {};
+  HOUR_BUCKETS_.forEach(function (b) { counts[b.label] = 0; });
+  (rows || []).forEach(function (r) {
+    if (!r || (r.type && r.type !== "view")) return;
+    if (typeof r.viewedAtMs !== "number" || isNaN(r.viewedAtMs)) return;
+    if (r.viewedAtMs < cutoff || r.viewedAtMs > nowMs) return;
+    // JSTの「時」をタイムゾーンに依存せず求める（UTCに9時間加算してgetUTCHours）
+    const jstHour = new Date(r.viewedAtMs + 9 * 60 * 60 * 1000).getUTCHours();
+    const bucket = HOUR_BUCKETS_.filter(function (b) { return jstHour >= b.from && jstHour <= b.to; })[0];
+    if (bucket) counts[bucket.label]++;
+  });
+  return counts;
+}
+
 // ---- ここからNotionに実際に問い合わせる関数（pureではない） ----
 
 // 「LP閲覧ログ」DBから直近の閲覧行を取得する。100件区切りでページングし、最大maxRows件まで。
@@ -2448,7 +2590,18 @@ function fetchRecentLpViews_(dbId, pageSize, maxRows) {
       const dateProp = p["閲覧日時"];
       const startStr = (dateProp && dateProp.date && dateProp.date.start) || "";
       const viewedAtMs = startStr ? new Date(startStr).getTime() : NaN;
-      out.push({ source: source, viewedAtMs: viewedAtMs });
+
+      // 種別・端末は第2弾で追加した列。空欄の既存行（第1弾以前に記録された閲覧）は
+      // それぞれ view / other として扱う（後方互換）。
+      const typeProp = p["種別"];
+      const rawType = (typeProp && typeProp.rich_text && typeProp.rich_text[0]) ? typeProp.rich_text[0].plain_text : "";
+      const type = rawType || "view";
+
+      const devProp = p["端末"];
+      const rawDev = (devProp && devProp.rich_text && devProp.rich_text[0]) ? devProp.rich_text[0].plain_text : "";
+      const dev = rawDev || "other";
+
+      out.push({ source: source, viewedAtMs: viewedAtMs, type: type, dev: dev });
     });
     hasMore = !!data.has_more;
     cursor = data.next_cursor;
@@ -2537,49 +2690,142 @@ function generateSourceReport() {
     lines.push('・転換率が高い場所 → チラシ追加配布を検討');
     lines.push('・来訪0の場所 → 設置場所の見直し or チラシ刷新');
 
-    // --- 今週(直近7日)：LP閲覧 → 新規登録（既存の累計表はそのまま。ここから追加） ---
+    // --- 今週(直近7日)：ここから5つの節。LP閲覧ログの取得は1回にまとめて使い回す ---
+    var nowMs = Date.now();
+    var WEEK_DAYS = 7;
+    var lpRows = null;
+    var lpFetchError = null;
+    try {
+      lpRows = fetchRecentLpViews_(LP_VIEW_LOG_DB_ID, 100, 5000);
+    } catch (fetchErr) {
+      lpFetchError = fetchErr;
+      console.error('generateSourceReport: LP閲覧ログ取得エラー: ' + fetchErr);
+    }
+    // 「閲覧」は種別がview（空欄の既存行も含む）のものだけで数える。イベント行(line_click/scroll50/scroll90)を混ぜない。
+    var viewRows = lpRows ? lpRows.filter(function (r) { return !r.type || r.type === "view"; }) : [];
+    var viewsBySource = lpRows ? aggregateWeeklyPageViews_(viewRows, nowMs, WEEK_DAYS) : {};
+
+    // 1) LP閲覧 → 新規登録（既存。表示仕様は無変更）
     lines.push('');
     lines.push('━━━━━━━━━━━━━━━━━━━━');
     lines.push('【今週(直近7日)】LP閲覧 → 新規登録');
     lines.push('━━━━━━━━━━━━━━━━━━━━');
-    try {
-      var nowMs = Date.now();
-      var WEEK_DAYS = 7;
-
-      var weeklyCustomers = results.map(function (page) {
-        var p = page.properties;
-        var src = (p["流入経路"] && p["流入経路"].select) ? p["流入経路"].select.name : "direct";
-        var isMember = (p["かかりつけ会員"] && p["かかりつけ会員"].checkbox) || false;
-        var firstDateStr = (p["初回登録日"] && p["初回登録日"].date && p["初回登録日"].date.start) || "";
-        return { source: src, isMember: isMember, firstDateStr: firstDateStr };
-      });
-      var signupsBySource = aggregateWeeklySignups_(weeklyCustomers, nowMs, WEEK_DAYS);
-
-      var lpViews = fetchRecentLpViews_(LP_VIEW_LOG_DB_ID, 100, 5000);
-      var viewsBySource = aggregateWeeklyPageViews_(lpViews, nowMs, WEEK_DAYS);
-
-      var weeklyRows = buildWeeklyReportRows_(signupsBySource, viewsBySource);
-
-      lines.push('流入経路              閲覧  新規  会員  閲覧→新規');
-      if (weeklyRows.length === 0) {
-        lines.push('(データなし)');
-      } else {
-        weeklyRows.forEach(function (row) {
-          var srcPad  = (row.source + '                    ').substring(0, 20);
-          var vPad    = ('   ' + row.views).slice(-4);
-          var sPad    = ('   ' + row.signups).slice(-4);
-          var mPad    = ('   ' + row.members).slice(-4);
-          var ratePad = (row.rate === null) ? '    -' : ('   ' + row.rate + '%');
-          lines.push(srcPad + vPad + sPad + mPad + '   ' + ratePad);
-        });
-      }
-    } catch (weeklyErr) {
-      console.error('generateSourceReport 週次集計エラー: ' + weeklyErr);
+    if (lpFetchError) {
       lines.push('(LP閲覧ログの取得に失敗しました: 取得失敗)');
+    } else {
+      try {
+        var weeklyCustomers = results.map(function (page) {
+          var p = page.properties;
+          var src = (p["流入経路"] && p["流入経路"].select) ? p["流入経路"].select.name : "direct";
+          var isMember = (p["かかりつけ会員"] && p["かかりつけ会員"].checkbox) || false;
+          var firstDateStr = (p["初回登録日"] && p["初回登録日"].date && p["初回登録日"].date.start) || "";
+          return { source: src, isMember: isMember, firstDateStr: firstDateStr };
+        });
+        var signupsBySource = aggregateWeeklySignups_(weeklyCustomers, nowMs, WEEK_DAYS);
+        var weeklyRows = buildWeeklyReportRows_(signupsBySource, viewsBySource);
+
+        lines.push('流入経路              閲覧  新規  会員  閲覧→新規');
+        if (weeklyRows.length === 0) {
+          lines.push('(データなし)');
+        } else {
+          weeklyRows.forEach(function (row) {
+            var srcPad  = (row.source + '                    ').substring(0, 20);
+            var vPad    = ('   ' + row.views).slice(-4);
+            var sPad    = ('   ' + row.signups).slice(-4);
+            var mPad    = ('   ' + row.members).slice(-4);
+            var ratePad = (row.rate === null) ? '    -' : ('   ' + row.rate + '%');
+            lines.push(srcPad + vPad + sPad + mPad + '   ' + ratePad);
+          });
+        }
+      } catch (e1) {
+        console.error('generateSourceReport 閲覧→新規 集計エラー: ' + e1);
+        lines.push('(集計に失敗しました: 取得失敗)');
+      }
     }
     lines.push('');
     lines.push('※閲覧=LPが開かれた回数(同じ端末・同じ日は1回)');
     lines.push('※新規=診断・予約などで電話番号を送信した人(LPを見ただけの人は含まない)');
+
+    // 2) LINE友だち追加ボタン
+    lines.push('');
+    lines.push('━━━━━━━━━━━━━━━━━━━━');
+    lines.push('【今週(直近7日)】LINE友だち追加ボタン');
+    lines.push('━━━━━━━━━━━━━━━━━━━━');
+    if (lpFetchError) {
+      lines.push('(LP閲覧ログの取得に失敗しました: 取得失敗)');
+    } else {
+      var clicksBySource = aggregateWeeklyEventCounts_(lpRows, nowMs, WEEK_DAYS, 'line_click');
+      var clickRows = buildWeeklyRateRows_(viewsBySource, clicksBySource);
+      lines.push('流入経路              閲覧  追加click  click率');
+      if (clickRows.length === 0) {
+        lines.push('(データなし)');
+      } else {
+        clickRows.forEach(function (row) {
+          var srcPad  = (row.source + '                    ').substring(0, 20);
+          var vPad    = ('   ' + row.views).slice(-4);
+          var cPad    = ('       ' + row.count).slice(-7);
+          var ratePad = (row.rate === null) ? '    -' : ('   ' + row.rate + '%');
+          lines.push(srcPad + vPad + cPad + '   ' + ratePad);
+        });
+      }
+      lines.push('');
+      lines.push('※clickはボタンを押した回数(同じ端末・同じ日は1回)。実際に友だち追加が完了した人数ではありません');
+    }
+
+    // 3) スクロール到達
+    lines.push('');
+    lines.push('━━━━━━━━━━━━━━━━━━━━');
+    lines.push('【今週(直近7日)】スクロール到達');
+    lines.push('━━━━━━━━━━━━━━━━━━━━');
+    if (lpFetchError) {
+      lines.push('(LP閲覧ログの取得に失敗しました: 取得失敗)');
+    } else {
+      var scroll50BySource = aggregateWeeklyEventCounts_(lpRows, nowMs, WEEK_DAYS, 'scroll50');
+      var scroll90BySource = aggregateWeeklyEventCounts_(lpRows, nowMs, WEEK_DAYS, 'scroll90');
+      var scrollRows = buildWeeklyScrollRows_(viewsBySource, scroll50BySource, scroll90BySource);
+      lines.push('流入経路              閲覧  50%到達  90%到達');
+      if (scrollRows.length === 0) {
+        lines.push('(データなし)');
+      } else {
+        scrollRows.forEach(function (row) {
+          var srcPad = (row.source + '                    ').substring(0, 20);
+          var vPad   = ('   ' + row.views).slice(-4);
+          var r50    = (row.rate50 === null) ? '  -' : (row.rate50 + '%');
+          var r90    = (row.rate90 === null) ? '  -' : (row.rate90 + '%');
+          lines.push(srcPad + vPad + '  ' + (r50 + '        ').substring(0, 9) + r90);
+        });
+      }
+    }
+
+    // 4) 端末の内訳
+    lines.push('');
+    lines.push('━━━━━━━━━━━━━━━━━━━━');
+    lines.push('【今週(直近7日)】端末の内訳');
+    lines.push('━━━━━━━━━━━━━━━━━━━━');
+    if (lpFetchError) {
+      lines.push('(LP閲覧ログの取得に失敗しました: 取得失敗)');
+    } else {
+      var deviceCounts = aggregateWeeklyDeviceBreakdown_(lpRows, nowMs, WEEK_DAYS);
+      var deviceRows = buildDeviceBreakdownRows_(deviceCounts);
+      deviceRows.forEach(function (row) {
+        var pctText = (row.pct === null) ? '-' : (row.pct + '%');
+        lines.push(row.dev + ': ' + row.count + '件 (' + pctText + ')');
+      });
+    }
+
+    // 5) 時間帯別の閲覧数
+    lines.push('');
+    lines.push('━━━━━━━━━━━━━━━━━━━━');
+    lines.push('【今週(直近7日)】時間帯別の閲覧数(JST)');
+    lines.push('━━━━━━━━━━━━━━━━━━━━');
+    if (lpFetchError) {
+      lines.push('(LP閲覧ログの取得に失敗しました: 取得失敗)');
+    } else {
+      var hourlyCounts = aggregateWeeklyHourlyViews_(lpRows, nowMs, WEEK_DAYS);
+      HOUR_BUCKETS_.forEach(function (b) {
+        lines.push(b.label + ': ' + hourlyCounts[b.label] + '件');
+      });
+    }
 
     var body = lines.join('\n');
     console.log(body);

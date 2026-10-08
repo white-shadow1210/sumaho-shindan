@@ -3056,7 +3056,7 @@ function replyKarteQuick(userId, replyToken) {
         { type: "separator" },
         { label: "次回フォロー",   value: nextFollow || "未設定", bold: !!nextFollow }
       ],
-      { type: "uri", label: "データ移行を相談する", uri: reserveUrl + "?menu=" + encodeURIComponent("完全データ移行パック") }
+      { type: "uri", label: "データ移行を相談する", uri: reserveUrl + "?menu=" + encodeURIComponent("データ移行パック") }
     );
 
     UrlFetchApp.fetch("https://api.line.me/v2/bot/message/reply", {
@@ -3327,7 +3327,7 @@ function replyMyPage(userId, replyToken) {
         { label: "状態", value: "アプリチェックが未実施です" },
         { label: "",     value: "機種変更前にアプリの引き継ぎ確認をしましょう！" }
       ],
-      { type: "uri", label: "データ移行を相談する", uri: reserveUrl + "?menu=" + encodeURIComponent("完全データ移行パック") }
+      { type: "uri", label: "データ移行を相談する", uri: reserveUrl + "?menu=" + encodeURIComponent("データ移行パック") }
     );
 
     const historyRows = historyLines.length > 0

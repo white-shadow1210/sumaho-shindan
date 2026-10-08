@@ -6,6 +6,13 @@
 
 ## [未リリース]
 
+### 2026-10-XX(Merge日)  LP改修(不安解消の追加)+「データ移行パック」名称の全ページ統一(第3弾)
+- LP(`machi-sumaho-soudanshi.html`)に、利用前の不安を減らす情報を追加（ファーストビューの補足・実績バッジ・「乗り換えなくても大丈夫です」・相談事例の注記・料金の無料範囲の説明・各メニューの「相談後に残るもの」・データ移行パックの範囲・携帯ショップとの違いの比較表・6ステップの相談の流れ・「ご安心ください」ボックス・よくある質問7件・「これから取り組みたいこと」）。すべて追加のみで、既存の文言・リンク・計測コード(閲覧ビーコン・line_click・scroll50/90・端末判定・src引き継ぎ)は無変更。
+- メニュー名「完全データ移行パック」を「データ移行パック」にサイト全体で統一。`prices.html`・`reserve.html`・`subscribe.html`・`jigyo_lp.html`・`kosodate.lp.html`・`biyoushitsu.lp.html`・`machi-sumaho-soudanshi.html`（本文JSON-LD含む）・`gas/main.gs`（表記のみ、判定ロジックは無変更）を更新。顧問プランの特典から「LINEでの操作質問・相談が無料」を削除（`prices.html`・`subscribe.html`・LP）。
+- **計測への影響**：この改修でLPが長くなったため、Merge日以降のスクロール到達率(50%/90%)は、それ以前の数値と単純比較しない。
+- `node --test tests/regression.test.cjs`：53件合格(第2弾までの45件 + 新規8件)。名称の残存チェック、FAQ件数、計測コードの残存、ASCII制約、非公開要素の混入防止を検証。
+- ヘッドレスChromiumでモバイル(360/390/430)・タブレット(768)・デスクトップ(1280)の横スクロールなし・コンソールエラーなし・FAQ開閉動作・計測ビーコン(view/scroll50/scroll90/line_click)の発火を確認。
+
 ### 2026-10-08  LPの行動記録(LINE追加クリック・端末・スクロール)+ 週次メール拡張(第2弾)
 - LP(`machi-sumaho-soudanshi.html`)のLINE友だち追加ボタンのクリック、スクロール到達(50%/90%)を、既存の「LP閲覧ログ」に追記するようになった。ボタンのhrefは無変更。重複防止はlocalStorage（使えない場合はページ表示中のみメモリで代用）。
 - 端末種別(ios/android/pc/other)を`navigator.userAgent`から判定して送信。userAgent自体は送らない。

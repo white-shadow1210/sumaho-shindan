@@ -634,7 +634,7 @@
 </script>
 
 <script>
-/* lp page-view beacon (new; independent of the flow-source cookie above) */
+/* lp page-view + event beacons (independent of the flow-source cookie above) */
 (function () {
   try {
     var GAS_URL = "https://script.google.com/macros/s/AKfycbyX_iaLnrh8BCCCjsqWT5m3KRmUDzHPaxqtMhXJcOc9Ws9t252VmVPxWEOvMP5BskU/exec";
@@ -646,23 +646,102 @@
     var y = d.getFullYear();
     var m = ('0' + (d.getMonth() + 1)).slice(-2);
     var day = ('0' + d.getDate()).slice(-2);
-    var dedupKey = 'sumaho_pv_lp_' + y + '-' + m + '-' + day + '_' + src;
+    var dateKey = y + '-' + m + '-' + day;
 
-    var already = false;
-    try { already = !!localStorage.getItem(dedupKey); } catch (e) {}
-    if (already) return;
-    try { localStorage.setItem(dedupKey, '1'); } catch (e) {}
-
-    var url = GAS_URL + '?action=pv&src=' + encodeURIComponent(src) + '&page=lp';
-    try {
-      if (window.fetch) {
-        fetch(url, { mode: 'no-cors', keepalive: true }).catch(function () {});
-      } else {
-        new Image().src = url;
+    /* device detection: only one of ios/android/pc/other is sent (never the raw userAgent) */
+    function detectDevice() {
+      try {
+        var ua = navigator.userAgent || '';
+        if (/iPhone|iPad|iPod/.test(ua)) return 'ios';
+        /* iPadOS can report itself as a Mac; distinguish by touch support */
+        if (ua.indexOf('Macintosh') !== -1 && navigator.maxTouchPoints > 1) return 'ios';
+        if (/Android/.test(ua)) return 'android';
+        if (/Macintosh|Windows|Linux/.test(ua)) return 'pc';
+        return 'other';
+      } catch (eDev) {
+        return 'other';
       }
-    } catch (e2) {
-      try { new Image().src = url; } catch (e3) {}
     }
+    var dev = detectDevice();
+
+    /* dedup: localStorage first, in-memory fallback if storage is unavailable.
+       Marks the key as used BEFORE returning false, so a caller never double-sends. */
+    var memoryDedup = {};
+    function isDuplicate(key) {
+      try {
+        if (localStorage.getItem(key)) return true;
+        localStorage.setItem(key, '1');
+        return false;
+      } catch (eStore) {
+        if (memoryDedup[key]) return true;
+        memoryDedup[key] = true;
+        return false;
+      }
+    }
+
+    function sendBeacon(type) {
+      try {
+        var url = GAS_URL + '?action=pv&src=' + encodeURIComponent(src) +
+          '&page=lp&type=' + encodeURIComponent(type) + '&dev=' + encodeURIComponent(dev);
+        if (window.fetch) {
+          fetch(url, { mode: 'no-cors', keepalive: true }).catch(function () {});
+        } else {
+          new Image().src = url;
+        }
+      } catch (eSend) {}
+    }
+
+    /* 1) view beacon (existing behavior, now also carries dev) */
+    if (!isDuplicate('sumaho_pv_lp_' + dateKey + '_' + src)) {
+      sendBeacon('view');
+    }
+
+    /* 2) LINE add-friend button click (event delegation; works for any button added later) */
+    document.addEventListener('click', function (ev) {
+      try {
+        var a = ev.target && ev.target.closest ? ev.target.closest('a[href]') : null;
+        if (!a) return;
+        var href = a.getAttribute('href') || '';
+        if (!/lin\.ee|line\.me/.test(href)) return;
+        var key = 'sumaho_ev_lp_' + dateKey + '_' + src + '_line_click';
+        if (isDuplicate(key)) return;
+        sendBeacon('line_click');
+      } catch (eClick) {}
+    });
+
+    /* 3) scroll depth: 50% and 90%, each sent at most once per device/day */
+    var scrollDone = { scroll50: false, scroll90: false };
+    function checkScroll() {
+      try {
+        var scrollTop = window.pageYOffset || document.documentElement.scrollTop || 0;
+        var viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+        var fullHeight = document.documentElement.scrollHeight || 0;
+        if (!fullHeight) return;
+        var ratio = (scrollTop + viewportHeight) / fullHeight;
+        ['scroll50', 'scroll90'].forEach(function (type) {
+          if (scrollDone[type]) return;
+          var threshold = (type === 'scroll50') ? 0.5 : 0.9;
+          if (ratio < threshold) return;
+          scrollDone[type] = true;
+          var key = 'sumaho_ev_lp_' + dateKey + '_' + src + '_' + type;
+          if (isDuplicate(key)) return;
+          sendBeacon(type);
+        });
+        if (scrollDone.scroll50 && scrollDone.scroll90) {
+          window.removeEventListener('scroll', onScroll);
+        }
+      } catch (eScroll) {}
+    }
+    var scrollTimer = null;
+    function onScroll() {
+      if (scrollTimer) return;
+      scrollTimer = setTimeout(function () {
+        scrollTimer = null;
+        checkScroll();
+      }, 200);
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    checkScroll(); /* in case the page is already short enough to be past threshold on load */
   } catch (e) {}
 })();
 </script>

@@ -246,7 +246,7 @@ test('recordLpView_ ignores unknown page values without writing to Notion', () =
 test('recordLpView_ stops writing once the hourly cap is reached but still reports success', () => {
   let calls = 0;
   const ctx = pvContext({ UrlFetchApp: { fetch: () => { calls++; return response(200, {}); } },
-    CacheService: cacheService({ pv_hour_2026100712: '200' }) });
+    CacheService: cacheService({ pv_hour_2026100712: '600' }) });
   const result = ctx.recordLpView_({ src: 'insta', page: 'lp' });
   assert.equal(calls, 0);
   assert.deepEqual(plain(result), { status: 'success' });
@@ -311,4 +311,150 @@ test('generateSourceReport still emails the cumulative table when the LP view lo
   assert.ok(emailBody, 'email must still be sent even when the LP log fetch fails');
   assert.match(emailBody, /取得失敗/);
   assert.equal(body, emailBody);
+});
+
+// --- Phase 2: LINE click / scroll depth / device / hourly breakdown ---
+
+test('doGet?action=pv passes type and dev through to recordLpView_', () => {
+  let payload;
+  const ctx = pvContext({ UrlFetchApp: { fetch: (url, opts) => { payload = JSON.parse(opts.payload); return response(200, {}); } } });
+  ctx.doGet({ parameter: { action: 'pv', src: 'insta', page: 'lp', type: 'line_click', dev: 'android' } });
+  assert.equal(payload.properties['種別'].rich_text[0].text.content, 'line_click');
+  assert.equal(payload.properties['端末'].rich_text[0].text.content, 'android');
+  assert.equal(payload.properties['名前'].title[0].text.content, 'insta lp line_click');
+});
+test('recordLpView_ falls back to view/other for unknown type or device values', () => {
+  let payload;
+  const ctx = pvContext({ UrlFetchApp: { fetch: (url, opts) => { payload = JSON.parse(opts.payload); return response(200, {}); } } });
+  ctx.recordLpView_({ src: 'insta', page: 'lp', type: 'something_else', dev: 'something_else' });
+  assert.equal(payload.properties['種別'].rich_text[0].text.content, 'view');
+  assert.equal(payload.properties['端末'].rich_text[0].text.content, 'other');
+  assert.equal(payload.properties['名前'].title[0].text.content, 'insta lp');
+});
+test('recordLpView_ hourly cap was raised to 600 (a 200-count hour still accepts writes)', () => {
+  let calls = 0;
+  const ctx = pvContext({ UrlFetchApp: { fetch: () => { calls++; return response(200, {}); } },
+    CacheService: cacheService({ pv_hour_2026100712: '200' }) });
+  ctx.recordLpView_({ src: 'insta', page: 'lp' });
+  assert.equal(calls, 1);
+});
+
+test('fetchRecentLpViews_ defaults missing 種別/端末 (pre-phase-2 rows) to view/other', () => {
+  const ctx = gas({ UrlFetchApp: { fetch: () => response(200, { results: [{
+    properties: {
+      '流入経路': { rich_text: [{ plain_text: 'insta' }] },
+      '閲覧日時': { date: { start: '2026-10-07T10:00:00+09:00' } }
+      // no 種別 / 端末 properties at all -- a row saved before phase 2
+    }
+  }], has_more: false }) } });
+  const rows = plain(ctx.fetchRecentLpViews_(LP_DB_ID, 100, 5000));
+  assert.deepEqual(rows, [{
+    source: 'insta', viewedAtMs: new Date('2026-10-07T10:00:00+09:00').getTime(), type: 'view', dev: 'other'
+  }]);
+});
+
+test('aggregateWeeklyEventCounts_ only counts the matching type within the window, grouped by source', () => {
+  const ctx = gas();
+  const now = new Date('2026-10-08T00:00:00+09:00').getTime();
+  const rows = [
+    { source: 'insta', viewedAtMs: now - 1 * 86400000, type: 'line_click' },
+    { source: 'insta', viewedAtMs: now - 6 * 86400000, type: 'line_click' },
+    { source: 'insta', viewedAtMs: now - 8 * 86400000, type: 'line_click' }, // too old
+    { source: 'insta', viewedAtMs: now - 1 * 86400000, type: 'view' },       // wrong type
+    { source: '',      viewedAtMs: now - 1 * 86400000, type: 'line_click' }  // empty source -> direct
+  ];
+  assert.deepEqual(plain(ctx.aggregateWeeklyEventCounts_(rows, now, 7, 'line_click')), { insta: 2, direct: 1 });
+});
+
+test('buildWeeklyRateRows_ shows "-" (null) when there were no views, and sorts by views desc', () => {
+  const ctx = gas();
+  const rows = plain(ctx.buildWeeklyRateRows_({ insta: 10, flyer: 0 }, { insta: 3, flyer: 1 }));
+  assert.deepEqual(rows, [
+    { source: 'insta', views: 10, count: 3, rate: 30 },
+    { source: 'flyer', views: 0, count: 1, rate: null }
+  ]);
+});
+
+test('buildWeeklyScrollRows_ computes independent 50%/90% rates per source', () => {
+  const ctx = gas();
+  const rows = plain(ctx.buildWeeklyScrollRows_({ insta: 10 }, { insta: 5 }, { insta: 2 }));
+  assert.deepEqual(rows, [{ source: 'insta', views: 10, scroll50: 5, scroll90: 2, rate50: 50, rate90: 20 }]);
+});
+
+test('aggregateWeeklyDeviceBreakdown_ counts view rows only, treating missing type/device as view/other', () => {
+  const ctx = gas();
+  const now = new Date('2026-10-08T00:00:00+09:00').getTime();
+  const oneDayAgo = now - 1 * 86400000;
+  const rows = [
+    { viewedAtMs: oneDayAgo, type: 'view', dev: 'ios' },
+    { viewedAtMs: oneDayAgo, type: 'view', dev: 'android' },
+    { viewedAtMs: oneDayAgo, type: 'view' },                   // missing dev -> other
+    { viewedAtMs: oneDayAgo },                                 // missing type AND dev (legacy row)
+    { viewedAtMs: oneDayAgo, type: 'view', dev: 'bogus' },     // unknown dev -> other
+    { viewedAtMs: oneDayAgo, type: 'line_click', dev: 'ios' }  // event row must NOT count as a view
+  ];
+  assert.deepEqual(plain(ctx.aggregateWeeklyDeviceBreakdown_(rows, now, 7)), { ios: 1, android: 1, pc: 0, other: 3 });
+});
+
+test('buildDeviceBreakdownRows_ computes percentages, and null when there is no data at all', () => {
+  const ctx = gas();
+  assert.deepEqual(plain(ctx.buildDeviceBreakdownRows_({ ios: 3, android: 1, pc: 0, other: 0 })), [
+    { dev: 'ios', count: 3, pct: 75 },
+    { dev: 'android', count: 1, pct: 25 },
+    { dev: 'pc', count: 0, pct: 0 },
+    { dev: 'other', count: 0, pct: 0 }
+  ]);
+  assert.deepEqual(plain(ctx.buildDeviceBreakdownRows_({ ios: 0, android: 0, pc: 0, other: 0 })), [
+    { dev: 'ios', count: 0, pct: null },
+    { dev: 'android', count: 0, pct: null },
+    { dev: 'pc', count: 0, pct: null },
+    { dev: 'other', count: 0, pct: null }
+  ]);
+});
+
+test('aggregateWeeklyHourlyViews_ buckets JST hours into the 7 fixed ranges, view rows only (missing type counts as view)', () => {
+  const ctx = gas();
+  const now = Date.UTC(2026, 9, 8, 0, 0, 0);
+  function jstMs(hour) { return Date.UTC(2026, 9, 7, hour, 0, 0) - 9 * 60 * 60 * 1000; }
+  const rows = [
+    { viewedAtMs: jstMs(3), type: 'view' },
+    { viewedAtMs: jstMs(3) },                     // missing type -> counted as view
+    { viewedAtMs: jstMs(7), type: 'view' },
+    { viewedAtMs: jstMs(7), type: 'line_click' }  // must NOT be counted
+  ];
+  const counts = plain(ctx.aggregateWeeklyHourlyViews_(rows, now, 7));
+  assert.equal(counts['0-5時'], 2);
+  assert.equal(counts['6-8時'], 1);
+  assert.equal(counts['9-11時'], 0);
+});
+
+test('generateSourceReport counts only view rows as "views" for a source, not line_click/scroll event rows', () => {
+  let emailBody;
+  const today = new Date().toISOString().substring(0, 10);
+  const customerRows = [{ properties: {
+    '流入経路': { select: { name: 'insta' } },
+    'かかりつけ会員': { checkbox: false },
+    '初回登録日': { date: { start: today } }
+  } }];
+  const nowIso = new Date().toISOString();
+  function lpRow(type) {
+    return { properties: {
+      '流入経路': { rich_text: [{ plain_text: 'insta' }] },
+      '閲覧日時': { date: { start: nowIso } },
+      '種別': { rich_text: [{ plain_text: type }] }
+    } };
+  }
+  const lpRows = [lpRow('view'), lpRow('line_click'), lpRow('scroll50')];
+  const ctx = gas({
+    UrlFetchApp: { fetch: url => url.includes('databases/' + LP_DB_ID)
+      ? response(200, { results: lpRows, has_more: false })
+      : response(200, { results: customerRows, has_more: false }) },
+    MailApp: { sendEmail: (to, subject, body) => { emailBody = body; } },
+    Session: { getEffectiveUser: () => ({ getEmail: () => 'owner@example.invalid' }) }
+  });
+  ctx.generateSourceReport();
+  const viewLine = emailBody.split('\n').find(l => l.startsWith('insta'));
+  assert.ok(viewLine, 'expected a report row starting with the source name');
+  const viewsField = viewLine.slice(20, 24).trim();
+  assert.equal(viewsField, '1', 'views must count only the view-type row, not line_click/scroll50');
 });

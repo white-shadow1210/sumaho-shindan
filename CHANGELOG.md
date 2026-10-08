@@ -6,6 +6,17 @@
 
 ## [未リリース]
 
+### 2026-10-08  LPの行動記録(LINE追加クリック・端末・スクロール)+ 週次メール拡張(第2弾)
+- LP(`machi-sumaho-soudanshi.html`)のLINE友だち追加ボタンのクリック、スクロール到達(50%/90%)を、既存の「LP閲覧ログ」に追記するようになった。ボタンのhrefは無変更。重複防止はlocalStorage（使えない場合はページ表示中のみメモリで代用）。
+- 端末種別(ios/android/pc/other)を`navigator.userAgent`から判定して送信。userAgent自体は送らない。
+- 本体GAS(`gas/main.gs`)の`doGet?action=pv`に`type`(view/line_click/scroll50/scroll90、既定view)・`dev`(ios/android/pc/other、既定other)を追加。既存の`type`なし呼び出しは従来どおり`view`として記録される(後方互換)。
+- 1時間あたりの書き込み上限を200件→600件に引き上げ(1閲覧あたり最大4行になるため)。
+- 週次の流入レポートメールに4節を追加：①LINE友だち追加ボタン(click率)、②スクロール到達(50%/90%)、③端末の内訳、④時間帯別の閲覧数(JST)。既存の累計表・「閲覧→新規」節は無変更。
+- 「閲覧」はLP閲覧ログの`種別`がview(空欄の既存行も含む)の行のみで数える。イベント行(line_click/scroll50/scroll90)を閲覧数に混ぜない。
+- LP閲覧ログの取得は1回にまとめ、新設した5節すべてで使い回す。取得に失敗しても累計表は通常どおり送信し、各節には「取得失敗」と書く。
+- `node --test tests/regression.test.cjs`：45件合格(第1弾までの34件 + 新規11件)。新設の集計関数(`aggregateWeeklyEventCounts_` / `buildWeeklyRateRows_` / `buildWeeklyScrollRows_` / `aggregateWeeklyDeviceBreakdown_` / `buildDeviceBreakdownRows_` / `aggregateWeeklyHourlyViews_`)を単体テスト。種別・端末が空の既存行の後方互換、イベント行が閲覧数に混ざらないことも検証。
+- 反映順序：GAS(`gas/main.gs`)を先に更新し、その後にLPをMergeする。順序を逆にすると新しい記録が古いGASで「view」として記録され、閲覧数が水増しされる。`gas/mitsumori-save.gs`(保存GAS)は無変更。
+
 ### 2026-10-07  LP閲覧ログ + 週次メール拡張
 - LP(`machi-sumaho-soudanshi.html`)が表示時に1回だけ、流入経路(`?src=`)を新規Notion DB「LP閲覧ログ」に記録するビーコンを追加。同日の同一端末からの再送はしない。個人を特定する情報は送らない。
 - 本体GAS(`gas/main.gs`)の`doGet`に`action=pv`を追加。既存のレート制限より前で処理し、ビーコンが実際のアクセスと上限を共有しないようにした。1時間あたりの書き込み上限(200件)を設定。

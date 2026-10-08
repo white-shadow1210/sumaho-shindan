@@ -6,6 +6,15 @@
 
 ## [未リリース]
 
+### 2026-10-07  LP閲覧ログ + 週次メール拡張
+- LP(`machi-sumaho-soudanshi.html`)が表示時に1回だけ、流入経路(`?src=`)を新規Notion DB「LP閲覧ログ」に記録するビーコンを追加。同日の同一端末からの再送はしない。個人を特定する情報は送らない。
+- 本体GAS(`gas/main.gs`)の`doGet`に`action=pv`を追加。既存のレート制限より前で処理し、ビーコンが実際のアクセスと上限を共有しないようにした。1時間あたりの書き込み上限(200件)を設定。
+- 既存の`doGet`の他の分岐(`getFreeSlot`/`getMapData`/`getOshiraseData`/`getChiikiData`/`chiikiPost`/`searchCustomer`/カレンダー)・`handleWebForm`は無変更。
+- 週次の流入レポートメール(`generateSourceReport`、毎週月曜9時、宛先・件名は無変更)に「今週(直近7日)」の節を追加。流入経路ごとの閲覧数・新規登録数・会員数・閲覧→新規の割合(%)を表示。既存の累計表はそのまま残す。
+- LP閲覧ログの取得に失敗しても、既存の累計表は通常どおり送信し、その節には「取得失敗」と書く。
+- `node --test tests/regression.test.cjs`：34件合格(既存23件 + 新規11件)。純粋な集計関数(`aggregateWeeklySignups_` / `aggregateWeeklyPageViews_` / `buildWeeklyReportRows_`)を単体テスト。実際のNotion・LINEにはアクセスしない。
+- 反映順序：GAS(`gas/main.gs`)を先に更新し、その後にLPをMerge する。`gas/mitsumori-save.gs`(保存GAS)は無変更。
+
 ### 2026-09-17  レビュー改善 第1弾：保存確認・予約表示・診断連携の取り違え防止
 - 診断完了メッセージから共有の「最後の電話番号」を用いてLINEを紐付ける処理を撤去。未連携・重複は手動確認へ案内し、自動作成・統合・アーカイブをしない。
 - 診断完了メッセージだけでのポイント自動付与を停止。本人と受付を一度だけ検証できる仕組みを追加するまで再開しない。

@@ -458,3 +458,57 @@ test('generateSourceReport counts only view rows as "views" for a source, not li
   const viewsField = viewLine.slice(20, 24).trim();
   assert.equal(viewsField, '1', 'views must count only the view-type row, not line_click/scroll50');
 });
+
+// --- Phase 3: LP trust/FAQ additions + "data migration pack" naming unification ---
+
+const lp = read('machi-sumaho-soudanshi.html');
+// machi-sumaho-soudanshi.html stores all Japanese text as numeric character
+// references (&#xNNNN;) to keep the file itself ASCII-only. Decode before
+// checking for Japanese substrings; the raw ASCII file is checked separately.
+const decodeEntities = html => html.replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCodePoint(parseInt(hex, 16)));
+const lpText = decodeEntities(lp);
+const allHtmlFiles = fs.readdirSync(root).filter(n => n.endsWith('.html'));
+
+test('LP has the new #faq and #local sections, with exactly 7 FAQ entries', () => {
+  assert.match(lp, /id="faq"/);
+  assert.match(lp, /id="local"/);
+  assert.equal((lp.match(/<details>/g) || []).length, 7);
+});
+
+for (const banned of ['完全データ移行パック', '全アプリのログイン確認']) {
+  test(`no HTML file still contains the retired phrase "${banned}"`, () => {
+    for (const name of allHtmlFiles) {
+      const text = decodeEntities(read(name));
+      assert.doesNotMatch(text, new RegExp(banned.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), name);
+    }
+  });
+}
+test('the renamed "data migration pack" name is present where the old name used to be', () => {
+  assert.match(lpText, /データ移行パック/);
+  assert.match(decodeEntities(read('prices.html')), /データ移行パック/);
+  assert.match(decodeEntities(read('reserve.html')), /データ移行パック/);
+});
+
+test('"LINE operation questions are free" perk no longer appears in LP/prices/reserve', () => {
+  const phrase = '操作質問・相談が無料'; // "操作質問・相談が無料"
+  for (const name of ['machi-sumaho-soudanshi.html', 'prices.html', 'reserve.html']) {
+    assert.doesNotMatch(decodeEntities(read(name)), new RegExp(phrase), name);
+  }
+});
+
+test('LP still carries the phase 1/2 measurement code (pv beacon, line_click, scroll50/90, src tracking)', () => {
+  for (const marker of ['action=pv', 'line_click', 'scroll50', 'scroll90', 'sumaho_src']) {
+    assert.ok(lp.includes(marker), `missing measurement marker: ${marker}`);
+  }
+});
+
+test('LP file stays ASCII-only (Japanese text must be numeric-entity encoded)', () => {
+  // eslint-disable-next-line no-control-regex
+  assert.doesNotMatch(lp, /[^\x00-\x7F]/);
+});
+
+test('LP does not include unapproved draft-only content (testimonials, draft badges, noindex)', () => {
+  assert.doesNotMatch(lp, /class="voice"/);
+  assert.doesNotMatch(lp, /dn-/);
+  assert.doesNotMatch(lp, /noindex/);
+});

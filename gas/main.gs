@@ -40,6 +40,24 @@ const LP_VIEW_LOG_DB_ID  = "c8016744-4a6f-427b-ac2c-d20b4eb432f8";   // LP閲覧
 
 const FREE_SLOT_MAX_PER_MONTH = 3;
 
+// ==========================================
+// マイページ(replyMyPage)に表示するカードの設定（1か所にまとめる）
+//   - ここを true に変えるだけで、そのカードがカルーセルに戻る。
+//   - false のカードも作る処理・データの読み取りコードは残してあり、削除していない
+//     （「料金シミュレーション」「スマホカルテ」「アプリチェック結果」「まちつながり履歴」
+//      「スマホ遍歴」は、集計・付与の処理自体ではなく表示だけを止めている）。
+//   - カードを戻す手順：該当の値を true に変更 → GASエディタで保存 →
+//     既存デプロイを「新しいバージョン」に更新するだけでよい。
+// ==========================================
+var MYPAGE_CARD_VISIBILITY = {
+  basicInfoPoints: false, // 「基本情報」カードの「ポイント」「次の特典」の2行（TownOS側データ）
+  priceSimulation: false, // 「料金シミュレーション」カード
+  karte:           false, // 「スマホカルテ」カード
+  appCheck:        false, // 「アプリチェック結果」カード
+  townConnection:  false, // 「まちつながり履歴」カード（TownOSのデータ修復中のため非表示）
+  phoneHistory:    false  // 「スマホ遍歴」カード
+};
+
 const MAX_IMAGE_BASE64_SIZE = 5 * 1024 * 1024;
 const MAX_DAILY_CHIIKI_POSTS = 10;
 const MAX_DAILY_KOMARI = 10;
@@ -3275,17 +3293,21 @@ function replyMyPage(userId, replyToken) {
     const appUsed     = safeText(p["利用中アプリ"])     || "未記録";
     const appTrans    = safeText(p["移行必須アプリ"])   || "未記録";
 
-    const blocksRes = UrlFetchApp.fetch("https://api.notion.com/v1/blocks/" + page.id + "/children?page_size=10",
-      { headers: notionHeaders(), muteHttpExceptions: true });
+    // 「まちつながり履歴」カード専用のデータ。カードを表示しないときは、
+    // この読み出し（Notion blocks API）自体を省略する（§3の判断：無駄な読み出しを避ける）。
     let historyLines = [];
-    if (blocksRes.getResponseCode() === 200) {
-      const blocks = JSON.parse(blocksRes.getContentText()).results || [];
-      blocks.slice(-4).reverse().forEach(function(b) {
-        try {
-          const t = (b && b.paragraph && b.paragraph.rich_text && b.paragraph.rich_text[0]) ? b.paragraph.rich_text[0].plain_text : "";
-          if (t) historyLines.push(t);
-        } catch(e) {}
-      });
+    if (MYPAGE_CARD_VISIBILITY.townConnection) {
+      const blocksRes = UrlFetchApp.fetch("https://api.notion.com/v1/blocks/" + page.id + "/children?page_size=10",
+        { headers: notionHeaders(), muteHttpExceptions: true });
+      if (blocksRes.getResponseCode() === 200) {
+        const blocks = JSON.parse(blocksRes.getContentText()).results || [];
+        blocks.slice(-4).reverse().forEach(function(b) {
+          try {
+            const t = (b && b.paragraph && b.paragraph.rich_text && b.paragraph.rich_text[0]) ? b.paragraph.rich_text[0].plain_text : "";
+            if (t) historyLines.push(t);
+          } catch(e) {}
+        });
+      }
     }
 
     const milestones    = [20, 30, 40, 60];
@@ -3322,17 +3344,20 @@ function replyMyPage(userId, replyToken) {
       memberStatusBold  = false;
     }
 
+    const card1Rows = [
+      { label: "お名前",       value: name },
+      { label: "会員ステータス", value: memberStatusValue, bold: memberStatusBold },
+      { label: "初回登録日",   value: firstDate ? firstDate.replace(/-/g,"/") : "未設定" },
+      { label: "最終来店日",   value: lastDate  ? lastDate.replace(/-/g,"/")  : "未設定" }
+    ];
+    if (MYPAGE_CARD_VISIBILITY.basicInfoPoints) {
+      card1Rows.push({ type: "separator" });
+      card1Rows.push({ label: "ポイント",     value: points + "pt", bold: true });
+      card1Rows.push({ label: "次の特典",     value: nextMilestone ? "あと" + ptToNext + "ptで " + milestoneMap[nextMilestone] : "🎉 最高ランク達成！" });
+    }
     const card1 = makeMyPageBubble(
       "#1a2a40", "👤", "基本情報",
-      [
-        { label: "お名前",       value: name },
-        { label: "会員ステータス", value: memberStatusValue, bold: memberStatusBold },
-        { label: "初回登録日",   value: firstDate ? firstDate.replace(/-/g,"/") : "未設定" },
-        { label: "最終来店日",   value: lastDate  ? lastDate.replace(/-/g,"/")  : "未設定" },
-        { type: "separator" },
-        { label: "ポイント",     value: points + "pt", bold: true },
-        { label: "次の特典",     value: nextMilestone ? "あと" + ptToNext + "ptで " + milestoneMap[nextMilestone] : "🎉 最高ランク達成！" }
-      ],
+      card1Rows,
       { type: "uri", label: "予約する", uri: reserveUrl }
     );
 
@@ -3350,109 +3375,129 @@ function replyMyPage(userId, replyToken) {
       { type: "message", label: "診断を更新する", text: "マイページ" }
     );
 
-    const hasSim = curCost !== undefined && curCost !== null;
-    const simRows = hasSim ? [
-      { label: "現在の月額",   value: "¥" + Number(curCost).toLocaleString(), bold: true },
-      { label: "提案後月額",   value: "¥" + Number(propCost||0).toLocaleString(), bold: true },
-      { type: "separator" },
-      { label: "月額節約額",   value: "¥" + Number(saveCost||0).toLocaleString() + "/月", bold: true },
-      { label: "年間節約額",   value: "¥" + (Number(saveCost||0) * 12).toLocaleString() + "/年" },
-      { label: "2年間節約額",  value: "¥" + (Number(saveCost||0) * 24).toLocaleString() + "/2年" },
-      { type: "separator" },
-      { label: "提案キャリア", value: propCarrier || "未記入" },
-      { label: "提案プラン",   value: propPlan    || "未記入" },
-      { label: "適用割引",     value: discounts.length > 30 ? discounts.substring(0,30)+"…" : (discounts || "なし") }
-    ] : [
-      { label: "状態", value: "料金シミュレーションが未実施です" },
-      { label: "",     value: "対面でシミュレーターを使って計算します" }
-    ];
-    const card3 = makeMyPageBubble(
-      "#e67e22", "💰", "料金シミュレーション",
-      simRows,
-      { type: "uri", label: hasSim ? "プラン相談を予約する" : "シミュレーションを依頼する", uri: reserveUrl }
-    );
-
-    const card4 = makeMyPageBubble(
-      "#27ae60", "🩺", "スマホカルテ",
-      [
-        { label: "利用端末",     value: device },
-        { label: "バッテリー",   value: battery },
-        { label: "ストレージ",   value: storage },
+    // ★ 以下 card3〜card7 は一時非表示中（MYPAGE_CARD_VISIBILITY参照）。
+    //   作る処理・データの読み取りは残し、カルーセルへの追加だけを止めている。
+    //   カードを戻すときは、ファイル先頭の MYPAGE_CARD_VISIBILITY を true にするだけでよい。
+    let card3 = null;
+    if (MYPAGE_CARD_VISIBILITY.priceSimulation) {
+      const hasSim = curCost !== undefined && curCost !== null;
+      const simRows = hasSim ? [
+        { label: "現在の月額",   value: "¥" + Number(curCost).toLocaleString(), bold: true },
+        { label: "提案後月額",   value: "¥" + Number(propCost||0).toLocaleString(), bold: true },
         { type: "separator" },
-        { label: "買い替え目安", value: buyTime ? buyMap[buyTime] || buyTime : "未診断" },
-        { label: "カルテ更新日", value: karteDate ? karteDate.replace(/-/g,"/") : "未実施（対面時に記録）" }
-      ],
-      { type: "uri", label: "定期点検を予約する", uri: reserveUrl + "?menu=" + encodeURIComponent("【会員限定】定期点検サポート") }
-    );
-
-    const hasApp = appUsed !== "未記録" || appTrans !== "未記録";
-    const card5 = makeMyPageBubble(
-      "#8e44ad", "📦", "アプリチェック結果",
-      hasApp ? [
-        { label: "移行必須アプリ", value: appTrans, bold: true },
+        { label: "月額節約額",   value: "¥" + Number(saveCost||0).toLocaleString() + "/月", bold: true },
+        { label: "年間節約額",   value: "¥" + (Number(saveCost||0) * 12).toLocaleString() + "/年" },
+        { label: "2年間節約額",  value: "¥" + (Number(saveCost||0) * 24).toLocaleString() + "/2年" },
         { type: "separator" },
-        { label: "利用中アプリ",   value: appUsed.length > 60 ? appUsed.substring(0,60) + "…" : appUsed },
-        { label: "カルテ更新日",   value: karteDate ? karteDate.replace(/-/g,"/") : "未実施" }
+        { label: "提案キャリア", value: propCarrier || "未記入" },
+        { label: "提案プラン",   value: propPlan    || "未記入" },
+        { label: "適用割引",     value: discounts.length > 30 ? discounts.substring(0,30)+"…" : (discounts || "なし") }
       ] : [
-        { label: "状態", value: "アプリチェックが未実施です" },
-        { label: "",     value: "機種変更前にアプリの引き継ぎ確認をしましょう！" }
-      ],
-      { type: "uri", label: "データ移行を相談する", uri: reserveUrl + "?menu=" + encodeURIComponent("データ移行パック") }
-    );
-
-    const historyRows = historyLines.length > 0
-      ? historyLines.map(function(h) { return { label: "", value: h.length > 40 ? h.substring(0,40) + "…" : h }; })
-      : [{ label: "履歴", value: "まだ記録がありません" }];
-    const card6 = makeMyPageBubble(
-      "#249496", "🏆", "まちつながり履歴",
-      [
-        { label: "ポイント合計", value: points + "pt", bold: true },
-        { label: "次の特典",    value: nextMilestone ? "あと" + ptToNext + "ptで " + milestoneMap[nextMilestone] : "🎉 最高ランク達成！" },
-        { type: "separator" },
-        ...historyRows,
-        { type: "separator" },
-        { label: "獲得チャンス", value: "診断+3pt / 予約+5pt / 発見投稿+3pt" },
-        { label: "次回フォロー", value: nextFollow || "未設定" }
-      ],
-      null
-    );
-
-    // ★ card7: スマホ遍歴（年順・古→新で表示。10件まで、超過は "…他N件"）
-    const timelineRaw = safeRichText(p["スマホ遍歴"]);
-    const timelineLines = (timelineRaw || "")
-      .split("\n")
-      .map(function(s){ return s.trim(); })
-      .filter(Boolean);
-    const TL_MAX_SHOW = 10;
-    const tlShown = timelineLines.slice(0, TL_MAX_SHOW);
-    const tlRemaining = timelineLines.length - TL_MAX_SHOW;
-    const timelineRows = tlShown.length > 0
-      ? tlShown.map(function(line){
-          const m = line.match(/^(\d{4})[：:](.+)$/);  // 「2019：内容」 → {label:"2019", value:"内容"}
-          if (m) {
-            const val = m[2].trim();
-            return { label: m[1], value: val.length > 30 ? val.substring(0, 30) + "…" : val };
-          }
-          return { label: "", value: line.length > 36 ? line.substring(0, 36) + "…" : line };
-        })
-      : [{ label: "履歴", value: "まだ記録がありません" }];
-    if (tlRemaining > 0) {
-      timelineRows.push({ type: "separator" });
-      timelineRows.push({ label: "", value: "…他 " + tlRemaining + " 件" });
+        { label: "状態", value: "料金シミュレーションが未実施です" },
+        { label: "",     value: "対面でシミュレーターを使って計算します" }
+      ];
+      card3 = makeMyPageBubble(
+        "#e67e22", "💰", "料金シミュレーション",
+        simRows,
+        { type: "uri", label: hasSim ? "プラン相談を予約する" : "シミュレーションを依頼する", uri: reserveUrl }
+      );
     }
-    const card7 = makeMyPageBubble(
-      "#6c5ce7", "📲", "スマホ遍歴",
-      [
-        ...timelineRows,
-        { type: "separator" },
-        { label: "カルテ更新日", value: karteDate ? karteDate.replace(/-/g,"/") : "未実施" }
-      ],
-      { type: "uri", label: "定期点検を予約する", uri: reserveUrl + "?menu=" + encodeURIComponent("【会員限定】定期点検サポート") }
-    );
+
+    let card4 = null;
+    if (MYPAGE_CARD_VISIBILITY.karte) {
+      card4 = makeMyPageBubble(
+        "#27ae60", "🩺", "スマホカルテ",
+        [
+          { label: "利用端末",     value: device },
+          { label: "バッテリー",   value: battery },
+          { label: "ストレージ",   value: storage },
+          { type: "separator" },
+          { label: "買い替え目安", value: buyTime ? buyMap[buyTime] || buyTime : "未診断" },
+          { label: "カルテ更新日", value: karteDate ? karteDate.replace(/-/g,"/") : "未実施（対面時に記録）" }
+        ],
+        { type: "uri", label: "定期点検を予約する", uri: reserveUrl + "?menu=" + encodeURIComponent("【会員限定】定期点検サポート") }
+      );
+    }
+
+    let card5 = null;
+    if (MYPAGE_CARD_VISIBILITY.appCheck) {
+      const hasApp = appUsed !== "未記録" || appTrans !== "未記録";
+      card5 = makeMyPageBubble(
+        "#8e44ad", "📦", "アプリチェック結果",
+        hasApp ? [
+          { label: "移行必須アプリ", value: appTrans, bold: true },
+          { type: "separator" },
+          { label: "利用中アプリ",   value: appUsed.length > 60 ? appUsed.substring(0,60) + "…" : appUsed },
+          { label: "カルテ更新日",   value: karteDate ? karteDate.replace(/-/g,"/") : "未実施" }
+        ] : [
+          { label: "状態", value: "アプリチェックが未実施です" },
+          { label: "",     value: "機種変更前にアプリの引き継ぎ確認をしましょう！" }
+        ],
+        { type: "uri", label: "データ移行を相談する", uri: reserveUrl + "?menu=" + encodeURIComponent("データ移行パック") }
+      );
+    }
+
+    let card6 = null;
+    if (MYPAGE_CARD_VISIBILITY.townConnection) {
+      const historyRows = historyLines.length > 0
+        ? historyLines.map(function(h) { return { label: "", value: h.length > 40 ? h.substring(0,40) + "…" : h }; })
+        : [{ label: "履歴", value: "まだ記録がありません" }];
+      card6 = makeMyPageBubble(
+        "#249496", "🏆", "まちつながり履歴",
+        [
+          { label: "ポイント合計", value: points + "pt", bold: true },
+          { label: "次の特典",    value: nextMilestone ? "あと" + ptToNext + "ptで " + milestoneMap[nextMilestone] : "🎉 最高ランク達成！" },
+          { type: "separator" },
+          ...historyRows,
+          { type: "separator" },
+          { label: "獲得チャンス", value: "診断+3pt / 予約+5pt / 発見投稿+3pt" },
+          { label: "次回フォロー", value: nextFollow || "未設定" }
+        ],
+        null
+      );
+    }
+
+    let card7 = null;
+    if (MYPAGE_CARD_VISIBILITY.phoneHistory) {
+      // ★ card7: スマホ遍歴（年順・古→新で表示。10件まで、超過は "…他N件"）
+      const timelineRaw = safeRichText(p["スマホ遍歴"]);
+      const timelineLines = (timelineRaw || "")
+        .split("\n")
+        .map(function(s){ return s.trim(); })
+        .filter(Boolean);
+      const TL_MAX_SHOW = 10;
+      const tlShown = timelineLines.slice(0, TL_MAX_SHOW);
+      const tlRemaining = timelineLines.length - TL_MAX_SHOW;
+      const timelineRows = tlShown.length > 0
+        ? tlShown.map(function(line){
+            const m = line.match(/^(\d{4})[：:](.+)$/);  // 「2019：内容」 → {label:"2019", value:"内容"}
+            if (m) {
+              const val = m[2].trim();
+              return { label: m[1], value: val.length > 30 ? val.substring(0, 30) + "…" : val };
+            }
+            return { label: "", value: line.length > 36 ? line.substring(0, 36) + "…" : line };
+          })
+        : [{ label: "履歴", value: "まだ記録がありません" }];
+      if (tlRemaining > 0) {
+        timelineRows.push({ type: "separator" });
+        timelineRows.push({ label: "", value: "…他 " + tlRemaining + " 件" });
+      }
+      card7 = makeMyPageBubble(
+        "#6c5ce7", "📲", "スマホ遍歴",
+        [
+          ...timelineRows,
+          { type: "separator" },
+          { label: "カルテ更新日", value: karteDate ? karteDate.replace(/-/g,"/") : "未実施" }
+        ],
+        { type: "uri", label: "定期点検を予約する", uri: reserveUrl + "?menu=" + encodeURIComponent("【会員限定】定期点検サポート") }
+      );
+    }
 
     // ★ card8系: ご家族の見積もり（見積もり履歴DBから、この人の最新1件を「家族1人=カード1枚」で表示）
-    //   LINE Flexカルーセルは1メッセージ最大12枚。card1〜card7で7枚使うため、
-    //   家族カードに割り当てられるのは最大5枚（MAX_FAMILY_CARDS）。
+    //   LINE Flexカルーセルは1メッセージ最大12枚。card1〜card7が全部表示される場合に
+    //   備えて、家族カードの上限は5枚のまま変更しない（MYPAGE_CARD_VISIBILITYで
+    //   card3〜card7を戻したときも安全なように。今はcard3〜card7を非表示にしているため
+    //   実際の合計は少ないが、上限はあえて増やさない）。
     const MAX_FAMILY_CARDS = 5;
     let mitsumoriCards = [];   // 0件なら「見積もり無し」カード1枚にフォールバック
     try {
@@ -3521,7 +3566,7 @@ function replyMyPage(userId, replyToken) {
           {
             type: "flex",
             altText: name + " さんのマイページ",
-            contents: { type: "carousel", contents: [card1, card2, card3, card4, card5, card6, card7].concat(mitsumoriCards) }
+            contents: { type: "carousel", contents: [card1, card2, card3, card4, card5, card6, card7].filter(Boolean).concat(mitsumoriCards) }
           }
         ]
       }),

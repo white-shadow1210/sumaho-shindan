@@ -624,3 +624,131 @@ test('a built family card is valid Flex bubble JSON: correct type, no literal "u
   assert.doesNotMatch(json, /\bNaN\b/);
   assert.ok(JSON.parse(json)); // round-trips cleanly
 });
+
+// --- MyPage carousel simplification: some cards temporarily hidden via MYPAGE_CARD_VISIBILITY ---
+
+const CUSTOMER_MASTER_DB_ID = '34cb9755785480df9465d156cd572bd9';
+const DIAGNOSIS_DB_ID_VALUE = '333b9755785480acb1a2e46850b5edca';
+const MITSUMORI_DB_ID_VALUE = '3490d14e49c445bc963d1378f4a96e12';
+
+function defaultCustomerPageProps(overrides = {}) {
+  return Object.assign({
+    '氏名': { title: [{ plain_text: 'テスト 太郎' }] },
+    'ポイント': { number: 18 },
+    '初回登録日': { date: { start: '2026-01-01' } },
+    '最終来店日': { date: { start: '2026-10-01' } },
+    '対応ステータス': { select: { name: '対応中' } },
+    'かかりつけ会員': { checkbox: false },
+    '利用キャリア': { rich_text: [{ plain_text: 'docomo' }] },
+    'Q2_毎月の支払額': { select: { name: '5000〜7000円' } },
+    '買い替え時期': { rich_text: [{ plain_text: '２年以内' }] },
+    'Q5_ネット環境': { select: { name: '光回線' } },
+    '利用端末': { rich_text: [{ plain_text: 'iPhone 14' }] },
+    'スマホカルテ更新日': { date: { start: '2026-09-01' } }
+  }, overrides);
+}
+function mypageContext({ customerProps, mitsumoriResults = [], customerFound = true } = {}) {
+  let blocksCalls = 0;
+  let pushedPayload = null;
+  const customerPage = { id: 'test-page-id', properties: defaultCustomerPageProps(customerProps) };
+  const ctx = gas({
+    Utilities: { DigestAlgorithm: { MD5: 'md5' }, computeDigest: () => [1, 2, 3, 4, 5, 6] },
+    UrlFetchApp: { fetch: (url, opts) => {
+      if (url.includes('/databases/' + CUSTOMER_MASTER_DB_ID + '/query')) {
+        return response(200, { results: customerFound ? [customerPage] : [] });
+      }
+      if (url.includes('/databases/' + MITSUMORI_DB_ID_VALUE + '/query')) {
+        return response(200, { results: mitsumoriResults, has_more: false });
+      }
+      if (url.includes('/databases/' + DIAGNOSIS_DB_ID_VALUE + '/query')) {
+        return response(200, { results: [] });
+      }
+      if (url.includes('/blocks/')) {
+        blocksCalls++;
+        return response(200, { results: [] });
+      }
+      if (url.includes('/v2/bot/message/reply')) {
+        pushedPayload = JSON.parse(opts.payload);
+        return response(200, {});
+      }
+      if (url.includes('/v2/bot/profile/')) {
+        return response(200, { displayName: 'テスト太郎' });
+      }
+      return response(200, {});
+    } }
+  });
+  return { ctx, getPushed: () => pushedPayload, getBlocksCalls: () => blocksCalls };
+}
+function cardTitles(pushed) {
+  const carousel = pushed.messages[1].contents.contents;
+  return carousel.map(c => c.header.contents[1].text);
+}
+
+test('mypage carousel ships with only "basic info", "diagnosis result", and "family estimate" cards by default', () => {
+  const { ctx, getPushed, getBlocksCalls } = mypageContext();
+  ctx.replyMyPage('line-user-1', 'reply-token');
+  const pushed = getPushed();
+  assert.ok(pushed, 'expected a LINE push message');
+  const titles = cardTitles(pushed);
+  assert.deepEqual(titles, ['基本情報', 'スマホ診断結果', 'ご家族の見積もり']);
+  // the hidden cards must not appear at all
+  for (const hidden of ['料金シミュレーション', 'スマホカルテ', 'アプリチェック結果', 'まちつながり履歴', 'スマホ遍歴']) {
+    assert.ok(!titles.includes(hidden), `"${hidden}" should be hidden`);
+  }
+  // hiding "town connection" must skip its only dedicated Notion read (the blocks/children call)
+  assert.equal(getBlocksCalls(), 0);
+});
+test('mypage "basic info" card keeps name/status/dates but drops points/next-reward while hidden', () => {
+  const { ctx, getPushed } = mypageContext();
+  ctx.replyMyPage('line-user-1', 'reply-token');
+  const basicInfo = cardTitles(getPushed()).length && getPushed().messages[1].contents.contents[0];
+  const rows = basicInfo.body.contents;
+  const labels = rows.map(r => r.contents ? r.contents[0].text : '---sep---');
+  assert.deepEqual(labels, ['お名前', '会員ステータス', '初回登録日', '最終来店日']);
+  assert.ok(!labels.includes('ポイント'));
+  assert.ok(!labels.includes('次の特典'));
+});
+test('mypage carousel shows all cards again when MYPAGE_CARD_VISIBILITY flags are switched on (reversible)', () => {
+  const { ctx, getPushed, getBlocksCalls } = mypageContext();
+  Object.keys(ctx.MYPAGE_CARD_VISIBILITY).forEach(k => { ctx.MYPAGE_CARD_VISIBILITY[k] = true; });
+  ctx.replyMyPage('line-user-1', 'reply-token');
+  const titles = cardTitles(getPushed());
+  assert.deepEqual(titles, [
+    '基本情報', 'スマホ診断結果', '料金シミュレーション', 'スマホカルテ',
+    'アプリチェック結果', 'まちつながり履歴', 'スマホ遍歴', 'ご家族の見積もり'
+  ]);
+  assert.equal(getBlocksCalls(), 1, 'turning town connection back on should resume the blocks/children read');
+});
+test('mypage still renders cleanly (no throw) for a customer with no diagnosis/estimate data at all', () => {
+  const { ctx, getPushed } = mypageContext({
+    customerProps: {
+      '利用キャリア': { rich_text: [] }, 'Q2_毎月の支払額': { select: null },
+      '買い替え時期': { rich_text: [] }, 'Q5_ネット環境': { select: null }, '利用端末': { rich_text: [] }
+    },
+    mitsumoriResults: []
+  });
+  assert.doesNotThrow(() => ctx.replyMyPage('line-user-1', 'reply-token'));
+  const titles = cardTitles(getPushed());
+  assert.deepEqual(titles, ['基本情報', 'スマホ診断結果', 'ご家族の見積もり']);
+});
+test('mypage flex carousel stays within the LINE 12-bubble limit and is valid JSON even with a multi-person family', () => {
+  const family = Array.from({ length: 6 }, (_, i) => ({ meigi: '家族' + i, monthly: 1000 + i }));
+  const mitsumoriPage = { properties: {
+    '流入経路': { rich_text: [] },
+    '作成日': { date: { start: '2026-10-16' } },
+    '明細JSON': { rich_text: [{ plain_text: JSON.stringify({ date: '2026-10-16', family }) }] }
+  } };
+  const { ctx, getPushed } = mypageContext({ mitsumoriResults: [mitsumoriPage] });
+  ctx.replyMyPage('line-user-1', 'reply-token');
+  const pushed = getPushed();
+  const carousel = pushed.messages[1].contents.contents;
+  assert.ok(carousel.length <= 12, `carousel has ${carousel.length} cards`);
+  assert.ok(carousel.every(c => c.type === 'bubble'));
+  const json = JSON.stringify(pushed);
+  assert.doesNotMatch(json, /\bundefined\b/);
+  assert.ok(JSON.parse(json));
+});
+test('a customer not found in the customer master still gets a reply without throwing', () => {
+  const { ctx } = mypageContext({ customerFound: false });
+  assert.doesNotThrow(() => ctx.replyMyPage('line-user-new', 'reply-token'));
+});

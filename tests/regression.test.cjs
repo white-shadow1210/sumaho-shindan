@@ -512,3 +512,115 @@ test('LP does not include unapproved draft-only content (testimonials, draft bad
   assert.doesNotMatch(lp, /dn-/);
   assert.doesNotMatch(lp, /noindex/);
 });
+
+// --- MyPage card8: "relation/name" (zokugara/meigi) shown per family member ---
+
+test('sanitizeRelationName_ trims, strips control characters, and truncates to 40 chars', () => {
+  const ctx = gas();
+  assert.equal(ctx.sanitizeRelationName_('  長男様  '), '長男様');
+  assert.equal(ctx.sanitizeRelationName_('本人\n\t　'.replace('　', '')), '本人');
+  assert.equal(ctx.sanitizeRelationName_('a'.repeat(50)).length, 40);
+  assert.equal(ctx.sanitizeRelationName_('a'.repeat(50)), 'a'.repeat(40));
+});
+test('sanitizeRelationName_ treats missing/empty/whitespace-only/placeholder values as blank', () => {
+  const ctx = gas();
+  assert.equal(ctx.sanitizeRelationName_(undefined), '');
+  assert.equal(ctx.sanitizeRelationName_(null), '');
+  assert.equal(ctx.sanitizeRelationName_(''), '');
+  assert.equal(ctx.sanitizeRelationName_('   '), '');
+  assert.equal(ctx.sanitizeRelationName_('（お名前未記入）'), ''); // "（お名前未記入）"
+});
+test('sanitizeRelationName_ strips embedded control characters (e.g. newlines) without dropping real text', () => {
+  const ctx = gas();
+  assert.equal(ctx.sanitizeRelationName_('長女\n様'), '長女様'); // "長女\n様" -> "長女様"
+});
+
+test('buildMitsumoriPersonRows_ places "relation/name" directly under "last created date" when present', () => {
+  const ctx = gas();
+  const me = { meigi: '長女様', carrier: 'docomo', planName: 'eximo', basePrice: 7315, monthly: 7315 };
+  const rows = plain(ctx.buildMitsumoriPersonRows_(me, '2026/10/16'));
+  assert.deepEqual(rows[0], { label: '最終作成日', value: '2026/10/16' });
+  assert.deepEqual(rows[1], { label: '続柄・お名前', value: '長女様' });
+  assert.deepEqual(rows[2], { type: 'separator' });
+});
+test('buildMitsumoriPersonRows_ omits the row entirely when the relation/name is blank', () => {
+  const ctx = gas();
+  const me = { meigi: '', carrier: 'docomo', planName: 'eximo', basePrice: 7315, monthly: 7315 };
+  const rows = plain(ctx.buildMitsumoriPersonRows_(me, '2026/10/16'));
+  assert.deepEqual(rows[0], { label: '最終作成日', value: '2026/10/16' });
+  assert.deepEqual(rows[1], { type: 'separator' }); // straight to the existing separator, no blank row
+  assert.ok(!rows.some(r => r.label === '続柄・お名前'));
+});
+test('buildMitsumoriPersonRows_ does not throw on old saved data missing the "meigi" field entirely', () => {
+  const ctx = gas();
+  const me = { carrier: 'docomo', planName: 'eximo', basePrice: 7315, monthly: 7315 }; // no `meigi` key at all
+  const rows = plain(ctx.buildMitsumoriPersonRows_(me, '2026/10/16'));
+  assert.ok(!rows.some(r => r.label === '続柄・お名前'));
+  assert.equal(rows[rows.length - 1].label, '月額合計'); // still ends normally
+});
+test('buildMitsumoriPersonRows_ keeps the existing row order and fields unchanged (carrier/plan/call/discount/hosho/other/device/total)', () => {
+  const ctx = gas();
+  const me = {
+    meigi: '本人', carrier: 'au', planName: 'プランA', basePrice: 5000,
+    callLabel: '24時間かけ放題', callVal: 1870,
+    discountTotal: 1100, hosho: 770, other: 330,
+    deviceName: 'iPhone 15', deviceMonthly: 2145, kaisu: 24,
+    monthly: 9890
+  };
+  const rows = plain(ctx.buildMitsumoriPersonRows_(me, '2026/10/16'));
+  const labels = rows.map(r => r.label !== undefined ? r.label : '---sep---');
+  assert.deepEqual(labels, [
+    '最終作成日', '続柄・お名前', '---sep---',
+    'キャリア', 'プラン', '通話OP', '割引', '補償', 'その他',
+    '端末', '端末/分割24回', '---sep---', '月額合計'
+  ]);
+  assert.equal(rows[rows.length - 1].bold, true);
+});
+
+test('selectDisplayedFamilyMembers_ shows everyone when within the card limit', () => {
+  const ctx = gas();
+  const family = [{ meigi: 'a' }, { meigi: 'b' }, { meigi: 'c' }];
+  const result = plain(ctx.selectDisplayedFamilyMembers_(family, 5));
+  assert.equal(result.shown.length, 3);
+  assert.equal(result.remainingCount, 0);
+});
+test('selectDisplayedFamilyMembers_ caps at maxCards and reports how many are left out', () => {
+  const ctx = gas();
+  const family = Array.from({ length: 8 }, (_, i) => ({ meigi: 'person' + i }));
+  const result = plain(ctx.selectDisplayedFamilyMembers_(family, 5));
+  assert.equal(result.shown.length, 5);
+  assert.equal(result.remainingCount, 3);
+  assert.deepEqual(result.shown.map(p => p.meigi), ['person0', 'person1', 'person2', 'person3', 'person4']);
+});
+test('selectDisplayedFamilyMembers_ handles an empty or missing family array without throwing', () => {
+  const ctx = gas();
+  assert.deepEqual(plain(ctx.selectDisplayedFamilyMembers_([], 5)), { shown: [], remainingCount: 0 });
+  assert.deepEqual(plain(ctx.selectDisplayedFamilyMembers_(undefined, 5)), { shown: [], remainingCount: 0 });
+});
+test('mypage family cards never exceed the LINE Flex carousel limit of 12 (7 fixed cards + up to 5 family cards)', () => {
+  const ctx = gas();
+  const FIXED_CARDS = 7;
+  const MAX_FAMILY_CARDS = 5;
+  for (const familySize of [0, 1, 5, 6, 12, 30]) {
+    const family = Array.from({ length: familySize }, (_, i) => ({ meigi: 'p' + i, monthly: 1000 }));
+    const picked = ctx.selectDisplayedFamilyMembers_(family, MAX_FAMILY_CARDS);
+    const cardCount = FIXED_CARDS + Math.max(1, picked.shown.length); // at least 1 "no estimate yet" card
+    assert.ok(cardCount <= 12, `familySize=${familySize} produced ${cardCount} cards`);
+  }
+});
+test('a built family card is valid Flex bubble JSON: correct type, no literal "undefined"/"NaN" text leaking through', () => {
+  const ctx = gas();
+  // Deliberately sparse person object to exercise every `|| "未記録"` / `me && ...` guard.
+  const sparse = { meigi: '長男様' };
+  const rows = ctx.buildMitsumoriPersonRows_(sparse, '');
+  const bubble = ctx.makeMyPageBubble('#b0894a', '📄', 'ご家族の見積もり', rows,
+    { type: 'uri', label: '相談を予約する', uri: 'https://example.invalid/reserve' });
+  const json = JSON.stringify(bubble);
+  assert.equal(bubble.type, 'bubble');
+  assert.equal(bubble.header.type, 'box');
+  assert.equal(bubble.body.type, 'box');
+  assert.equal(bubble.footer.type, 'box');
+  assert.doesNotMatch(json, /\bundefined\b/);
+  assert.doesNotMatch(json, /\bNaN\b/);
+  assert.ok(JSON.parse(json)); // round-trips cleanly
+});

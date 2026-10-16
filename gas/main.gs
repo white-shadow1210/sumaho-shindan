@@ -3082,6 +3082,76 @@ function replyKarteQuick(userId, replyToken) {
 }
 
 // ==========================================
+// ▼ マイページ card8「ご家族の見積もり」：続柄・お名前 まわりの純粋関数
+//   （Notion/GASに依存しない。tests/ で単体テスト可能）
+// ==========================================
+
+// 見積もり入力画面の「続柄・お名前」欄の値を、カード表示用に整形する。
+// - 改行・制御文字を除去
+// - 前後の空白を除去
+// - 40文字を超える場合は切り詰める
+// - 空、空白のみ、未入力時のプレースホルダー「（お名前未記入）」は、
+//   いずれも「行を出さない」の合図として空文字列を返す
+// - 値が存在しない（古い保存データ等）場合も空文字列を返す（例外を投げない）
+function sanitizeRelationName_(raw) {
+  if (raw === undefined || raw === null) return "";
+  var s = String(raw);
+  s = s.replace(/[\u0000-\u001F\u007F]/g, ""); // 改行・制御文字を除去
+  s = s.trim();
+  if (s === "（お名前未記入）") return ""; // 未入力時の自動プレースホルダーは「空」扱い
+  if (s.length > 40) s = s.substring(0, 40);
+  return s;
+}
+
+// 見積もり履歴の family[] から、1人分の要約行を作る（既存カード8のロジックを関数化）。
+// me: family配列の1要素（collectCurrentPersonが保存したオブジェクト）
+// mDate: 見積もり全体の作成日（"YYYY/MM/DD"形式。未記録なら"未記録"）
+// 戻り値: rows配列（makeMyPageBubbleにそのまま渡せる形）
+function buildMitsumoriPersonRows_(me, mDate) {
+  function yen_(n) { var num = Number(n) || 0; return "¥" + num.toLocaleString(); }
+  var rows = [
+    { label: "最終作成日", value: mDate || "未記録" }
+  ];
+  var relationName = sanitizeRelationName_(me && me.meigi);
+  if (relationName) {
+    rows.push({ label: "続柄・お名前", value: relationName });
+  }
+  rows.push({ type: "separator" });
+  rows.push({ label: "キャリア", value: (me && me.carrier) || "未記録" });
+  rows.push({ label: "プラン",   value: ((me && me.planName) || "未記録") + "  " + yen_(me && me.basePrice) });
+
+  if (me && Number(me.callVal) > 0) {
+    rows.push({ label: "通話OP", value: (me.callLabel || "通話OP") + "  " + yen_(me.callVal) });
+  }
+  if (me && Number(me.discountTotal) > 0) {
+    rows.push({ label: "割引", value: "−" + yen_(me.discountTotal) });
+  }
+  if (me && Number(me.hosho) > 0) rows.push({ label: "補償",   value: yen_(me.hosho) });
+  if (me && Number(me.other) > 0) rows.push({ label: "その他", value: yen_(me.other) });
+  if (me && me.deviceName) {
+    rows.push({ label: "端末", value: me.deviceName });
+  }
+  if (me && Number(me.deviceMonthly) > 0) {
+    var devLabel = (Number(me.kaisu) > 0) ? ("端末/分割" + me.kaisu + "回") : "端末(分割)";
+    rows.push({ label: devLabel, value: yen_(me.deviceMonthly) });
+  }
+  rows.push({ type: "separator" });
+  rows.push({ label: "月額合計", value: yen_(me && me.monthly), bold: true });
+  return rows;
+}
+
+// LINE Flexカルーセルは1メッセージ最大12枚。card1〜card7が既に7枚あるため、
+// 家族の見積もりカードに割り当てられるのは最大5枚。
+// family配列から、表示する人数と「ほか○名」の要否を決める。
+// 戻り値: { shown: [...family先頭から最大maxCards件], remainingCount: number }
+function selectDisplayedFamilyMembers_(family, maxCards) {
+  var list = Array.isArray(family) ? family : [];
+  var shown = list.slice(0, maxCards);
+  var remainingCount = Math.max(0, list.length - shown.length);
+  return { shown: shown, remainingCount: remainingCount };
+}
+
+// ==========================================
 // マイページ → Flex Messageカルーセル6枚
 // ==========================================
 function replyMyPage(userId, replyToken) {
@@ -3380,8 +3450,11 @@ function replyMyPage(userId, replyToken) {
       { type: "uri", label: "定期点検を予約する", uri: reserveUrl + "?menu=" + encodeURIComponent("【会員限定】定期点検サポート") }
     );
 
-    // ★ card8: ご家族の見積もり（見積もり履歴DBから、この人の最新1件を「本人=family[0]」の要約で表示）
-    let mitsumoriRows = null;   // rows for card8. null なら「見積もり無し」扱い
+    // ★ card8系: ご家族の見積もり（見積もり履歴DBから、この人の最新1件を「家族1人=カード1枚」で表示）
+    //   LINE Flexカルーセルは1メッセージ最大12枚。card1〜card7で7枚使うため、
+    //   家族カードに割り当てられるのは最大5枚（MAX_FAMILY_CARDS）。
+    const MAX_FAMILY_CARDS = 5;
+    let mitsumoriCards = [];   // 0件なら「見積もり無し」カード1枚にフォールバック
     try {
       const mitsRes = UrlFetchApp.fetch(
         "https://api.notion.com/v1/databases/" + MITSUMORI_DB_ID + "/query",
@@ -3404,57 +3477,39 @@ function replyMyPage(userId, replyToken) {
           if (jsonStr) {
             try { mitsumoriObj = JSON.parse(jsonStr); } catch(_je) { mitsumoriObj = null; }
           }
-                    if (mitsumoriObj && mitsumoriObj.family && mitsumoriObj.family[0]) {
-            const me = mitsumoriObj.family[0];
+          if (mitsumoriObj && mitsumoriObj.family && mitsumoriObj.family.length) {
             const mDate = (mitsumoriObj.date || "").replace(/-/g, "/");
-            function yen_(n){ var num = Number(n) || 0; return "¥" + num.toLocaleString(); }
-            const rows = [
-              { label: "最終作成日", value: mDate || "未記録" },
-              { type: "separator" },
-              { label: "キャリア",   value: me.carrier  || "未記録" },
-              { label: "プラン",     value: (me.planName || "未記録") + "  " + yen_(me.basePrice) }
-            ];
-            // 通話OP：名前つき（例：24時間かけ放題 ¥1,980）
-            if (Number(me.callVal) > 0) {
-              rows.push({ label: "通話OP", value: (me.callLabel || "通話OP") + "  " + yen_(me.callVal) });
-            }
-            // 割引：合計をマイナス表記
-            if (Number(me.discountTotal) > 0) {
-              rows.push({ label: "割引", value: "−" + yen_(me.discountTotal) });
-            }
-            if (Number(me.hosho) > 0) rows.push({ label: "補償",   value: yen_(me.hosho) });
-            if (Number(me.other) > 0) rows.push({ label: "その他", value: yen_(me.other) });
-            // 端末名（あるときだけ）
-            if (me.deviceName) {
-              rows.push({ label: "端末", value: me.deviceName });
-            }
-            // 端末分割：ラベルに回数を入れる（例：端末/分割24回）
-            if (Number(me.deviceMonthly) > 0) {
-              var devLabel = (Number(me.kaisu) > 0) ? ("端末/分割" + me.kaisu + "回") : "端末(分割)";
-              rows.push({ label: devLabel, value: yen_(me.deviceMonthly) });
-            }
-            rows.push({ type: "separator" });
-            rows.push({ label: "月額合計", value: yen_(me.monthly), bold: true });
-            mitsumoriRows = rows;
+            const picked = selectDisplayedFamilyMembers_(mitsumoriObj.family, MAX_FAMILY_CARDS);
+            mitsumoriCards = picked.shown.map(function (me, i) {
+              const rows = buildMitsumoriPersonRows_(me, mDate);
+              // 表示しきれない家族がいる場合は、最後のカードに案内を1行足す
+              if (i === picked.shown.length - 1 && picked.remainingCount > 0) {
+                rows.push({ type: "separator" });
+                rows.push({ label: "", value: "ほか" + picked.remainingCount + "名は対面でご確認ください" });
+              }
+              return makeMyPageBubble(
+                "#b0894a", "📄", "ご家族の見積もり",
+                rows,
+                { type: "uri", label: "相談を予約する", uri: reserveUrl }
+              );
+            });
           }
         }
       }
     } catch(mitsErr) { console.error("見積もり履歴取得エラー: " + mitsErr); }
 
-    const card8 = mitsumoriRows
-      ? makeMyPageBubble(
-          "#b0894a", "📄", "ご家族の見積もり",
-          mitsumoriRows,
-          { type: "uri", label: "相談を予約する", uri: reserveUrl }
-        )
-      : makeMyPageBubble(
+    if (mitsumoriCards.length === 0) {
+      mitsumoriCards = [
+        makeMyPageBubble(
           "#b0894a", "📄", "ご家族の見積もり",
           [
             { label: "状態", value: "まだ見積もりがありません" },
             { label: "",     value: "対面でご家族の見積もりをお作りします" }
           ],
           { type: "uri", label: "見積もりを相談する", uri: reserveUrl }
-        );
+        )
+      ];
+    }
 
     UrlFetchApp.fetch("https://api.line.me/v2/bot/message/reply", {
       method: "post",
@@ -3466,7 +3521,7 @@ function replyMyPage(userId, replyToken) {
           {
             type: "flex",
             altText: name + " さんのマイページ",
-            contents: { type: "carousel", contents: [card1, card2, card3, card4, card5, card6, card7, card8] }
+            contents: { type: "carousel", contents: [card1, card2, card3, card4, card5, card6, card7].concat(mitsumoriCards) }
           }
         ]
       }),

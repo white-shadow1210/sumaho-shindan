@@ -456,7 +456,10 @@
       document.getElementById('loading-status').innerHTML = "✅ 送信が完了しました！";
       document.getElementById('guide-area').style.display = 'block';
       const btn = document.createElement('button');
-      const encodedMsg = encodeURIComponent("カルテ診断完了");
+      // ★ lineUserId が取れている場合は、従来どおり「カルテ診断完了」のまま（動作変更なし）。
+      //   取れていない場合だけ、受付IDを付けて後からLINEイベント側で紐付けられるようにする。
+      const karteMsg = (!liffUserId && result.receptionId) ? ("カルテ診断完了 #" + result.receptionId) : "カルテ診断完了";
+      const encodedMsg = encodeURIComponent(karteMsg);
       btn.onclick = () => { location.href = `https://line.me/R/oaMessage/@281jfkpu/?${encodedMsg}`; };
       btn.style = "margin-top:20px;width:100%;background:#1a2a40;color:white;border:none;padding:16px;border-radius:10px;font-weight:bold;font-size:1rem;cursor:pointer;";
       btn.innerText = "LINEに戻って送信する";

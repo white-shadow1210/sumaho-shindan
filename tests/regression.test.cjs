@@ -752,3 +752,517 @@ test('a customer not found in the customer master still gets a reply without thr
   const { ctx } = mypageContext({ customerFound: false });
   assert.doesNotThrow(() => ctx.replyMyPage('line-user-new', 'reply-token'));
 });
+
+// --- Diagnosis auto-reply: judge type / one-points / templates ---
+
+test('judgeDiagnosisType_ returns B for a high payer with only light usage selected', () => {
+  const ctx = gas();
+  assert.equal(ctx.judgeDiagnosisType_({ q2: '5000円 前後', q3: ['4GB以下'] }), 'B');
+  assert.equal(ctx.judgeDiagnosisType_({ q2: '8000円 前後', q3: ['検索やLINE中心', '4GB以下'] }), 'B');
+});
+test('judgeDiagnosisType_ does NOT return B when Q3 is empty, even if Q2 is high (boundary case)', () => {
+  const ctx = gas();
+  assert.notEqual(ctx.judgeDiagnosisType_({ q1: 'au', q2: '10000円 以上', q3: [] }), 'B');
+});
+test('judgeDiagnosisType_ does NOT return B when Q3 includes a heavy-usage option', () => {
+  const ctx = gas();
+  assert.notEqual(ctx.judgeDiagnosisType_({ q2: '5000円 前後', q3: ['4GB以下', '動画をたっぷり'] }), 'B');
+});
+test('judgeDiagnosisType_ returns A for Q2>=10000, or Q2=8000 with a major carrier', () => {
+  const ctx = gas();
+  assert.equal(ctx.judgeDiagnosisType_({ q1: '楽天モバイル', q2: '10000円 以上', q3: [] }), 'A');
+  assert.equal(ctx.judgeDiagnosisType_({ q1: 'docomo', q2: '8000円 前後', q3: [] }), 'A');
+  assert.equal(ctx.judgeDiagnosisType_({ q1: 'au', q2: '8000円 前後', q3: [] }), 'A');
+  assert.equal(ctx.judgeDiagnosisType_({ q1: 'SoftBank', q2: '8000円 前後', q3: [] }), 'A');
+});
+test('judgeDiagnosisType_: Q2=8000 with a non-major carrier does not trigger A', () => {
+  const ctx = gas();
+  assert.notEqual(ctx.judgeDiagnosisType_({ q1: '楽天モバイル', q2: '8000円 前後', q3: [] }), 'A');
+});
+test('judgeDiagnosisType_ returns D whenever Q7 includes "family together", ahead of C/E', () => {
+  const ctx = gas();
+  assert.equal(ctx.judgeDiagnosisType_({ q2: '3000円 以下', q6: '４年以上', q7: ['家族も一緒に'] }), 'D');
+  assert.equal(ctx.judgeDiagnosisType_({ q7: ['データ移行', '家族も一緒に'] }), 'D');
+});
+test('judgeDiagnosisType_ returns C for 4+ years, or 2-4 years with a qualifying Q7 item', () => {
+  const ctx = gas();
+  assert.equal(ctx.judgeDiagnosisType_({ q6: '４年以上', q7: [] }), 'C');
+  assert.equal(ctx.judgeDiagnosisType_({ q6: '２〜４年以内', q7: ['データ移行'] }), 'C');
+  assert.equal(ctx.judgeDiagnosisType_({ q6: '２〜４年以内', q7: ['機種代を抑えたい'] }), 'C');
+});
+test('judgeDiagnosisType_: 2-4 years WITHOUT a qualifying Q7 item does not trigger C', () => {
+  const ctx = gas();
+  assert.notEqual(ctx.judgeDiagnosisType_({ q6: '２〜４年以内', q7: ['電波の質'] }), 'C');
+});
+test('judgeDiagnosisType_ returns E for data-migration/LINE-handover/procedure concerns', () => {
+  const ctx = gas();
+  assert.equal(ctx.judgeDiagnosisType_({ q6: '２年以内', q7: ['LINE引継ぎ'] }), 'E');
+  assert.equal(ctx.judgeDiagnosisType_({ q7: ['手続きの手間'] }), 'E');
+});
+test('judgeDiagnosisType_ falls back to F when nothing else matches', () => {
+  const ctx = gas();
+  assert.equal(ctx.judgeDiagnosisType_({ q1: 'docomo', q2: '3000円 以下', q3: [], q4: '', q5: '', q6: '２年以内', q7: [] }), 'F');
+});
+test('judgeDiagnosisType_ evaluates in order: B before A before D before C before E', () => {
+  const ctx = gas();
+  // Would also match A(Q2>=10000) and E(データ移行), but B's light-usage condition should win since it's checked first.
+  assert.equal(ctx.judgeDiagnosisType_({ q1: 'docomo', q2: '10000円 以上', q3: ['4GB以下'], q7: ['データ移行'] }), 'B');
+});
+
+test('buildDiagnosisOnePoints_ adds the home-network mismatch tip only for known, mismatched combinations', () => {
+  const ctx = gas();
+  assert.ok(ctx.buildDiagnosisOnePoints_({ q1: 'docomo', q5: 'auひかり' }).length === 1);
+  assert.equal(ctx.buildDiagnosisOnePoints_({ q1: 'docomo', q5: 'ドコモ光/home5G' }).length, 0); // matches, no tip
+  assert.equal(ctx.buildDiagnosisOnePoints_({ q1: '楽天モバイル', q5: 'auひかり' }).length, 0); // 楽天 is "確認" -> no tip
+  assert.equal(ctx.buildDiagnosisOnePoints_({ q1: 'docomo', q5: 'TOKAIケーブル' }).length, 0); // TOKAI is "確認" -> no tip
+});
+test('buildDiagnosisOnePoints_ adds the long-call tip and the LINE-call tip under their own conditions', () => {
+  const ctx = gas();
+  assert.ok(ctx.buildDiagnosisOnePoints_({ q4: '長電話をよくする' })[0].includes('かけ放題'));
+  assert.ok(ctx.buildDiagnosisOnePoints_({ q4: 'LINE通話がほとんど', q2: '8000円 前後' })[0].includes('通話オプション'));
+  assert.equal(ctx.buildDiagnosisOnePoints_({ q4: 'LINE通話がほとんど', q2: '3000円 以下' }).length, 0); // Q2 too low -> no tip
+});
+test('buildDiagnosisOnePoints_ stops at a maximum of 2 tips even when more conditions match', () => {
+  const ctx = gas();
+  const tips = ctx.buildDiagnosisOnePoints_({
+    q1: 'docomo', q5: 'auひかり',           // tip a
+    q4: '長電話をよくする',                   // tip b
+    q7: ['電波の質', '機種代を抑えたい']       // tips d, e
+  });
+  assert.equal(tips.length, 2);
+});
+
+test('buildDiagnosisMessage_ fills {name}/{Q2}/{Q6} and includes up to 2 tips before the closing', () => {
+  const ctx = gas();
+  const msg = ctx.buildDiagnosisMessage_('太郎', { q2: '8000円 前後', q6: '' }, 'A', ['ワンポイントその1']);
+  assert.match(msg, /^太郎さん、スマホ診断へのご回答ありがとうございました。\n内容を拝見しました。/);
+  assert.match(msg, /毎月の支払いが8000円 前後とのことで/);
+  assert.match(msg, /ワンポイントその1/);
+  assert.match(msg, /街のスマホ相談士 櫻井$/);
+});
+
+// --- Diagnosis auto-reply: timing (day/night + quiet-hour owner-reply rule) ---
+
+test('computeScheduledSendAtMs_: a 18:59 answer is scheduled 2 hours later', () => {
+  const ctx = gas();
+  const answeredAtMs = Date.UTC(2026, 9, 19, 18, 59, 0);
+  assert.equal(ctx.computeScheduledSendAtMs_(answeredAtMs), answeredAtMs + 2 * 60 * 60 * 1000);
+});
+test('computeScheduledSendAtMs_: a 19:00 answer is scheduled for 9:00 the next morning', () => {
+  const ctx = gas();
+  const answeredAtMs = Date.UTC(2026, 9, 19, 19, 0, 0);
+  assert.equal(ctx.computeScheduledSendAtMs_(answeredAtMs), Date.UTC(2026, 9, 20, 9, 0, 0));
+});
+test('computeScheduledSendAtMs_: a 0:30 answer is scheduled for 9:00 that same morning', () => {
+  const ctx = gas();
+  const answeredAtMs = Date.UTC(2026, 9, 19, 0, 30, 0);
+  assert.equal(ctx.computeScheduledSendAtMs_(answeredAtMs), Date.UTC(2026, 9, 19, 9, 0, 0));
+});
+test('isNightSubmission_ is true for 19:00-23:59 and 0:00-8:59, false for 9:00-18:59', () => {
+  const ctx = gas();
+  assert.equal(ctx.isNightSubmission_(Date.UTC(2026, 9, 19, 19, 0, 0)), true);
+  assert.equal(ctx.isNightSubmission_(Date.UTC(2026, 9, 19, 23, 59, 0)), true);
+  assert.equal(ctx.isNightSubmission_(Date.UTC(2026, 9, 19, 0, 0, 0)), true);
+  assert.equal(ctx.isNightSubmission_(Date.UTC(2026, 9, 19, 8, 59, 0)), true);
+  assert.equal(ctx.isNightSubmission_(Date.UTC(2026, 9, 19, 9, 0, 0)), false);
+  assert.equal(ctx.isNightSubmission_(Date.UTC(2026, 9, 19, 18, 59, 0)), false);
+});
+test('computeEffectiveSendAtMs_: a 20:50 owner reply (even on a night submission) sends immediately', () => {
+  const ctx = gas();
+  const replyAtMs = Date.UTC(2026, 9, 19, 20, 50, 0);
+  assert.equal(ctx.computeEffectiveSendAtMs_(replyAtMs), replyAtMs);
+});
+test('computeEffectiveSendAtMs_: a 21:10 owner reply is deferred to 9:00 the next morning', () => {
+  const ctx = gas();
+  const replyAtMs = Date.UTC(2026, 9, 19, 21, 10, 0);
+  assert.equal(ctx.computeEffectiveSendAtMs_(replyAtMs), Date.UTC(2026, 9, 20, 9, 0, 0));
+});
+test('computeEffectiveSendAtMs_: a 0:30 owner reply (quiet hours) is deferred to 9:00 that same morning', () => {
+  const ctx = gas();
+  const replyAtMs = Date.UTC(2026, 9, 19, 0, 30, 0);
+  assert.equal(ctx.computeEffectiveSendAtMs_(replyAtMs), Date.UTC(2026, 9, 19, 9, 0, 0));
+});
+test('computeEffectiveSendAtMs_: daytime (e.g. 10:00) owner replies are also immediate (rule applies all day, not just at night)', () => {
+  const ctx = gas();
+  const replyAtMs = Date.UTC(2026, 9, 19, 10, 0, 0);
+  assert.equal(ctx.computeEffectiveSendAtMs_(replyAtMs), replyAtMs);
+});
+
+// --- Diagnosis auto-reply: owner reply parsing (OK/hold/replace/comment + quote stripping) ---
+
+test('parseOwnerReply_ recognizes "OK" (case-insensitive) on the first line after stripping a Gmail-style quote', () => {
+  const ctx = gas();
+  const raw = 'OK\n\nOn Mon, Oct 19, 2026 at 3:00 PM Owner <owner@example.com> wrote:\n> original message\n> more quoted text';
+  assert.deepEqual(plain(ctx.parseOwnerReply_(raw)), { kind: 'ok', text: '' });
+});
+test('parseOwnerReply_ recognizes "保留" (hold) after stripping an iPhone/iPad Mail-style quote', () => {
+  const ctx = gas();
+  const raw = '保留\n\n> 2026/10/19 15:00、【診断】太郎さんのメール:\n> 元の本文';
+  assert.deepEqual(plain(ctx.parseOwnerReply_(raw)), { kind: 'hold', text: '' });
+});
+test('parseOwnerReply_ extracts the replacement text (everything after line 1) for "差し替え"', () => {
+  const ctx = gas();
+  const raw = '差し替え\nもう少しお得なプランがあります。電話で詳しくお伝えします。\n\n2026年10月19日(月) 15:00 Owner <owner@example.com> のメール:\n> quoted';
+  assert.deepEqual(plain(ctx.parseOwnerReply_(raw)), { kind: 'replace', text: 'もう少しお得なプランがあります。電話で詳しくお伝えします。' });
+});
+test('parseOwnerReply_ treats anything else as a free comment to be inserted (A-pattern)', () => {
+  const ctx = gas();
+  const raw = '今は忙しいので来週連絡します\n\nOn Mon, Oct 19, 2026 at 3:00 PM Owner <owner@example.com> wrote:\n> quoted';
+  assert.deepEqual(plain(ctx.parseOwnerReply_(raw)), { kind: 'comment', text: '今は忙しいので来週連絡します' });
+});
+test('stripQuotedReply_ strips Outlook-style "-----Original Message-----" and "差出人:" headers too', () => {
+  const ctx = gas();
+  assert.equal(ctx.stripQuotedReply_('OK\n\n-----Original Message-----\nFrom: owner'), 'OK');
+  assert.equal(ctx.stripQuotedReply_('OK\n\n差出人: owner@example.com\n内容...'), 'OK');
+});
+test('composeFinalDiagnosisMessage_: "ok" sends the base message unchanged', () => {
+  const ctx = gas();
+  const base = ctx.buildDiagnosisMessage_('太郎', { q2: '', q6: '' }, 'F', []);
+  assert.equal(ctx.composeFinalDiagnosisMessage_(base, { kind: 'ok', text: '' }), base);
+});
+test('composeFinalDiagnosisMessage_: "hold" sends nothing (null)', () => {
+  const ctx = gas();
+  const base = ctx.buildDiagnosisMessage_('太郎', { q2: '', q6: '' }, 'F', []);
+  assert.equal(ctx.composeFinalDiagnosisMessage_(base, { kind: 'hold', text: '' }), null);
+});
+test('composeFinalDiagnosisMessage_: "replace" sends only the owner\'s text, not the template', () => {
+  const ctx = gas();
+  const base = ctx.buildDiagnosisMessage_('太郎', { q2: '', q6: '' }, 'F', []);
+  const final = ctx.composeFinalDiagnosisMessage_(base, { kind: 'replace', text: '別の内容でご案内します' });
+  assert.equal(final, '別の内容でご案内します');
+});
+test('composeFinalDiagnosisMessage_: "comment" is inserted right after the common greeting (A-pattern)', () => {
+  const ctx = gas();
+  const base = ctx.buildDiagnosisMessage_('太郎', { q2: '', q6: '' }, 'F', []);
+  const final = ctx.composeFinalDiagnosisMessage_(base, { kind: 'comment', text: '来週改めてご連絡します' });
+  assert.ok(final.startsWith('太郎さん、スマホ診断へのご回答ありがとうございました。\n内容を拝見しました。\n\n来週改めてご連絡します\n\n'));
+  assert.ok(final.includes('今の契約はおおむね良好')); // F's body text still follows
+});
+
+// --- Diagnosis auto-reply: email subject/body field completeness ---
+
+test('buildDiagnosisEmailSubject_ uses the normal format when LINE is resolved, and the unreachable format when not', () => {
+  const ctx = gas();
+  const normal = ctx.buildDiagnosisEmailSubject_('太郎', 'A判定', Date.UTC(2026, 9, 19, 14, 0, 0), 'AB12CD34', false, '09000000000');
+  assert.match(normal, /^【診断】太郎さん\|A判定\|自動送信 10\/19 14:00\|#AB12CD34$/);
+  const unresolved = ctx.buildDiagnosisEmailSubject_('太郎', 'A判定', Date.UTC(2026, 9, 19, 14, 0, 0), 'AB12CD34', true, '09000000000');
+  assert.match(unresolved, /^【要連絡・LINE送信不可】【診断】太郎さん\|電話 09000000000\|#AB12CD34$/);
+});
+test('buildDiagnosisEmailBody_ includes every field that the old "【新着】" owner email had', () => {
+  const ctx = gas();
+  const body = ctx.buildDiagnosisEmailBody_({
+    name: '太郎', tel: '09000000000', source: 'insta',
+    answers: { q1: 'docomo', q2: '8000円 前後', q3: ['4GB以下'], q4: '長電話をよくする', q5: 'ドコモ光/home5G', q6: '２年以内', q7: ['電波の質'] },
+    detail: '相談したいことがあります', receivedAtIso: '2026-10-19T14:00:00+09:00',
+    customerLinked: true, typeLabel: 'A判定', message: '(本文)',
+    scheduledAtMs: Date.UTC(2026, 9, 19, 16, 0, 0), lineUnresolved: false
+  });
+  for (const must of ['太郎', '09000000000', 'insta', 'docomo', '8000円 前後', '相談したいことがあります',
+                       '2026-10-19T14:00:00+09:00', '完了', 'A判定', '(本文)']) {
+    assert.ok(body.includes(must), `email body missing: ${must}`);
+  }
+  assert.match(body, /OK/);
+  assert.match(body, /保留/);
+  assert.match(body, /差し替え/);
+});
+test('buildDiagnosisEmailBody_ shows "LINE送信不可" scheduling note when the LINE id is unresolved', () => {
+  const ctx = gas();
+  const body = ctx.buildDiagnosisEmailBody_({
+    name: '太郎', tel: '', source: '', answers: {}, detail: '', receivedAtIso: '2026-10-19T14:00:00+09:00',
+    customerLinked: false, typeLabel: 'F判定', message: '(本文)', scheduledAtMs: 0, lineUnresolved: true
+  });
+  assert.match(body, /LINE送信不可のため自動送信なし/);
+  assert.match(body, /電話番号なし\(スキップ\)/);
+});
+
+// --- Diagnosis auto-reply: reception ID, sheet storage, LINE id resolution, double-send prevention ---
+
+function fakeDiagSheetFactory() {
+  const sheetsByName = {};
+  function makeSheet() {
+    const rows = [];
+    return {
+      appendRow(row) { rows.push(row.slice()); },
+      getDataRange() { return { getValues: () => rows.map(r => r.slice()) }; },
+      getRange(r, c) {
+        return { getValue: () => rows[r - 1][c - 1], setValue(v) { rows[r - 1][c - 1] = v; } };
+      },
+      _rows: rows
+    };
+  }
+  const SpreadsheetApp = { openById: () => ({
+    getSheetByName: name => sheetsByName[name],
+    insertSheet: name => { const s = makeSheet(); sheetsByName[name] = s; return s; }
+  }) };
+  return { SpreadsheetApp, sheetsByName };
+}
+const fakeLockService = { getScriptLock: () => ({ waitLock() {}, tryLock: () => true, releaseLock() {} }) };
+function fakeGmailMsg(from, plainBody, realDateMs) {
+  return { getFrom: () => from, getPlainBody: () => plainBody, getDate: () => new Date(realDateMs) };
+}
+// JSTの壁時計(y,m,d,h,mi)を表す「本物の」UTCミリ秒（findOwnerReplyInThread_が+9hする前提の入力用）
+function jstWallClockToRealMs(y, m, d, h, mi) {
+  return Date.UTC(y, m - 1, d, h, mi, 0) - 9 * 60 * 60 * 1000;
+}
+
+function diagContext(overrides = {}) {
+  const { SpreadsheetApp, sheetsByName } = fakeDiagSheetFactory();
+  const pushedMessages = [];
+  const sentEmails = [];
+  const notionResults = overrides.notionCustomerResults !== undefined ? overrides.notionCustomerResults : [];
+  const gmailThreads = overrides.gmailThreads || {};
+  let threadSeq = 0;
+
+  const ctx = gas({
+    Utilities: { getUuid: () => overrides.uuid || ('11111111-2222-3333-4444-' + String(Math.random()).slice(2, 14)) },
+    SpreadsheetApp: SpreadsheetApp,
+    LockService: fakeLockService,
+    UrlFetchApp: { fetch: (url, opts) => {
+      if (url.includes('/v2/bot/message/push')) { pushedMessages.push(JSON.parse(opts.payload)); return response(200, {}); }
+      if (url.includes('/databases/' + CUSTOMER_MASTER_DB_ID + '/query')) return response(200, { results: notionResults });
+      return response(200, {});
+    } },
+    GmailApp: {
+      sendEmail: (to, subject, body) => { sentEmails.push({ to, subject, body }); },
+      search: () => { threadSeq++; return [{ getId: () => 'thread-' + threadSeq }]; },
+      getThreadById: id => gmailThreads[id] || null
+    }
+  });
+  return { ctx, pushedMessages, sentEmails, sheetsByName };
+}
+
+test('generateReceptionId_ returns a short uppercase alphanumeric id', () => {
+  const { ctx } = diagContext({ uuid: 'abcdef12-aaaa-bbbb-cccc-000000000000' });
+  assert.equal(ctx.generateReceptionId_(), 'ABCDEF12');
+});
+
+test('handleDiagnosisAutoReply_ resolves the LINE id from the form itself (priority 1) and sends the daytime acceptance message', () => {
+  const { ctx, pushedMessages, sentEmails, sheetsByName } = diagContext();
+  const jstNow = new Date(Date.UTC(2026, 9, 19, 10, 0, 0));
+  const receptionId = ctx.handleDiagnosisAutoReply_(
+    { name: '太郎', tel: '09000000000', lineUserId: 'line-user-1', q1: 'docomo', q2: '10000円 以上', q3: [] },
+    { customerMasterPageId: 'cust-1', cleanSource: 'insta', jstNow: jstNow, jstISO: '2026-10-19T10:00:00+09:00', todayStr: '2026-10-19' }
+  );
+  assert.ok(receptionId);
+  assert.equal(pushedMessages.length, 1);
+  assert.equal(pushedMessages[0].to, 'line-user-1');
+  assert.match(pushedMessages[0].messages[0].text, /少しだけお待ちください/);
+  assert.equal(sentEmails.length, 1);
+  assert.match(sentEmails[0].subject, /^【診断】太郎さん\|/);
+  const row = sheetsByName['診断自動返信']._rows[1];
+  assert.equal(row[0], receptionId);
+  assert.equal(row[6], 'line-user-1'); // lineUserId column
+});
+
+test('handleDiagnosisAutoReply_ sends the night-time acceptance wording for 19:00+ answers', () => {
+  const { ctx, pushedMessages } = diagContext();
+  const jstNow = new Date(Date.UTC(2026, 9, 19, 20, 0, 0));
+  ctx.handleDiagnosisAutoReply_(
+    { name: '花子', tel: '09000000001', lineUserId: 'line-user-2', q2: '3000円 以下', q3: [] },
+    { customerMasterPageId: null, cleanSource: '', jstNow: jstNow, jstISO: '2026-10-19T20:00:00+09:00', todayStr: '2026-10-19' }
+  );
+  assert.match(pushedMessages[0].messages[0].text, /明日の午前中にお送りします/);
+});
+
+test('handleDiagnosisAutoReply_ falls back to a read-only phone lookup (priority 3) when lineUserId is absent from the form', () => {
+  const { ctx, pushedMessages } = diagContext({
+    notionCustomerResults: [{ properties: { 'LINE_userid': { rich_text: [{ plain_text: 'line-user-from-phone' }] } } }]
+  });
+  const jstNow = new Date(Date.UTC(2026, 9, 19, 10, 0, 0));
+  ctx.handleDiagnosisAutoReply_(
+    { name: '次郎', tel: '09000000002', lineUserId: '', q2: '3000円 以下', q3: [] },
+    { customerMasterPageId: null, cleanSource: '', jstNow: jstNow, jstISO: '', todayStr: '2026-10-19' }
+  );
+  assert.equal(pushedMessages.length, 1);
+  assert.equal(pushedMessages[0].to, 'line-user-from-phone');
+});
+
+test('handleDiagnosisAutoReply_: when LINE cannot be resolved at all, no acceptance push is sent and the email subject flags it', () => {
+  const { ctx, pushedMessages, sentEmails } = diagContext({ notionCustomerResults: [] });
+  const jstNow = new Date(Date.UTC(2026, 9, 19, 10, 0, 0));
+  ctx.handleDiagnosisAutoReply_(
+    { name: '三郎', tel: '09000000003', lineUserId: '', q2: '3000円 以下', q3: [] },
+    { customerMasterPageId: null, cleanSource: '', jstNow: jstNow, jstISO: '', todayStr: '2026-10-19' }
+  );
+  assert.equal(pushedMessages.length, 0);
+  assert.match(sentEmails[0].subject, /^【要連絡・LINE送信不可】/);
+});
+
+test('linkReceptionIdToLineUser_ fills in the lineUserId column for an existing pending row (priority 2)', () => {
+  const { ctx, sheetsByName } = diagContext();
+  const jstNow = new Date(Date.UTC(2026, 9, 19, 10, 0, 0));
+  const receptionId = ctx.handleDiagnosisAutoReply_(
+    { name: '四郎', tel: '', lineUserId: '', q2: '3000円 以下', q3: [] },
+    { customerMasterPageId: null, cleanSource: '', jstNow: jstNow, jstISO: '', todayStr: '2026-10-19' }
+  );
+  const ok = ctx.linkReceptionIdToLineUser_(receptionId, 'line-user-later');
+  assert.equal(ok, true);
+  const row = sheetsByName['診断自動返信']._rows[1];
+  assert.equal(row[6], 'line-user-later');
+});
+
+test('processOnePendingDiagnosisRow_ sends the base message as-is once the scheduled time has passed with no owner reply', () => {
+  const { ctx, pushedMessages, sheetsByName } = diagContext();
+  const sheet = ctx.getDiagReplySheet_();
+  sheet.appendRow(['R1', '2026-10-19T10:00:00.000Z', new Date(Date.UTC(2026, 9, 19, 12, 0, 0)).toISOString(), '待機', '太郎', '09000000000', 'line-user-1', 'F', '(送信予定の文面)', '', '', '']);
+  const row = { receptionId: 'R1', scheduledAtIso: new Date(Date.UTC(2026, 9, 19, 12, 0, 0)).toISOString(), lineUserId: 'line-user-1', tel: '09000000000', message: '(送信予定の文面)', emailThreadId: '' };
+  ctx.processOnePendingDiagnosisRow_(row, Date.UTC(2026, 9, 19, 12, 0, 0), 'owner@example.com');
+  assert.equal(pushedMessages.length, 1);
+  assert.equal(pushedMessages[0].messages[0].text, '(送信予定の文面)');
+  assert.equal(sheet._rows[1][3], '送信済み'); // 状態
+});
+test('processOnePendingDiagnosisRow_ does nothing before the scheduled time with no owner reply (no double trigger risk)', () => {
+  const { ctx, pushedMessages } = diagContext();
+  const sheet = ctx.getDiagReplySheet_();
+  const scheduledIso = new Date(Date.UTC(2026, 9, 19, 12, 0, 0)).toISOString();
+  sheet.appendRow(['R2', '2026-10-19T10:00:00.000Z', scheduledIso, '待機', '太郎', '09000000000', 'line-user-1', 'F', '(文面)', '', '', '']);
+  const row = { receptionId: 'R2', scheduledAtIso: scheduledIso, lineUserId: 'line-user-1', tel: '09000000000', message: '(文面)', emailThreadId: '' };
+  ctx.processOnePendingDiagnosisRow_(row, Date.UTC(2026, 9, 19, 11, 0, 0), 'owner@example.com');
+  assert.equal(pushedMessages.length, 0);
+  assert.equal(sheet._rows[1][3], '待機');
+});
+test('processOnePendingDiagnosisRow_ never sends twice: a row already marked 送信済み is skipped on a later tick', () => {
+  const { ctx, pushedMessages } = diagContext();
+  const sheet = ctx.getDiagReplySheet_();
+  const scheduledIso = new Date(Date.UTC(2026, 9, 19, 12, 0, 0)).toISOString();
+  sheet.appendRow(['R3', '2026-10-19T10:00:00.000Z', scheduledIso, '送信済み', '太郎', '09000000000', 'line-user-1', 'F', '(文面)', '', scheduledIso, '']);
+  const row = { receptionId: 'R3', scheduledAtIso: scheduledIso, lineUserId: 'line-user-1', tel: '09000000000', message: '(文面)', emailThreadId: '' };
+  ctx.processOnePendingDiagnosisRow_(row, Date.UTC(2026, 9, 19, 13, 0, 0), 'owner@example.com');
+  assert.equal(pushedMessages.length, 0, 'must not resend a row that is no longer 待機');
+});
+test('processOnePendingDiagnosisRow_: an "OK" owner reply during the day sends immediately, even before the original scheduled time', () => {
+  const { ctx, pushedMessages } = diagContext({
+    gmailThreads: { 't1': { getMessages: () => [
+      fakeGmailMsg('owner@example.com', '(original send, not counted)', jstWallClockToRealMs(2026, 10, 19, 10, 0)),
+      fakeGmailMsg('Owner Name <owner@example.com>', 'OK\n\nOn ... wrote:\n> quoted', jstWallClockToRealMs(2026, 10, 19, 10, 30))
+    ] } }
+  });
+  const sheet = ctx.getDiagReplySheet_();
+  const scheduledIso = new Date(Date.UTC(2026, 9, 19, 12, 0, 0)).toISOString();
+  sheet.appendRow(['R4', '2026-10-19T10:00:00.000Z', scheduledIso, '待機', '太郎', '09000000000', 'line-user-1', 'F', '(案の文面)', 't1', '', '']);
+  const row = { receptionId: 'R4', scheduledAtIso: scheduledIso, lineUserId: 'line-user-1', tel: '09000000000', message: '(案の文面)', emailThreadId: 't1' };
+  ctx.processOnePendingDiagnosisRow_(row, Date.UTC(2026, 9, 19, 10, 35, 0), 'owner@example.com'); // well before the 12:00 scheduled time
+  assert.equal(pushedMessages.length, 1);
+  assert.equal(pushedMessages[0].messages[0].text, '(案の文面)');
+});
+test('processOnePendingDiagnosisRow_: a reply from someone other than the owner is ignored', () => {
+  const { ctx, pushedMessages } = diagContext({
+    gmailThreads: { 't2': { getMessages: () => [
+      fakeGmailMsg('owner@example.com', '(original send)', jstWallClockToRealMs(2026, 10, 19, 10, 0)),
+      fakeGmailMsg('stranger@example.com', 'OK', jstWallClockToRealMs(2026, 10, 19, 10, 30))
+    ] } }
+  });
+  const sheet = ctx.getDiagReplySheet_();
+  const scheduledIso = new Date(Date.UTC(2026, 9, 19, 12, 0, 0)).toISOString();
+  sheet.appendRow(['R5', '2026-10-19T10:00:00.000Z', scheduledIso, '待機', '太郎', '09000000000', 'line-user-1', 'F', '(文面)', 't2', '', '']);
+  const row = { receptionId: 'R5', scheduledAtIso: scheduledIso, lineUserId: 'line-user-1', tel: '09000000000', message: '(文面)', emailThreadId: 't2' };
+  ctx.processOnePendingDiagnosisRow_(row, Date.UTC(2026, 9, 19, 10, 35, 0), 'owner@example.com');
+  assert.equal(pushedMessages.length, 0, 'a non-owner reply must not trigger a send');
+  assert.equal(sheet._rows[1][3], '待機'); // still waiting for the scheduled time
+});
+test('processOnePendingDiagnosisRow_: a "保留" owner reply marks the row held and stops future auto-sends', () => {
+  const { ctx, pushedMessages } = diagContext({
+    gmailThreads: { 't3': { getMessages: () => [
+      fakeGmailMsg('owner@example.com', '(original send)', jstWallClockToRealMs(2026, 10, 19, 10, 0)),
+      fakeGmailMsg('owner@example.com', '保留', jstWallClockToRealMs(2026, 10, 19, 10, 30))
+    ] } }
+  });
+  const sheet = ctx.getDiagReplySheet_();
+  const scheduledIso = new Date(Date.UTC(2026, 9, 19, 12, 0, 0)).toISOString();
+  sheet.appendRow(['R6', '2026-10-19T10:00:00.000Z', scheduledIso, '待機', '太郎', '09000000000', 'line-user-1', 'F', '(文面)', 't3', '', '']);
+  const row = { receptionId: 'R6', scheduledAtIso: scheduledIso, lineUserId: 'line-user-1', tel: '09000000000', message: '(文面)', emailThreadId: 't3' };
+  ctx.processOnePendingDiagnosisRow_(row, Date.UTC(2026, 9, 19, 10, 35, 0), 'owner@example.com');
+  assert.equal(pushedMessages.length, 0);
+  assert.equal(sheet._rows[1][3], '保留');
+  // a later tick must not revive it, since it is no longer 待機
+  ctx.processOnePendingDiagnosisRow_(row, Date.UTC(2026, 9, 19, 13, 0, 0), 'owner@example.com');
+  assert.equal(pushedMessages.length, 0);
+});
+test('processOnePendingDiagnosisRow_: no LINE id resolvable at send time marks the row 送信不可 and does not push', () => {
+  const { ctx, pushedMessages } = diagContext({ notionCustomerResults: [] });
+  const sheet = ctx.getDiagReplySheet_();
+  const scheduledIso = new Date(Date.UTC(2026, 9, 19, 12, 0, 0)).toISOString();
+  sheet.appendRow(['R7', '2026-10-19T10:00:00.000Z', scheduledIso, '待機', '太郎', '09000000099', '', 'F', '(文面)', '', '', '']);
+  const row = { receptionId: 'R7', scheduledAtIso: scheduledIso, lineUserId: '', tel: '09000000099', message: '(文面)', emailThreadId: '' };
+  ctx.processOnePendingDiagnosisRow_(row, Date.UTC(2026, 9, 19, 12, 0, 0), 'owner@example.com');
+  assert.equal(pushedMessages.length, 0);
+  assert.equal(sheet._rows[1][3], '送信不可');
+});
+test('processPendingDiagnosisReplies does nothing and does not throw when OWNER_EMAIL is not set', () => {
+  const ctx = gas({ PropertiesService: { getScriptProperties: () => ({ getProperty: () => '' }) } });
+  assert.doesNotThrow(() => ctx.processPendingDiagnosisReplies());
+});
+
+// --- handleWebForm diagnosis path: receptionId in the response, 【新着】replaced only for diagnosis ---
+
+test('handleWebForm (diagnosis) returns a receptionId and does not throw', () => {
+  const { ctx } = diagContext();
+  ctx.isTokenValid_ = () => ({ ok: true });
+  ctx.isRateLimited = () => false;
+  ctx.validatePayload_ = () => ({ ok: true });
+  ctx.upsertCustomerMaster = () => 'fake-customer';
+  const result = JSON.parse(ctx.handleWebForm({
+    token: 'fake', name: '太郎', tel: '09000000000', lineUserId: 'line-user-1',
+    q1: 'docomo', q2: '10000円 以上', q3: []
+  }).text);
+  assert.equal(result.status, 'success');
+  assert.equal(result.confirmed, true);
+  assert.ok(result.receptionId);
+});
+test('handleWebForm (reservation) is unaffected: no receptionId, still gets the generic 【新着】-style owner email', () => {
+  const { ctx, sentEmails } = diagContext();
+  ctx.isTokenValid_ = () => ({ ok: true });
+  ctx.isRateLimited = () => false;
+  ctx.validatePayload_ = () => ({ ok: true });
+  ctx.upsertCustomerMaster = () => 'fake-customer';
+  ctx.CalendarApp = { getDefaultCalendar: () => ({ createEvent() {} }) };
+  ctx.Session = { getEffectiveUser: () => ({ getEmail: () => 'owner@example.invalid' }) };
+  ctx.MailApp = { sendEmail: (to, subject, body) => { sentEmails.push({ to, subject, body, viaMailApp: true }); } };
+  ctx.CacheService = { getScriptCache: () => ({ get: () => null, put: () => {} }) };
+  const result = JSON.parse(ctx.handleWebForm({
+    token: 'fake', name: '太郎', tel: '09000000000', date: '2026-10-20', time: '10:00'
+  }).text);
+  assert.equal(result.status, 'success');
+  assert.equal(result.receptionId, undefined);
+  assert.ok(sentEmails.some(e => e.viaMailApp && e.subject.startsWith('【新着】')));
+});
+
+// --- handleLineEvent: "カルテ診断完了 #受付ID" links without disturbing the existing exact-match behavior ---
+
+test('"カルテ診断完了 #ID" links the reception row\'s lineUserId, then still shows mypage like the plain keyword does', () => {
+  const { ctx, sheetsByName } = diagContext();
+  const jstNow = new Date(Date.UTC(2026, 9, 19, 10, 0, 0));
+  const receptionId = ctx.handleDiagnosisAutoReply_(
+    { name: '五郎', tel: '', lineUserId: '', q2: '3000円 以下', q3: [] },
+    { customerMasterPageId: null, cleanSource: '', jstNow: jstNow, jstISO: '', todayStr: '2026-10-19' }
+  );
+  let myPageCalls = 0;
+  ctx.replyMyPage = () => { myPageCalls++; };
+  ctx.UrlFetchApp = { fetch: (url) => {
+    if (url.includes('/databases/' + CUSTOMER_MASTER_DB_ID + '/query')) return response(200, { results: [{ id: 'p1' }], has_more: false });
+    return response(200, {});
+  } };
+  ctx.handleLineEvent({ type: 'message', message: { type: 'text', text: 'カルテ診断完了 #' + receptionId }, source: { userId: 'line-user-resolved' }, replyToken: 'rt' });
+  const row = sheetsByName['診断自動返信']._rows[1];
+  assert.equal(row[6], 'line-user-resolved');
+  assert.equal(myPageCalls, 1, 'must still behave like the existing カルテ診断完了 flow (show mypage)');
+});
+
+// --- Public map/chiiki/oshirase APIs must never read the diagnosis reply sheet ---
+
+test('getMapData/getChiikiData/getOshiraseData never reference the diagnosis-reply sheet name', () => {
+  const fnSources = ['getMapData', 'getChiikiData', 'getOshiraseData'].map(name => {
+    const start = main.indexOf('function ' + name + '(');
+    const end = main.indexOf('\nfunction ', start + 1);
+    return main.slice(start, end === -1 ? start + 3000 : end);
+  });
+  for (const src of fnSources) {
+    assert.doesNotMatch(src, /診断自動返信/);
+  }
+});
+test('no public doGet action branch reads the diagnosis-reply sheet', () => {
+  const start = main.indexOf('function doGet(e) {');
+  const end = main.indexOf('\nfunction ', start + 1);
+  const doGetSrc = main.slice(start, end);
+  assert.doesNotMatch(doGetSrc, /診断自動返信/);
+});

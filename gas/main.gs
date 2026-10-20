@@ -36,6 +36,7 @@ const MAP_DATABASE_ID    = props.getProperty("MAP_DATABASE_ID");
 const MAP_SHEET_ID       = props.getProperty("MAP_SHEET_ID");
 const IMAGE_FOLDER_ID    = props.getProperty("IMAGE_FOLDER_ID");
 const OWNER_KEY          = props.getProperty("OWNER_KEY");   // 運営者専用API用。未設定なら拒否（fail-safe）
+const OWNER_EMAIL        = props.getProperty("OWNER_EMAIL"); // 診断自動返信メールの宛先。未設定なら送信スキップ（fail-safe）
 const LP_VIEW_LOG_DB_ID  = "c8016744-4a6f-427b-ac2c-d20b4eb432f8";   // LP閲覧ログ（doGet?action=pv が書き込む）
 
 const FREE_SLOT_MAX_PER_MONTH = 3;
@@ -2048,6 +2049,12 @@ function handleLineEvent(event) {
       CacheService.getUserCache().put('chiiki_category_' + userId, cat, 300);
       replyToLine(replyToken, cat + " を選んでいただきありがとうございます！\n\n📍 現在地(位置情報)を送ってください。\n続けて写真もあると嬉しいです😊\n\n※「＋」→「位置情報」から送れます。");
       addMachiPoint(userId, 3, "地域発見投稿：" + cat);
+    } else if (text.indexOf('カルテ診断完了 #') === 0) {
+      // lineUserIdがフォーム送信時に取れなかった場合の紐付け（優先順位2）。
+      // 既存の「カルテ診断完了」(受付IDなし)の動作は一切変更しない。
+      const diagReceptionId = text.substring('カルテ診断完了 #'.length).trim();
+      try { linkReceptionIdToLineUser_(diagReceptionId, userId); } catch (linkErr) { console.error('受付ID紐付けエラー: ' + linkErr); }
+      linkLineIdToCustomer(userId, replyToken, LINE_TOKEN, jstNow);
     } else if (text === 'カルテ診断完了') {
       linkLineIdToCustomer(userId, replyToken, LINE_TOKEN, jstNow);
     }
@@ -2074,6 +2081,675 @@ function checkedNotionFetch_(url, options) {
   }
   return response;
 }
+
+// ==========================================
+// ▼ 診断自動返信（メール確認 → LINE自動送信）
+//   無料スマホ診断(index.html)の回答から、診断タイプとLINE返信文の案を作り、
+//   まずオーナーのメールへ送る。オーナーの返信内容に従ってLINE公式から結果を
+//   自動送信する（返信が無ければ、決めた時刻にそのまま自動送信）。
+//   - Notionへの書き込みはしない（読み取りのみ）。
+//   - 送信待ち情報は、既存の MAP_SHEET_ID のスプレッドシートに専用シートを
+//     作って保存する（新しいScript Propertyは追加しない。地図の公開APIは
+//     このシートを一切読まない。getMapData/getChiikiData/getOshiraseData は
+//     それぞれ別のシート名だけを参照している）。
+//   - ここから、Notion/GAS/スプレッドシートに依存しない純粋関数を先に並べる
+//     （tests/ で単体テスト可能）。
+// ==========================================
+
+const DIAG_REPLY_SHEET_NAME = "診断自動返信"; // MAP_SHEET_ID内に作る専用シート名
+const DIAG_AUTO_SEND_DELAY_HOURS = 2; // 日中(9:00〜18:59)回答の自動送信までの待ち時間
+const DIAG_QUIET_HOUR_START = 21;     // 静穏時間 開始（21:00）
+const DIAG_QUIET_HOUR_END   = 9;      // 静穏時間 終了（9:00。0:00〜8:59も含む）
+const DIAG_NIGHT_HOUR_START = 19;     // 「夜」扱いの開始（19:00〜翌8:59の回答）
+
+const DIAG_TYPE_LABELS = {
+  B: "プランが使い方より大きい可能性",
+  A: "料金の見直し余地：大きめ",
+  D: "ご家族まとめての見直し向き",
+  C: "買い替えの準備どき",
+  E: "まずは手続きの不安を減らすのが先",
+  F: "今の契約はおおむね良好"
+};
+
+const DIAG_GREETING_TEMPLATE = "{name}さん、スマホ診断へのご回答ありがとうございました。\n内容を拝見しました。";
+const DIAG_CLOSING_TEMPLATE =
+  "※ご回答内容からの目安です。実際の明細を見ると、結果が変わることもあります。\n" +
+  "無理におすすめすることはありませんので、気になることだけ聞いてくださいね。\n" +
+  "街のスマホ相談士 櫻井";
+
+const DIAG_BODY_TEMPLATES = {
+  B:
+    "【診断結果】プランが使い方より大きい可能性\n" +
+    "データはあまり使わないご様子なのに、毎月の支払いが{Q2}。\n" +
+    "容量の大きいプランのままになっているかもしれません。\n\n" +
+    "▶次の一歩\n" +
+    "直近3か月のデータ使用量を一緒に確認しませんか？\n" +
+    "(携帯会社のアプリで見られます。見方が分からなければ、それもお手伝いします)",
+  A:
+    "【診断結果】料金の見直し余地：大きめ\n" +
+    "毎月の支払いが{Q2}とのことで、今の使い方に合わせると負担が軽くなる可能性があります。\n" +
+    "最近は同じ携帯会社のままでも、プランの選び直しで変わるケースが多くあります。\n\n" +
+    "▶次の一歩\n" +
+    "携帯会社のアプリの「ご利用明細」の画面を、スクリーンショットで送っていただけますか？\n" +
+    "どこが見直せそうか、具体的にお伝えします。",
+  D:
+    "【診断結果】ご家族まとめての見直し向き\n" +
+    "ご家族の契約をまとめて見ると、割引の組み合わせで全体が変わることがよくあります。\n\n" +
+    "▶次の一歩\n" +
+    "ご家族の人数と、それぞれの携帯会社だけ教えてください。\n" +
+    "分かる範囲で大丈夫です。",
+  C:
+    "【診断結果】買い替えの準備どき\n" +
+    "前回の買い替えから{Q6}。バッテリーや動作の変化を感じ始める時期です。\n" +
+    "急ぐ必要はありませんが、準備しておくと慌てずに済みます。\n\n" +
+    "▶次の一歩\n" +
+    "今のスマホの「バッテリーの状態」を送っていただけますか？\n" +
+    "(iPhone：設定 → バッテリー → バッテリーの状態)\n" +
+    "数字を見て、買い替えの目安をお伝えします。",
+  E:
+    "【診断結果】まずは手続きの不安を減らすのが先\n" +
+    "料金よりも、データ・LINEの引き継ぎや手続きの手間が気がかりなご様子ですね。\n" +
+    "一番つまずきやすいところなので、事前に準備すれば安心です。\n\n" +
+    "▶次の一歩\n" +
+    "特に心配なことを一言教えてください。\n" +
+    "(写真、LINEのトーク履歴、アプリのログインなど)",
+  F:
+    "【診断結果】今の契約はおおむね良好\n" +
+    "支払いは十分に抑えられていて、大きな見直しは今は必要なさそうです。\n\n" +
+    "▶次の一歩\n" +
+    "気になることが出てきたら、いつでもこのトークで聞いてください。\n" +
+    "年に一度の「スマホ点検」もご案内しています。"
+};
+
+// セット割の目安（Q1→対応するQ5の組み合わせ）。ここに無いQ1/Q5は「確認」扱いとして、
+// ミスマッチの一言は出さない（根拠のない断定を避けるため）。
+const DIAG_CARRIER_HOME_SET = {
+  "docomo":    ["ドコモ光/home5G"],
+  "au":        ["auひかり", "コミュファ光"],
+  "UQ mobile": ["auひかり", "コミュファ光"],
+  "SoftBank":  ["SB光/Air", "NURO光"],
+  "Y!mobile":  ["SB光/Air", "NURO光"]
+};
+const DIAG_KNOWN_HOME_NET = ["ドコモ光/home5G", "auひかり", "SB光/Air", "コミュファ光", "NURO光"];
+
+// Q1〜Q7(answers)から、診断タイプ(B/A/D/C/E/F)を判定する。上から順に最初に当てはまったものを返す。
+// answers: { q1, q2, q3(配列), q4, q5, q6, q7(配列) }（index.htmlの実際の選択肢文字列と完全一致させること）
+function judgeDiagnosisType_(answers) {
+  const q1 = (answers && answers.q1) || "";
+  const q2 = (answers && answers.q2) || "";
+  const q3 = (answers && Array.isArray(answers.q3)) ? answers.q3 : [];
+  const q6 = (answers && answers.q6) || "";
+  const q7 = (answers && Array.isArray(answers.q7)) ? answers.q7 : [];
+
+  const HIGH_PAYERS = ["5000円 前後", "8000円 前後", "10000円 以上"];
+  const LIGHT_ONLY  = ["4GB以下", "検索やLINE中心"];
+  const HEAVY_USAGE = ["動画をたっぷり", "30GB以下", "それ以上（無制限など）"];
+  const MAJOR_CARRIERS = ["docomo", "au", "SoftBank"];
+
+  // B: Q2が5,000円前後以上 かつ Q3が「4GB以下」か「検索やLINE中心」のみ
+  //    （Q3が未選択＝空のときは、ライトユーザーという根拠が無いためB対象外）
+  const q3HasHeavy = q3.some(function (v) { return HEAVY_USAGE.indexOf(v) !== -1; });
+  const q3AllLight = q3.length > 0 && q3.every(function (v) { return LIGHT_ONLY.indexOf(v) !== -1; });
+  if (HIGH_PAYERS.indexOf(q2) !== -1 && q3AllLight && !q3HasHeavy) return "B";
+
+  // A: Q2が10,000円以上、またはQ2が8,000円前後でQ1がdocomo/au/SoftBank
+  if (q2 === "10000円 以上") return "A";
+  if (q2 === "8000円 前後" && MAJOR_CARRIERS.indexOf(q1) !== -1) return "A";
+
+  // D: Q7に「家族も一緒に」
+  if (q7.indexOf("家族も一緒に") !== -1) return "D";
+
+  // C: Q6が4年以上、またはQ6が2〜4年以内でQ7に特定の項目
+  if (q6 === "４年以上") return "C";
+  if (q6 === "２〜４年以内" && q7.some(function (v) { return ["データ移行", "LINE引継ぎ", "機種代を抑えたい"].indexOf(v) !== -1; })) return "C";
+
+  // E: Q7にデータ移行・LINE引継ぎ・手続きの手間のどれか
+  if (q7.some(function (v) { return ["データ移行", "LINE引継ぎ", "手続きの手間"].indexOf(v) !== -1; })) return "E";
+
+  // F: どれにも当てはまらない
+  return "F";
+}
+
+// 当てはまる条件を最大2つ、付録3の表の順で返す（差し込み済みの文の配列）
+function buildDiagnosisOnePoints_(answers) {
+  const q1 = (answers && answers.q1) || "";
+  const q2 = (answers && answers.q2) || "";
+  const q4 = (answers && answers.q4) || "";
+  const q5 = (answers && answers.q5) || "";
+  const q7 = (answers && Array.isArray(answers.q7)) ? answers.q7 : [];
+  const HIGH_PAYERS = ["5000円 前後", "8000円 前後", "10000円 以上"];
+  const tips = [];
+
+  if (DIAG_CARRIER_HOME_SET[q1] && DIAG_KNOWN_HOME_NET.indexOf(q5) !== -1 &&
+      DIAG_CARRIER_HOME_SET[q1].indexOf(q5) === -1) {
+    tips.push("ご自宅のネット（" + q5 + "）とスマホ（" + q1 + "）の組み合わせで、受けられる割引が残っていないか確認する価値があります。");
+  }
+  if (q4 === "長電話をよくする") {
+    tips.push("長電話が多い方は、かけ放題の有無で月額が大きく変わります。今の通話オプションも一緒に確認しましょう。");
+  }
+  if (q4 === "LINE通話がほとんど" && HIGH_PAYERS.indexOf(q2) !== -1) {
+    tips.push("通話はLINE中心とのこと。使っていない通話オプションが付いたままなら、外せるかもしれません。");
+  }
+  if (q7.indexOf("電波の質") !== -1) {
+    tips.push("電波の入りやすさは場所で変わるので、ご自宅や職場の地域で確認します。");
+  }
+  if (q7.indexOf("機種代を抑えたい") !== -1) {
+    tips.push("機種代は、買う場所と買い方で差が出ます。決める前に一度ご相談ください。");
+  }
+  return tips.slice(0, 2);
+}
+
+function fillDiagnosisTemplate_(template, vars) {
+  return String(template).replace(/\{(\w+)\}/g, function (m, key) {
+    return (vars && vars[key] !== undefined && vars[key] !== "") ? String(vars[key]) : m;
+  });
+}
+
+// タイプ・ワンポイントから、LINEに送る案のテキストを組み立てる（オーナー確認前の「案」）
+function buildDiagnosisMessage_(name, answers, typeCode, tips) {
+  const vars = { name: name || "お客様", Q2: (answers && answers.q2) || "", Q6: (answers && answers.q6) || "" };
+  const greeting = fillDiagnosisTemplate_(DIAG_GREETING_TEMPLATE, vars);
+  const body = fillDiagnosisTemplate_(DIAG_BODY_TEMPLATES[typeCode] || DIAG_BODY_TEMPLATES.F, vars);
+  const parts = [greeting, body];
+  (tips || []).forEach(function (t) { parts.push(t); });
+  parts.push(DIAG_CLOSING_TEMPLATE);
+  return parts.join("\n\n");
+}
+
+// このファイルの既存の慣習（new Date(Date.now()+9*60*60*1000) を「JST風Date」として
+// 扱う）に合わせ、ms値から「JSTの時」を読み取る。
+function diagJstHourOf_(jstLikeMsOrDate) {
+  const d = (jstLikeMsOrDate instanceof Date) ? jstLikeMsOrDate : new Date(jstLikeMsOrDate);
+  return d.getUTCHours();
+}
+// 19:00〜翌8:59の回答は「夜」扱い
+function isNightSubmission_(jstLikeMsOrDate) {
+  const h = diagJstHourOf_(jstLikeMsOrDate);
+  return h >= DIAG_NIGHT_HOUR_START || h < DIAG_QUIET_HOUR_END;
+}
+// 静穏時間（21:00〜8:59）かどうか
+function isQuietHour_(jstLikeMsOrDate) {
+  const h = diagJstHourOf_(jstLikeMsOrDate);
+  return h >= DIAG_QUIET_HOUR_START || h < DIAG_QUIET_HOUR_END;
+}
+// 「JST風」ms値の年月日(+daysOffset日)の hour:minute:00 を表すJST風msを返す
+function setJstHourMinute_(jstLikeMs, hour, minute, daysOffset) {
+  const d = new Date(jstLikeMs);
+  const y = d.getUTCFullYear(), m = d.getUTCMonth(), day = d.getUTCDate() + (daysOffset || 0);
+  return Date.UTC(y, m, day, hour, minute, 0, 0);
+}
+
+// 回答時刻(JST風ms)から、自動送信の予定時刻(JST風ms)を計算する。
+// 9:00〜18:59の回答: 2時間後 / 19:00〜23:59の回答: 翌日9:00 / 0:00〜8:59の回答: 当日9:00
+function computeScheduledSendAtMs_(answeredAtMs) {
+  const h = diagJstHourOf_(answeredAtMs);
+  if (h < DIAG_QUIET_HOUR_END) return setJstHourMinute_(answeredAtMs, DIAG_QUIET_HOUR_END, 0, 0);
+  if (h >= DIAG_NIGHT_HOUR_START) return setJstHourMinute_(answeredAtMs, DIAG_QUIET_HOUR_END, 0, 1);
+  return answeredAtMs + DIAG_AUTO_SEND_DELAY_HOURS * 60 * 60 * 1000;
+}
+
+// オーナー返信時刻(JST風ms)から、実際に送る時刻(JST風ms)を決める。
+// 静穏時間(21:00〜8:59)以外は即時。静穏時間中の返信は、その日の次の9:00まで持ち越す。
+function computeEffectiveSendAtMs_(ownerReplyAtMs) {
+  if (!isQuietHour_(ownerReplyAtMs)) return ownerReplyAtMs;
+  const h = diagJstHourOf_(ownerReplyAtMs);
+  if (h < DIAG_QUIET_HOUR_END) return setJstHourMinute_(ownerReplyAtMs, DIAG_QUIET_HOUR_END, 0, 0);
+  return setJstHourMinute_(ownerReplyAtMs, DIAG_QUIET_HOUR_END, 0, 1);
+}
+
+// メール返信本文から、引用部分（Gmail/iOS・iPadメール双方の代表的なパターン）を取り除き、
+// オーナーが書いた部分だけを返す。最初に一致した行の手前までを採用する。
+function stripQuotedReply_(rawBody) {
+  if (!rawBody) return "";
+  const lines = String(rawBody).replace(/\r\n/g, "\n").split("\n");
+  const QUOTE_PATTERNS = [
+    /^\s*>/,                                            // "> " 引用行
+    /^On .+wrote:\s*$/i,                                // Gmail(英語)
+    /^\d{4}年\d{1,2}月\d{1,2}日.*のメール[:：]\s*$/,     // Gmail(日本語)
+    /^.+さんが書きました[:：]\s*$/,                      // 日本語クライアントの別表記
+    /^-----\s*Original Message\s*-----\s*$/i,           // Outlook形式
+    /^差出人[:：]/,                                      // 転送/返信ヘッダー形式
+    /^From:\s/i
+  ];
+  const kept = [];
+  for (let i = 0; i < lines.length; i++) {
+    if (QUOTE_PATTERNS.some(function (re) { return re.test(lines[i]); })) break;
+    kept.push(lines[i]);
+  }
+  return kept.join("\n").trim();
+}
+
+// オーナー返信の1行目を見て、OK/保留/差し替え/コメントのどれかに分類する。
+// 戻り値: { kind: 'ok'|'hold'|'replace'|'comment', text: string }
+function parseOwnerReply_(rawBody) {
+  const cleaned = stripQuotedReply_(rawBody);
+  const lines = cleaned.split("\n");
+  const firstLine = (lines[0] || "").trim();
+  if (firstLine.toUpperCase() === "OK") return { kind: "ok", text: "" };
+  if (firstLine === "保留") return { kind: "hold", text: "" };
+  if (firstLine === "差し替え") return { kind: "replace", text: lines.slice(1).join("\n").trim() };
+  return { kind: "comment", text: cleaned };
+}
+
+// base: buildDiagnosisMessage_ で作った「案」のテキスト。parsed: parseOwnerReply_の結果。
+// 戻り値: 実際にLINEへ送るテキスト（holdの場合はnull＝送らない）
+function composeFinalDiagnosisMessage_(baseMessage, parsed) {
+  if (!parsed || parsed.kind === "ok") return baseMessage;
+  if (parsed.kind === "hold") return null;
+  if (parsed.kind === "replace") return parsed.text;
+  // comment: 共通の書き出しのすぐ後に挿入（A案）
+  const greetingEnd = baseMessage.indexOf("\n\n");
+  if (greetingEnd === -1) return parsed.text + "\n\n" + baseMessage;
+  const greeting = baseMessage.substring(0, greetingEnd);
+  const rest = baseMessage.substring(greetingEnd + 2);
+  return greeting + "\n\n" + parsed.text + "\n\n" + rest;
+}
+
+// 受付IDを作る（短い英数字。衝突のリスクは低い）
+function generateReceptionId_() {
+  return Utilities.getUuid().replace(/-/g, "").substring(0, 8).toUpperCase();
+}
+
+function formatJstLabel_(jstLikeMs) {
+  const d = new Date(jstLikeMs);
+  return (d.getUTCMonth() + 1) + "/" + d.getUTCDate() + " " + ("0" + d.getUTCHours()).slice(-2) + ":" + ("0" + d.getUTCMinutes()).slice(-2);
+}
+
+function buildDiagnosisEmailSubject_(name, typeLabel, scheduledAtMs, receptionId, lineUnresolved, tel) {
+  if (lineUnresolved) {
+    return "【要連絡・LINE送信不可】【診断】" + (name || "お客様") + "さん|電話 " + (tel || "不明") + "|#" + receptionId;
+  }
+  return "【診断】" + (name || "お客様") + "さん|" + typeLabel + "|自動送信 " + formatJstLabel_(scheduledAtMs) + "|#" + receptionId;
+}
+
+// 既存の「【新着】」オーナー通知メールにあった項目（お名前/日時/メニュー/料金/電話/メール/
+// 詳細/受信日時/流入経路/顧客マスター紐付け）を、すべてこのメールにも含める。
+function buildDiagnosisEmailBody_(f) {
+  const q3 = (f.answers && f.answers.q3 && f.answers.q3.length) ? f.answers.q3.join("、") : "なし";
+  const q7 = (f.answers && f.answers.q7 && f.answers.q7.length) ? f.answers.q7.join("、") : "なし";
+  const scheduledLabel = f.lineUnresolved ? "（LINE送信不可のため自動送信なし）" : formatJstLabel_(f.scheduledAtMs);
+  const lines = [
+    "【返信の仕方】",
+    "1行目が「OK」→ 案のまま送信",
+    "1行目が「保留」→ 自動送信しない(以後、手動対応扱い)",
+    "1行目が「差し替え」→ 2行目以降の文章だけを送信(定型文は使わない)",
+    "上記以外の文章 → 共通の書き出しのすぐ後にその文章を入れて送信",
+    "",
+    "【回答内容】",
+    "お名前：" + (f.name || "なし"),
+    "日時：" + (f.receivedAtIso || "なし"),
+    "メニュー：無料スマホ診断",
+    "料金：無料",
+    "電話：" + (f.tel || "なし"),
+    "メール：なし",
+    "Q1(携帯会社)：" + ((f.answers && f.answers.q1) || "未回答"),
+    "Q2(毎月の支払額)：" + ((f.answers && f.answers.q2) || "未回答"),
+    "Q3(データ通信量)：" + q3,
+    "Q4(通話スタイル)：" + ((f.answers && f.answers.q4) || "未回答"),
+    "Q5(ネット環境)：" + ((f.answers && f.answers.q5) || "未回答"),
+    "Q6(買い替え時期)：" + ((f.answers && f.answers.q6) || "未回答"),
+    "Q7(気になること)：" + q7,
+    "詳細(Q8)：" + (f.detail || "なし"),
+    "受信日時：" + (f.receivedAtIso || "なし"),
+    (f.source ? "★流入経路：" + f.source : "★流入経路：なし"),
+    "★顧客マスター紐付け：" + (f.customerLinked ? "完了" : "電話番号なし(スキップ)"),
+    "",
+    "【判定タイプ】" + f.typeLabel,
+    "",
+    "【お客様に送る予定の文面】",
+    f.message,
+    "",
+    "【自動送信予定】" + scheduledLabel
+  ];
+  return lines.join("\n");
+}
+
+// ---- ここからNotion/スプレッドシート/Gmailに実際にアクセスする関数（pureではない） ----
+
+const DIAG_SHEET_HEADERS = [
+  "受付ID", "回答日時", "予定送信日時", "状態", "お名前", "電話番号",
+  "lineUserId", "判定タイプ", "送信予定文面", "メールスレッドID", "送信済み日時", "備考"
+];
+const DIAG_COL = {};
+DIAG_SHEET_HEADERS.forEach(function (h, i) { DIAG_COL[h] = i; });
+
+// MAP_SHEET_ID内の専用シートを取得（無ければ作成）。
+// ★地図の公開API(getMapData/getChiikiData/getOshiraseData)は、それぞれ
+//   「防犯記録」「地域発見記録」「街のお知らせ」だけを読んでおり、このシートには
+//   一切アクセスしない（doGetの公開actionにもこのシートへの読み出しを一切追加しない）。
+function getDiagReplySheet_() {
+  if (!MAP_SHEET_ID) throw new Error("MAP_SHEET_ID 未設定");
+  const ss = SpreadsheetApp.openById(MAP_SHEET_ID);
+  let sheet = ss.getSheetByName(DIAG_REPLY_SHEET_NAME);
+  if (!sheet) {
+    sheet = ss.insertSheet(DIAG_REPLY_SHEET_NAME);
+    sheet.appendRow(DIAG_SHEET_HEADERS);
+  }
+  return sheet;
+}
+
+function appendPendingDiagnosis_(record) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    const sheet = getDiagReplySheet_();
+    const row = DIAG_SHEET_HEADERS.map(function (h) {
+      switch (h) {
+        case "受付ID": return record.receptionId || "";
+        case "回答日時": return record.answeredAtIso || "";
+        case "予定送信日時": return record.scheduledAtIso || "";
+        case "状態": return record.status || "待機";
+        case "お名前": return record.name || "";
+        case "電話番号": return record.tel || "";
+        case "lineUserId": return record.lineUserId || "";
+        case "判定タイプ": return record.typeCode || "";
+        case "送信予定文面": return record.message || "";
+        case "メールスレッドID": return record.emailThreadId || "";
+        case "送信済み日時": return record.sentAtIso || "";
+        case "備考": return record.note || "";
+        default: return "";
+      }
+    });
+    sheet.appendRow(row);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function findPendingDiagnosisRow_(sheet, receptionId) {
+  const data = sheet.getDataRange().getValues();
+  for (let r = 1; r < data.length; r++) {
+    if (data[r][DIAG_COL["受付ID"]] === receptionId) return r + 1; // 1-based row number
+  }
+  return -1;
+}
+
+const DIAG_UPDATE_HEADER_MAP = {
+  status: "状態", lineUserId: "lineUserId", scheduledAtIso: "予定送信日時",
+  emailThreadId: "メールスレッドID", sentAtIso: "送信済み日時", note: "備考", message: "送信予定文面"
+};
+function updatePendingDiagnosisByReceptionId_(receptionId, updates) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    const sheet = getDiagReplySheet_();
+    const rowNum = findPendingDiagnosisRow_(sheet, receptionId);
+    if (rowNum === -1) return false;
+    Object.keys(updates).forEach(function (key) {
+      const header = DIAG_UPDATE_HEADER_MAP[key];
+      if (header && DIAG_COL[header] !== undefined) {
+        sheet.getRange(rowNum, DIAG_COL[header] + 1).setValue(updates[key]);
+      }
+    });
+    return true;
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function listPendingDiagnosisRows_(status) {
+  const sheet = getDiagReplySheet_();
+  const data = sheet.getDataRange().getValues();
+  const out = [];
+  for (let r = 1; r < data.length; r++) {
+    const row = data[r];
+    if (status && row[DIAG_COL["状態"]] !== status) continue;
+    out.push({
+      receptionId: row[DIAG_COL["受付ID"]],
+      answeredAtIso: row[DIAG_COL["回答日時"]],
+      scheduledAtIso: row[DIAG_COL["予定送信日時"]],
+      status: row[DIAG_COL["状態"]],
+      name: row[DIAG_COL["お名前"]],
+      tel: row[DIAG_COL["電話番号"]],
+      lineUserId: row[DIAG_COL["lineUserId"]],
+      typeCode: row[DIAG_COL["判定タイプ"]],
+      message: row[DIAG_COL["送信予定文面"]],
+      emailThreadId: row[DIAG_COL["メールスレッドID"]],
+      sentAtIso: row[DIAG_COL["送信済み日時"]],
+      note: row[DIAG_COL["備考"]]
+    });
+  }
+  return out;
+}
+
+// 電話番号で顧客マスターを照合し、登録されているLINEのuserIdがあれば返す（読み取りのみ）。
+function findLineUserIdByPhone_(cleanTel) {
+  if (!cleanTel) return "";
+  try {
+    const res = UrlFetchApp.fetch(
+      "https://api.notion.com/v1/databases/" + CUSTOMER_MASTER_ID + "/query",
+      { method: "post", headers: notionHeaders(),
+        payload: JSON.stringify({ filter: { property: "電話番号", rich_text: { contains: cleanTel } }, page_size: 1 }),
+        muteHttpExceptions: true }
+    );
+    if (res.getResponseCode() !== 200) return "";
+    const results = JSON.parse(res.getContentText()).results || [];
+    if (results.length === 0) return "";
+    const prop = results[0].properties && results[0].properties["LINE_userid"];
+    const val = (prop && prop.rich_text && prop.rich_text[0]) ? prop.rich_text[0].plain_text : "";
+    return val || "";
+  } catch (e) {
+    console.error("findLineUserIdByPhone_ error: " + e);
+    return "";
+  }
+}
+
+// オーナーへメールを送り（GmailApp。MailAppでは返信を確認できないため）、
+// 直後にスレッドIDを特定して返す（後で返信確認に使うため）。
+function sendDiagnosisOwnerEmail_(ownerEmail, subject, body) {
+  GmailApp.sendEmail(ownerEmail, subject, body);
+  try {
+    const threads = GmailApp.search('in:sent subject:"' + subject.replace(/"/g, "") + '"', 0, 1);
+    if (threads.length > 0) return threads[0].getId();
+  } catch (e) {
+    console.error("sendDiagnosisOwnerEmail_: スレッドID取得エラー: " + e);
+  }
+  return "";
+}
+
+// 指定スレッド内で、最初の送信より後に届いた、オーナー自身からの返信を探す
+// （オーナー以外からの返信は無視する）。
+function findOwnerReplyInThread_(threadId, ownerEmail) {
+  if (!threadId) return null;
+  try {
+    const thread = GmailApp.getThreadById(threadId);
+    if (!thread) return null;
+    const messages = thread.getMessages();
+    if (messages.length < 2) return null; // 返信がまだ無い
+    for (let i = 1; i < messages.length; i++) {
+      const msg = messages[i];
+      const from = (msg.getFrom() || "").toLowerCase();
+      if (from.indexOf(String(ownerEmail).toLowerCase()) !== -1) {
+        return { body: msg.getPlainBody(), date: msg.getDate() };
+      }
+    }
+    return null;
+  } catch (e) {
+    console.error("findOwnerReplyInThread_ error: " + e);
+    return null;
+  }
+}
+
+// 診断フォームのPOST直後に呼ぶ。受付レコードを作り、お客様へ受付メッセージを
+// 送り（lineUserIdが分かっているときだけ）、オーナーへ詳細メールを送る。
+// 戻り値: receptionId（ブラウザ側がLINEの「カルテ診断完了」文言に使う）
+function handleDiagnosisAutoReply_(data, ctx) {
+  const receptionId = generateReceptionId_();
+  const answers = {
+    q1: data.q1 || "", q2: data.q2 || "",
+    q3: Array.isArray(data.q3) ? data.q3 : [],
+    q4: data.q4 || "", q5: data.q5 || "", q6: data.q6 || "",
+    q7: Array.isArray(data.q7) ? data.q7 : []
+  };
+  const typeCode = judgeDiagnosisType_(answers);
+  const tips = buildDiagnosisOnePoints_(answers);
+  const name = (data.name || "お客様").trim();
+  const message = buildDiagnosisMessage_(name, answers, typeCode, tips);
+  const telClean = data.tel ? normalizeTel_(data.tel) : "";
+
+  // LINE送り先の決定：優先順位1(フォーム同時送信) → 3(電話番号での顧客マスター照合・読み取りのみ)
+  // 優先順位2(「カルテ診断完了 #受付ID」での紐付け)は、後からhandleLineEvent側で埋まる。
+  let lineUserId = data.lineUserId || "";
+  if (!lineUserId && telClean) {
+    lineUserId = findLineUserIdByPhone_(telClean) || "";
+  }
+
+  const answeredAtMs = ctx.jstNow.getTime();
+  const scheduledAtMs = computeScheduledSendAtMs_(answeredAtMs);
+
+  if (lineUserId) {
+    const ackText = isNightSubmission_(ctx.jstNow)
+      ? "ご回答ありがとうございます。\n19時以降のご回答のため、診断結果は明日の午前中にお送りします。"
+      : "ご回答ありがとうございます。\n相談士が内容を確認して、診断結果をお送りします。少しだけお待ちください。";
+    pushToLine_(lineUserId, { type: "text", text: ackText });
+  }
+
+  try {
+    appendPendingDiagnosis_({
+      receptionId: receptionId,
+      answeredAtIso: new Date(answeredAtMs).toISOString(),
+      scheduledAtIso: new Date(scheduledAtMs).toISOString(),
+      status: "待機",
+      name: name,
+      tel: telClean,
+      lineUserId: lineUserId,
+      typeCode: typeCode,
+      message: message
+    });
+  } catch (sheetErr) {
+    console.error("診断自動返信: 送信待ちレコードの保存に失敗: " + sheetErr);
+  }
+
+  if (!OWNER_EMAIL) {
+    console.error("OWNER_EMAIL 未設定のため、診断自動返信メールを送信できません（受付ID: " + receptionId + "）");
+    return receptionId;
+  }
+
+  try {
+    const subject = buildDiagnosisEmailSubject_(name, DIAG_TYPE_LABELS[typeCode], scheduledAtMs, receptionId, !lineUserId, telClean);
+    const body = buildDiagnosisEmailBody_({
+      name: name, tel: telClean, source: ctx.cleanSource, answers: answers, detail: data.detail,
+      receivedAtIso: ctx.jstISO, customerLinked: !!ctx.customerMasterPageId,
+      typeLabel: DIAG_TYPE_LABELS[typeCode], message: message,
+      scheduledAtMs: scheduledAtMs, lineUnresolved: !lineUserId
+    });
+    const threadId = sendDiagnosisOwnerEmail_(OWNER_EMAIL, subject, body);
+    updatePendingDiagnosisByReceptionId_(receptionId, { emailThreadId: threadId });
+  } catch (e) {
+    console.error("診断自動返信メール送信エラー: " + e);
+  }
+  return receptionId;
+}
+
+// 「カルテ診断完了 #受付ID」イベントで、送信待ちレコードのlineUserIdを埋める。
+function linkReceptionIdToLineUser_(receptionId, userId) {
+  if (!receptionId || !userId) return false;
+  try {
+    return updatePendingDiagnosisByReceptionId_(receptionId, { lineUserId: userId });
+  } catch (e) {
+    console.error("linkReceptionIdToLineUser_ error: " + e);
+    return false;
+  }
+}
+
+// 1件のpendingレコードを処理する（オーナー返信の確認 → 即時/持ち越し判定、または予定時刻超過での自動送信）。
+function processOnePendingDiagnosisRow_(row, nowMs, ownerEmail) {
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(5000)) return;
+  try {
+    const sheet = getDiagReplySheet_();
+    const rowNum = findPendingDiagnosisRow_(sheet, row.receptionId);
+    if (rowNum === -1) return;
+    const current = sheet.getRange(rowNum, DIAG_COL["状態"] + 1).getValue();
+    if (current !== "待機") return;
+
+    if (row.emailThreadId) {
+      const reply = findOwnerReplyInThread_(row.emailThreadId, ownerEmail);
+      if (reply) {
+        const parsed = parseOwnerReply_(reply.body);
+        if (parsed.kind === "hold") {
+          sheet.getRange(rowNum, DIAG_COL["状態"] + 1).setValue("保留");
+          sheet.getRange(rowNum, DIAG_COL["備考"] + 1).setValue("オーナー返信：保留");
+          return;
+        }
+        const finalMessage = composeFinalDiagnosisMessage_(row.message, parsed);
+        const replyAtMs = reply.date.getTime() + 9 * 60 * 60 * 1000; // 実時刻→JST風msに補正
+        const effectiveSendAtMs = computeEffectiveSendAtMs_(replyAtMs);
+        if (nowMs >= effectiveSendAtMs) {
+          sendPendingDiagnosisNow_(sheet, rowNum, row, finalMessage, nowMs);
+        } else {
+          sheet.getRange(rowNum, DIAG_COL["送信予定文面"] + 1).setValue(finalMessage);
+          sheet.getRange(rowNum, DIAG_COL["予定送信日時"] + 1).setValue(new Date(effectiveSendAtMs).toISOString());
+        }
+        return;
+      }
+    }
+
+    const scheduledAtMs = new Date(row.scheduledAtIso).getTime();
+    if (nowMs >= scheduledAtMs) {
+      sendPendingDiagnosisNow_(sheet, rowNum, row, row.message, nowMs);
+    }
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function sendPendingDiagnosisNow_(sheet, rowNum, row, messageText, nowMs) {
+  let lineUserId = row.lineUserId;
+  if (!lineUserId && row.tel) {
+    lineUserId = findLineUserIdByPhone_(row.tel) || "";
+    if (lineUserId) sheet.getRange(rowNum, DIAG_COL["lineUserId"] + 1).setValue(lineUserId);
+  }
+  if (!lineUserId) {
+    sheet.getRange(rowNum, DIAG_COL["状態"] + 1).setValue("送信不可");
+    sheet.getRange(rowNum, DIAG_COL["備考"] + 1).setValue("LINE IDが不明のため送信不可");
+    return;
+  }
+  pushToLine_(lineUserId, { type: "text", text: messageText });
+  sheet.getRange(rowNum, DIAG_COL["状態"] + 1).setValue("送信済み");
+  sheet.getRange(rowNum, DIAG_COL["送信済み日時"] + 1).setValue(new Date(nowMs).toISOString());
+}
+
+// 5分おきに実行するトリガー関数。(a)オーナー返信の確認 (b)予定時刻超過分の自動送信
+function processPendingDiagnosisReplies() {
+  if (!OWNER_EMAIL) { console.warn("OWNER_EMAIL 未設定のため、診断自動返信トリガーをスキップ"); return; }
+  const nowMs = Date.now() + 9 * 60 * 60 * 1000; // JST風ms（このファイルの既存慣習）
+  const pending = listPendingDiagnosisRows_("待機");
+  pending.forEach(function (row) {
+    try {
+      processOnePendingDiagnosisRow_(row, nowMs, OWNER_EMAIL);
+    } catch (e) {
+      console.error("診断自動返信の処理エラー（受付ID: " + row.receptionId + "）: " + e);
+    }
+  });
+}
+
+// 5分おきのトリガーを設定する（オーナーが1回だけ手動実行）。
+function setDiagnosisReplyTrigger() {
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    if (t.getHandlerFunction() === "processPendingDiagnosisReplies") ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger("processPendingDiagnosisReplies").timeBased().everyMinutes(5).create();
+  console.log("✅ 診断自動返信トリガー設定完了（5分おき）");
+}
+
+// Gmail権限の確認用（オーナーが1回だけ手動実行し、「許可を確認」から承認する）。
+function authorizeGmailForDiagnosisReply() {
+  if (!OWNER_EMAIL) { console.log("OWNER_EMAIL が未設定です。先にScript Propertiesに設定してください。"); return; }
+  GmailApp.search("in:inbox", 0, 1);
+  console.log("Gmail権限の確認が完了しました。OWNER_EMAIL は設定済みです。");
+}
+
+// MAP_SHEET_ID のスプレッドシートが外部に公開されていないかを確認するための、
+// オーナーが1回だけ手動実行する関数。実行後、ログ（表示 → ログ）を確認する。
+function checkMapSheetSharingAccess() {
+  if (!MAP_SHEET_ID) { console.log("MAP_SHEET_ID が未設定です。"); return; }
+  const file = DriveApp.getFileById(MAP_SHEET_ID);
+  console.log("共有範囲(Access): " + file.getSharingAccess());
+  console.log("権限(Permission): " + file.getSharingPermission());
+  console.log("ANYONE または ANYONE_WITH_LINK の場合は外部公開状態です。PRIVATE等であることを確認してください。");
+}
+
 function handleWebForm(data) {
   // Task 2: トークン照合（新+旧 併用）
   const tokenCheck = isTokenValid_(data.token);
@@ -2373,6 +3049,26 @@ function handleWebForm(data) {
     console.error("Diagnosis save failed");
     return formSaveError_("Record save not confirmed");
   }
+
+  // ★ 診断(無料スマホ診断)の場合だけ、ここで新しい診断自動返信の処理に進む。
+  //   既存の「【新着】」オーナー通知メールに載っていた情報は、すべて新しいメールにも含める
+  //   （handleDiagnosisAutoReply_ → buildDiagnosisEmailBody_ 参照）。
+  if (resolvedFormType === 'diagnosis') {
+    var diagReceptionId = '';
+    try {
+      diagReceptionId = handleDiagnosisAutoReply_(data, {
+        customerMasterPageId: customerMasterPageId,
+        cleanSource: cleanSource,
+        jstNow: jstNow,
+        jstISO: jstISO,
+        todayStr: todayStr
+      });
+    } catch (diagReplyErr) {
+      console.error('診断自動返信の準備エラー: ' + diagReplyErr);
+    }
+    return confirmedFormSave_({ receptionId: diagReceptionId });
+  }
+
   if (data.email) {
     try {
       MailApp.sendEmail(data.email, "【スマホの相談士】ご予約を承りました",

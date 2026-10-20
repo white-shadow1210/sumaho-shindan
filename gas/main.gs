@@ -2711,7 +2711,7 @@ function sendPendingDiagnosisNow_(sheet, rowNum, row, messageText, nowMs) {
 }
 
 // 5分おきに実行するトリガー関数。(a)オーナー返信の確認 (b)予定時刻超過分の自動送信
-function processPendingDiagnosisReplies_() {
+function processPendingDiagnosisReplies() {
   if (!OWNER_EMAIL) { console.warn("OWNER_EMAIL 未設定のため、診断自動返信トリガーをスキップ"); return; }
   const nowMs = Date.now() + 9 * 60 * 60 * 1000; // JST風ms（このファイルの既存慣習）
   const pending = listPendingDiagnosisRows_("待機");
@@ -2727,9 +2727,9 @@ function processPendingDiagnosisReplies_() {
 // 5分おきのトリガーを設定する（オーナーが1回だけ手動実行）。
 function setDiagnosisReplyTrigger() {
   ScriptApp.getProjectTriggers().forEach(function (t) {
-    if (t.getHandlerFunction() === "processPendingDiagnosisReplies_") ScriptApp.deleteTrigger(t);
+    if (t.getHandlerFunction() === "processPendingDiagnosisReplies") ScriptApp.deleteTrigger(t);
   });
-  ScriptApp.newTrigger("processPendingDiagnosisReplies_").timeBased().everyMinutes(5).create();
+  ScriptApp.newTrigger("processPendingDiagnosisReplies").timeBased().everyMinutes(5).create();
   console.log("✅ 診断自動返信トリガー設定完了（5分おき）");
 }
 
@@ -2742,7 +2742,7 @@ function authorizeGmailForDiagnosisReply() {
 
 // MAP_SHEET_ID のスプレッドシートが外部に公開されていないかを確認するための、
 // オーナーが1回だけ手動実行する関数。実行後、ログ（表示 → ログ）を確認する。
-function checkMapSheetSharingAccess_() {
+function checkMapSheetSharingAccess() {
   if (!MAP_SHEET_ID) { console.log("MAP_SHEET_ID が未設定です。"); return; }
   const file = DriveApp.getFileById(MAP_SHEET_ID);
   console.log("共有範囲(Access): " + file.getSharingAccess());

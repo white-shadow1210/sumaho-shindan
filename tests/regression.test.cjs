@@ -1188,9 +1188,9 @@ test('processOnePendingDiagnosisRow_: no LINE id resolvable at send time marks t
   assert.equal(pushedMessages.length, 0);
   assert.equal(sheet._rows[1][3], '送信不可');
 });
-test('processPendingDiagnosisReplies_ does nothing and does not throw when OWNER_EMAIL is not set', () => {
+test('processPendingDiagnosisReplies does nothing and does not throw when OWNER_EMAIL is not set', () => {
   const ctx = gas({ PropertiesService: { getScriptProperties: () => ({ getProperty: () => '' }) } });
-  assert.doesNotThrow(() => ctx.processPendingDiagnosisReplies_());
+  assert.doesNotThrow(() => ctx.processPendingDiagnosisReplies());
 });
 
 // --- handleWebForm diagnosis path: receptionId in the response, 【新着】replaced only for diagnosis ---

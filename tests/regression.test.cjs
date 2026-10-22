@@ -200,26 +200,23 @@ test('upsertCustomerMaster treats 2+ exact phone matches as ambiguous: no write 
   assert.match(notifiedSubject, /複数件/);
 });
 
-test('findLineUserIdByPhone_ ignores a substring-only (non-exact) match', () => {
-  const ctx = gas({ UrlFetchApp: { fetch: () => response(200, { results: [
-    { properties: { '電話番号': { rich_text: [{ plain_text: '0901111222233' }] }, 'LINE_userid': { rich_text: [{ plain_text: 'line-a' }] } } }
-  ] }) } });
-  assert.equal(ctx.findLineUserIdByPhone_('09011112222'), '');
-});
-
-test('findLineUserIdByPhone_ returns "" (not a guess) when 2+ exact matches are ambiguous', () => {
-  const ctx = gas({ UrlFetchApp: { fetch: () => response(200, { results: [
-    { properties: { '電話番号': { rich_text: [{ plain_text: '09011112222' }] }, 'LINE_userid': { rich_text: [{ plain_text: 'line-a' }] } } },
-    { properties: { '電話番号': { rich_text: [{ plain_text: '09011112222' }] }, 'LINE_userid': { rich_text: [{ plain_text: 'line-b' }] } } }
-  ] }) } });
-  assert.equal(ctx.findLineUserIdByPhone_('09011112222'), '');
-});
-
-test('findLineUserIdByPhone_ returns the LINE_userid for exactly one exact match', () => {
-  const ctx = gas({ UrlFetchApp: { fetch: () => response(200, { results: [
-    { properties: { '電話番号': { rich_text: [{ plain_text: '09011112222' }] }, 'LINE_userid': { rich_text: [{ plain_text: 'line-only' }] } } }
-  ] }) } });
-  assert.equal(ctx.findLineUserIdByPhone_('09011112222'), 'line-only');
+test('upsertCustomerMasterByLineId treats 2+ matches for the same LINE_userid as ambiguous: no write happens, and the owner is notified', () => {
+  let writeCalls = 0;
+  let notifiedSubject;
+  const ctx = gas({
+    UrlFetchApp: { fetch: (url) => {
+      if (url.includes('/query')) {
+        return response(200, { results: [{ id: 'cust-1' }, { id: 'cust-2' }] });
+      }
+      writeCalls++;
+      return response(200, {});
+    } },
+    MailApp: { sendEmail: (to, subject) => { notifiedSubject = subject; } }
+  });
+  const result = ctx.upsertCustomerMasterByLineId({ lineUserId: 'line-dup', name: '架空' });
+  assert.equal(result, '__LINE_MATCH_AMBIGUOUS__');
+  assert.equal(writeCalls, 0);
+  assert.match(notifiedSubject, /複数件/);
 });
 
 test('resolveVerifiedLineUserId_ trusts lineUserId only when the ID token verifies to the same sub', () => {
@@ -314,6 +311,83 @@ test('calendar failure returns error', () => {
 test('standalone app check cannot pretend to save without an identified customer', () => {
   const ctx = formContext(response(200, {}));
   assert.equal(JSON.parse(ctx.handleWebForm({ formType: 'app_check', appUsed: 'LINE' }).text).status, 'error');
+});
+
+// --- Security hardening (2026-10-22, round 2): diagnosis form no longer auto-links by phone number ---
+
+test('handleWebForm (diagnosis): a genuine ID-verified LINE login combined with someone else\'s phone number never reads or updates that other customer\'s record', () => {
+  let phoneQueryCalls = 0;
+  const ctx = gas({ UrlFetchApp: { fetch: (url, opts) => {
+    if (url.includes('oauth2/v2.1/verify')) return response(200, { sub: 'line-self' });
+    if (url.includes('/query')) {
+      const body = JSON.parse(opts.payload);
+      if (body.filter && body.filter.property === '電話番号') { phoneQueryCalls++; return response(200, { results: [{ id: 'victim-page' }] }); }
+      if (body.filter && body.filter.property === 'LINE_userid') return response(200, { results: [] }); // 自分は新規
+      return response(200, { results: [] });
+    }
+    return response(200, { id: 'new-self-page' });
+  } } });
+  ctx.isTokenValid_   = () => ({ ok: true });
+  ctx.isRateLimited   = () => false;
+  ctx.validatePayload_ = () => ({ ok: true });
+  ctx.tryLockSlot     = () => true;
+  const result = JSON.parse(ctx.handleWebForm({
+    name: '本人', tel: '09099990000', lineUserId: 'line-self', idToken: 'good-token'
+  }).text);
+  assert.equal(result.status, 'success');
+  assert.equal(phoneQueryCalls, 0, '一度LINEで本人確認できたら、電話番号で他人の顧客マスターを検索・更新してはいけない');
+});
+
+test('handleWebForm (diagnosis): a phone number matching an existing customer whose LINE_userid is still empty does NOT get linked (no LINE login at all)', () => {
+  let patchCalls = 0;
+  let notified;
+  const ctx = gas({
+    UrlFetchApp: { fetch: (url, opts) => {
+      if (url.includes('/query')) {
+        return response(200, { results: [{ id: 'existing-no-line', properties: {
+          '電話番号': { rich_text: [{ plain_text: '09088880000' }] }
+        } }] });
+      }
+      if (opts && opts.method === 'patch') { patchCalls++; }
+      return response(200, { id: 'diag-saved' });
+    } },
+    MailApp: { sendEmail: (to, subject) => { notified = subject; } }
+  });
+  ctx.isTokenValid_   = () => ({ ok: true });
+  ctx.isRateLimited   = () => false;
+  ctx.validatePayload_ = () => ({ ok: true });
+  ctx.tryLockSlot     = () => true;
+  const result = JSON.parse(ctx.handleWebForm({ name: '架空', tel: '09088880000' }).text);
+  assert.equal(result.status, 'success', 'diagnosis save must still succeed');
+  assert.equal(patchCalls, 0, '電話番号が一致するだけでは、LINE_useridが空の既存顧客であっても更新してはいけない');
+  assert.match(notified, /要確認/);
+});
+
+test('handleWebForm (diagnosis): the raw ID token itself is never written to Notion, never emailed, and never logged', () => {
+  const SECRET_TOKEN_VALUE = 'this-is-the-id-token-9f8e7d6c5b4a';
+  const sentPayloads = [];
+  const sentEmails = [];
+  const logs = [];
+  const ctx = gas({
+    console: { log: (...a) => logs.push(a.join(' ')), warn: (...a) => logs.push(a.join(' ')), error: (...a) => logs.push(a.join(' ')) },
+    UrlFetchApp: { fetch: (url, opts) => {
+      // LINEの検証エンドポイントへ送るのは正当な用途(検証そのもの)なので対象外。
+      // それ以外(Notion等)への送信にIDトークンが紛れ込んでいないかだけを見る。
+      if (url.includes('oauth2/v2.1/verify')) return response(200, { sub: 'line-self' });
+      if (opts && opts.payload) sentPayloads.push(typeof opts.payload === 'string' ? opts.payload : JSON.stringify(opts.payload));
+      return response(200, { id: 'saved' });
+    } },
+    MailApp: { sendEmail: (to, subject, body) => { sentEmails.push(body); } },
+    Session: { getEffectiveUser: () => ({ getEmail: () => 'test@example.invalid' }) }
+  });
+  ctx.isTokenValid_   = () => ({ ok: true });
+  ctx.isRateLimited   = () => false;
+  ctx.validatePayload_ = () => ({ ok: true });
+  ctx.tryLockSlot     = () => true;
+  ctx.handleWebForm({ name: '架空', lineUserId: 'line-self', idToken: SECRET_TOKEN_VALUE });
+  for (const p of sentPayloads) assert.ok(!p.includes(SECRET_TOKEN_VALUE), 'Notion/他APIへの送信payloadにIDトークンが含まれている');
+  for (const b of sentEmails) assert.ok(!b.includes(SECRET_TOKEN_VALUE), 'メール本文にIDトークンが含まれている');
+  for (const l of logs) assert.ok(!l.includes(SECRET_TOKEN_VALUE), 'ログにIDトークンが含まれている');
 });
 
 test('member discount is identical regardless of selection/login order', () => {
@@ -1224,11 +1298,13 @@ test('handleDiagnosisAutoReply_ sends the night-time acceptance wording for 19:0
   assert.match(pushedMessages[0].messages[0].text, /明日の午前中にお送りします/);
 });
 
-test('handleDiagnosisAutoReply_ falls back to a read-only phone lookup (priority 3) when lineUserId is absent from the form', () => {
-  const { ctx, pushedMessages } = diagContext({
+test('handleDiagnosisAutoReply_ no longer falls back to a phone lookup: a mistyped (or someone else\'s) phone number never resolves a send destination', () => {
+  // セキュリティ強化(2026-10-22): 電話番号でのLINE宛先フォールバックは廃止。
+  // 他人の電話番号(または打ち間違い)が、たまたま既存顧客と一致しても、その人のLINEには送らない。
+  const { ctx, pushedMessages, sentEmails } = diagContext({
     notionCustomerResults: [{ properties: {
       '電話番号': { rich_text: [{ plain_text: '09000000002' }] },
-      'LINE_userid': { rich_text: [{ plain_text: 'line-user-from-phone' }] }
+      'LINE_userid': { rich_text: [{ plain_text: 'line-user-someone-else' }] }
     } }]
   });
   const jstNow = new Date(Date.UTC(2026, 9, 19, 10, 0, 0));
@@ -1236,8 +1312,8 @@ test('handleDiagnosisAutoReply_ falls back to a read-only phone lookup (priority
     { name: '次郎', tel: '09000000002', lineUserId: '', q2: '3000円 以下', q3: [] },
     { customerMasterPageId: null, cleanSource: '', jstNow: jstNow, jstISO: '', todayStr: '2026-10-19' }
   );
-  assert.equal(pushedMessages.length, 1);
-  assert.equal(pushedMessages[0].to, 'line-user-from-phone');
+  assert.equal(pushedMessages.length, 0, 'must never push to a LINE id resolved from a phone number');
+  assert.match(sentEmails[0].subject, /^【要連絡・LINE送信不可】/);
 });
 
 test('handleDiagnosisAutoReply_: when LINE cannot be resolved at all, no acceptance push is sent and the email subject flags it', () => {

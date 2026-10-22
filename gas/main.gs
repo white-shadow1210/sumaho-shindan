@@ -46,6 +46,11 @@ const LP_VIEW_LOG_DB_ID  = "c8016744-4a6f-427b-ac2c-d20b4eb432f8";   // LP閲覧
 // これを「保存失敗」ではなく「紐付けなし」として扱う。
 const PHONE_MATCH_AMBIGUOUS_ = '__PHONE_MATCH_AMBIGUOUS__';
 
+// セキュリティ強化(2026-10-22): 検証済みLINE_useridの完全一致が2件以上(データ不整合)
+// だったため、顧客マスターへの自動更新をスキップしたことを示す内部マーカー。
+// upsertCustomerMasterByLineId() の戻り値としてのみ使う。
+const LINE_MATCH_AMBIGUOUS_ = '__LINE_MATCH_AMBIGUOUS__';
+
 const FREE_SLOT_MAX_PER_MONTH = 3;
 
 // ==========================================
@@ -1028,11 +1033,22 @@ function upsertCustomerMasterByLineId(data) {
   try {
     const searchRes = checkedNotionFetch_("https://api.notion.com/v1/databases/" + CUSTOMER_MASTER_ID + "/query",
       { method: "post", headers: notionHeaders(),
-        payload: JSON.stringify({ filter: { property: "LINE_userid", rich_text: { equals: data.lineUserId } } }),
+        payload: JSON.stringify({ filter: { property: "LINE_userid", rich_text: { equals: data.lineUserId } }, page_size: 20 }),
         muteHttpExceptions: true });
     if (searchRes.getResponseCode() === 200) {
-      const results = JSON.parse(searchRes.getContentText()).results;
-      if (results && results.length > 0) existingPageId = results[0].id;
+      const results = JSON.parse(searchRes.getContentText()).results || [];
+      if (results.length === 1) {
+        existingPageId = results[0].id;
+      } else if (results.length >= 2) {
+        // 本来LINE_useridは一意のはずだが、データ不整合に備えた防御。自動更新せずオーナーへ通知。
+        notifyOwnerLineLinkProtection_(
+          '【要確認】同じLINE_useridの顧客マスターが複数件あるため更新をスキップしました',
+          ['LINE_userid: ' + data.lineUserId,
+           '一致した件数: ' + results.length,
+           '顧客マスターを直接確認し、重複データの解消をご検討ください。']
+        );
+        return LINE_MATCH_AMBIGUOUS_;
+      }
     }
   } catch (e) { console.error("LINE ID検索エラー: " + e); return null; }
 
@@ -2623,23 +2639,6 @@ function listPendingDiagnosisRows_(status) {
   return out;
 }
 
-// 電話番号で顧客マスターを照合し、登録されているLINEのuserIdがあれば返す（読み取りのみ）。
-// 電話番号は完全一致のみを対象とし、不一致・あいまい(2件以上)はどちらも
-// "" を返す（呼び出し側は既存の【要連絡・LINE送信不可】扱いに自然に落ちる）。
-function findLineUserIdByPhone_(cleanTel) {
-  if (!cleanTel) return "";
-  try {
-    const matches = findExactPhoneMatchPages_(cleanTel);
-    if (matches.length !== 1) return "";
-    const prop = matches[0].properties && matches[0].properties["LINE_userid"];
-    const val = (prop && prop.rich_text && prop.rich_text[0]) ? prop.rich_text[0].plain_text : "";
-    return val || "";
-  } catch (e) {
-    console.error("findLineUserIdByPhone_ error: " + e);
-    return "";
-  }
-}
-
 // オーナーへメールを送り（GmailApp。MailAppでは返信を確認できないため）、
 // 直後にスレッドIDを特定して返す（後で返信確認に使うため）。
 function sendDiagnosisOwnerEmail_(ownerEmail, subject, body) {
@@ -2693,12 +2692,11 @@ function handleDiagnosisAutoReply_(data, ctx) {
   const message = buildDiagnosisMessage_(name, answers, typeCode, tips);
   const telClean = data.tel ? normalizeTel_(data.tel) : "";
 
-  // LINE送り先の決定：優先順位1(フォーム同時送信) → 3(電話番号での顧客マスター照合・読み取りのみ)
+  // LINE送り先の決定：優先順位1(フォーム同時送信・IDトークン検証済みのみ)。
   // 優先順位2(「カルテ診断完了 #受付ID」での紐付け)は、後からhandleLineEvent側で埋まる。
+  // セキュリティ強化(2026-10-22): 電話番号での顧客マスター照合によるフォールバックは廃止。
+  // 電話番号は本人確認の手段にならない(他人の番号を知っているだけで送れてしまう)ため。
   let lineUserId = data.lineUserId || "";
-  if (!lineUserId && telClean) {
-    lineUserId = findLineUserIdByPhone_(telClean) || "";
-  }
 
   const answeredAtMs = ctx.jstNow.getTime();
   const scheduledAtMs = computeScheduledSendAtMs_(answeredAtMs);
@@ -2801,11 +2799,10 @@ function processOnePendingDiagnosisRow_(row, nowMs, ownerEmail) {
 }
 
 function sendPendingDiagnosisNow_(sheet, rowNum, row, messageText, nowMs) {
-  let lineUserId = row.lineUserId;
-  if (!lineUserId && row.tel) {
-    lineUserId = findLineUserIdByPhone_(row.tel) || "";
-    if (lineUserId) sheet.getRange(rowNum, DIAG_COL["lineUserId"] + 1).setValue(lineUserId);
-  }
+  // セキュリティ強化(2026-10-22): 電話番号での顧客マスター照合によるフォールバックは廃止。
+  // 宛先は、受付時に保存された検証済みlineUserId(優先順1)か、
+  // 「カルテ診断完了 #受付ID」での紐付け(優先順2)で埋まったものだけを使う。
+  const lineUserId = row.lineUserId;
   if (!lineUserId) {
     sheet.getRange(rowNum, DIAG_COL["状態"] + 1).setValue("送信不可");
     sheet.getRange(rowNum, DIAG_COL["備考"] + 1).setValue("LINE IDが不明のため送信不可");
@@ -3005,8 +3002,55 @@ function handleWebForm(data) {
     return ContentService.createTextOutput(JSON.stringify({ status: 'success' })).setMimeType(ContentService.MimeType.JSON);
   }
 
+  // セキュリティ強化(2026-10-22): 電話番号での既存顧客への自動紐付け(更新)を、
+  // 診断フォーム(公開・匿名の自己診断。formTypeが下記の業務用途のいずれでもない場合)では
+  // 一切行わないようにする。未知のformType値もここに含める(安全側デフォルト)。
+  // karte/app_check/simulation(対面・スタッフ運用)と予約フォームは、既存の電話番号照合の
+  // 挙動を維持する(スタッフの通常業務を壊さないため)。
+  const PHONE_MATCH_LEGACY_FORM_TYPES_ = ['app_check', 'karte', 'simulation', 'reserve'];
+  const useLegacyPhoneMatch_ = PHONE_MATCH_LEGACY_FORM_TYPES_.indexOf(resolvedFormType) !== -1;
+
   let customerMasterPageId = null;
-  if (data.tel) {
+
+  if (!useLegacyPhoneMatch_) {
+    // --- 診断フォーム: 既存顧客の特定は「検証済みLINE_useridの完全一致」のみ ---
+    if (verifiedLineUserId) {
+      const lineResult = upsertCustomerMasterByLineId({
+        lineUserId: verifiedLineUserId, lineDisplayName: data.lineDisplayName || '',
+        name: data.name || '', tel: data.tel || '', email: data.email || '',
+        q1: data.q1 || '', q2: data.q2 || '', q6: data.q6 || '',
+        source: cleanSource
+      });
+      customerMasterPageId = (lineResult === LINE_MATCH_AMBIGUOUS_) ? null : lineResult;
+    }
+    // 電話番号の一致は、顧客マスターの更新・新規作成の判断には使わない。
+    // 既存顧客と0件一致(重複なし)のときだけ、安全に新規作成する。
+    // 1件以上一致したときは、本人確認ができないため何も書き込まず、オーナーへ通知するだけにする。
+    if (!customerMasterPageId && data.tel) {
+      const diagCleanTel = normalizeTel_(data.tel);
+      let phoneMatchCount = 0;
+      try { phoneMatchCount = findExactPhoneMatchPages_(diagCleanTel).length; } catch (e) { console.error('電話番号の重複確認エラー: ' + e); }
+      if (phoneMatchCount === 0) {
+        const newCustomerResult = upsertCustomerMaster({
+          name: data.name || '', tel: data.tel, email: data.email || '',
+          lineUserId: verifiedLineUserId, lineDisplayName: data.lineDisplayName || '',
+          carrier: data.q1 || '', source: cleanSource,
+          historyText: "【スマホ診断】" + (data.q1 ? "キャリア:" + data.q1 : '') + (data.q2 ? " 料金:" + data.q2 : '') + (cleanSource ? ' [流入:' + cleanSource + ']' : '')
+        });
+        // ここは0件一致のときだけ呼ぶので通常はありえないが、念のため(直後の重複登録等)
+        // あいまいマーカーを顧客マスターIDとして使ってしまわないように防御する。
+        customerMasterPageId = (newCustomerResult === PHONE_MATCH_AMBIGUOUS_) ? null : newCustomerResult;
+      } else {
+        notifyOwnerLineLinkProtection_(
+          '【要確認】電話番号が既存顧客と一致しました(診断フォーム)',
+          ['電話番号(末尾4桁): ' + telLast4_(data.tel),
+           '一致した件数: ' + phoneMatchCount,
+           'LINEでの本人確認ができないため、顧客マスターへの自動反映はしていません。',
+           '必要であれば、Notionで手動で紐付けをご検討ください。']
+        );
+      }
+    }
+  } else if (data.tel) {
     let historyText = "";
     const upsertParams = {
       name: data.name||'', tel: data.tel||'', email: data.email||'',
@@ -3090,17 +3134,20 @@ function handleWebForm(data) {
     customerMasterPageId = upsertCustomerMaster(upsertParams);
   }
 
-  // セキュリティ強化(2026-10-22): 電話番号の完全一致が複数件(あいまい)だった場合は、
-  // 顧客マスターへの紐付けをしなかっただけで「保存失敗」ではない。
-  // お客様側はエラーにせず、診断保存は成功として応答を続ける(オーナーへは別途メール通知済み)。
-  const phoneMatchAmbiguous = (customerMasterPageId === PHONE_MATCH_AMBIGUOUS_);
-  if (phoneMatchAmbiguous) customerMasterPageId = null;
+  if (useLegacyPhoneMatch_) {
+    // セキュリティ強化(2026-10-22): 電話番号の完全一致が複数件(あいまい)だった場合は、
+    // 顧客マスターへの紐付けをしなかっただけで「保存失敗」ではない。
+    // お客様側はエラーにせず、保存は成功として応答を続ける(オーナーへは別途メール通知済み)。
+    const phoneMatchAmbiguous = (customerMasterPageId === PHONE_MATCH_AMBIGUOUS_);
+    if (phoneMatchAmbiguous) customerMasterPageId = null;
 
-  // LINE表示名は一意ではない。失敗時に別顧客へのフォールバックをしない。
-  if (data.tel && !customerMasterPageId && !phoneMatchAmbiguous) return formSaveError_('Customer save not confirmed');
-  if (!customerMasterPageId && verifiedLineUserId) {
-    const lineData = Object.assign({}, data, { source: cleanSource, lineUserId: verifiedLineUserId });
-    customerMasterPageId = upsertCustomerMasterByLineId(lineData);
+    // LINE表示名は一意ではない。失敗時に別顧客へのフォールバックをしない。
+    if (data.tel && !customerMasterPageId && !phoneMatchAmbiguous) return formSaveError_('Customer save not confirmed');
+    if (!customerMasterPageId && verifiedLineUserId) {
+      const lineData = Object.assign({}, data, { source: cleanSource, lineUserId: verifiedLineUserId });
+      const lineResult = upsertCustomerMasterByLineId(lineData);
+      customerMasterPageId = (lineResult === LINE_MATCH_AMBIGUOUS_) ? null : lineResult;
+    }
   }
 
   if (data.formType === 'karte' && customerMasterPageId) {

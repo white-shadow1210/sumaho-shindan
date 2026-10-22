@@ -127,6 +127,166 @@ for (const fn of ['upsertCustomerMaster', 'upsertCustomerMasterByLineId']) {
   });
 }
 
+// --- Security hardening (2026-10-22): LINE account hijack protection ---
+
+test('normalizeTel_: hyphenated and full-width phone numbers normalize to the same value, but a different digit count never matches', () => {
+  const ctx = gas();
+  assert.equal(ctx.normalizeTel_('090-1234-5678'), ctx.normalizeTel_('09012345678'));
+  assert.equal(ctx.normalizeTel_('０９０-１２３４-５６７８'), ctx.normalizeTel_('09012345678'));
+  assert.notEqual(ctx.normalizeTel_('0901234567'), ctx.normalizeTel_('09012345678'));
+  assert.notEqual(ctx.normalizeTel_('090123456789'), ctx.normalizeTel_('09012345678'));
+});
+
+test('upsertCustomerMaster links LINE_userid when the matched customer has none yet', () => {
+  let patchPayload;
+  const ctx = gas({ UrlFetchApp: { fetch: (url, opts) => {
+    if (url.includes('/query')) {
+      return response(200, { results: [{ id: 'cust-1', properties: {
+        '電話番号': { rich_text: [{ plain_text: '09000000000' }] }
+      } }] });
+    }
+    if (opts && opts.method === 'patch' && url.includes('/pages/')) { patchPayload = JSON.parse(opts.payload); return response(200, {}); }
+    return response(200, {});
+  } } });
+  const result = ctx.upsertCustomerMaster({ tel: '09000000000', lineUserId: 'line-new', lineDisplayName: 'たろう' });
+  assert.equal(result, 'cust-1');
+  assert.equal(patchPayload.properties['LINE_userid'].rich_text[0].text.content, 'line-new');
+});
+
+test('upsertCustomerMaster does not overwrite a different LINE_userid already on file, and notifies the owner with only the last 4 phone digits', () => {
+  let patchPayload;
+  let notified;
+  const ctx = gas({
+    UrlFetchApp: { fetch: (url, opts) => {
+      if (url.includes('/query')) {
+        return response(200, { results: [{ id: 'cust-1', properties: {
+          '電話番号': { rich_text: [{ plain_text: '09011112222' }] },
+          'LINE_userid': { rich_text: [{ plain_text: 'line-existing-owner' }] }
+        } }] });
+      }
+      if (opts && opts.method === 'patch' && url.includes('/pages/')) { patchPayload = JSON.parse(opts.payload); return response(200, {}); }
+      return response(200, {});
+    } },
+    MailApp: { sendEmail: (to, subject, body) => { notified = { to, subject, body }; } }
+  });
+  const result = ctx.upsertCustomerMaster({ tel: '09011112222', lineUserId: 'line-attacker' });
+  assert.equal(result, 'cust-1');
+  assert.equal(patchPayload.properties['LINE_userid'], undefined);
+  assert.equal(patchPayload.properties['LINE_displayName'], undefined);
+  assert.ok(notified, 'owner must be notified by email');
+  assert.ok(notified.body.includes('2222'), 'last 4 digits should be shown');
+  assert.ok(!notified.body.includes('09011112222'), 'full phone number must never be included');
+});
+
+test('upsertCustomerMaster treats 2+ exact phone matches as ambiguous: no write happens anywhere, and the owner is notified', () => {
+  let writeCalls = 0;
+  let notifiedSubject;
+  const ctx = gas({
+    UrlFetchApp: { fetch: (url) => {
+      if (url.includes('/query')) {
+        return response(200, { results: [
+          { id: 'cust-1', properties: { '電話番号': { rich_text: [{ plain_text: '09033334444' }] } } },
+          { id: 'cust-2', properties: { '電話番号': { rich_text: [{ plain_text: '09033334444' }] } } }
+        ] });
+      }
+      writeCalls++;
+      return response(200, {});
+    } },
+    MailApp: { sendEmail: (to, subject) => { notifiedSubject = subject; } }
+  });
+  const result = ctx.upsertCustomerMaster({ tel: '09033334444', lineUserId: 'line-x' });
+  assert.equal(result, '__PHONE_MATCH_AMBIGUOUS__');
+  assert.equal(writeCalls, 0, 'must not update either matched record, and must not create a new one');
+  assert.match(notifiedSubject, /複数件/);
+});
+
+test('findLineUserIdByPhone_ ignores a substring-only (non-exact) match', () => {
+  const ctx = gas({ UrlFetchApp: { fetch: () => response(200, { results: [
+    { properties: { '電話番号': { rich_text: [{ plain_text: '0901111222233' }] }, 'LINE_userid': { rich_text: [{ plain_text: 'line-a' }] } } }
+  ] }) } });
+  assert.equal(ctx.findLineUserIdByPhone_('09011112222'), '');
+});
+
+test('findLineUserIdByPhone_ returns "" (not a guess) when 2+ exact matches are ambiguous', () => {
+  const ctx = gas({ UrlFetchApp: { fetch: () => response(200, { results: [
+    { properties: { '電話番号': { rich_text: [{ plain_text: '09011112222' }] }, 'LINE_userid': { rich_text: [{ plain_text: 'line-a' }] } } },
+    { properties: { '電話番号': { rich_text: [{ plain_text: '09011112222' }] }, 'LINE_userid': { rich_text: [{ plain_text: 'line-b' }] } } }
+  ] }) } });
+  assert.equal(ctx.findLineUserIdByPhone_('09011112222'), '');
+});
+
+test('findLineUserIdByPhone_ returns the LINE_userid for exactly one exact match', () => {
+  const ctx = gas({ UrlFetchApp: { fetch: () => response(200, { results: [
+    { properties: { '電話番号': { rich_text: [{ plain_text: '09011112222' }] }, 'LINE_userid': { rich_text: [{ plain_text: 'line-only' }] } } }
+  ] }) } });
+  assert.equal(ctx.findLineUserIdByPhone_('09011112222'), 'line-only');
+});
+
+test('resolveVerifiedLineUserId_ trusts lineUserId only when the ID token verifies to the same sub', () => {
+  const ctx = gas({ UrlFetchApp: { fetch: url => url.includes('oauth2/v2.1/verify') ? response(200, { sub: 'U-verified' }) : response(200, {}) } });
+  assert.equal(ctx.resolveVerifiedLineUserId_({ lineUserId: 'U-verified', idToken: 'good-token' }), 'U-verified');
+});
+
+test('resolveVerifiedLineUserId_ ignores a spoofed lineUserId when the ID token verifies to a different sub', () => {
+  const ctx = gas({ UrlFetchApp: { fetch: url => url.includes('oauth2/v2.1/verify') ? response(200, { sub: 'U-real-owner' }) : response(200, {}) } });
+  assert.equal(ctx.resolveVerifiedLineUserId_({ lineUserId: 'U-attacker-claims', idToken: 'token-for-real-owner' }), '');
+});
+
+test('resolveVerifiedLineUserId_ returns "" without calling LINE when there is no ID token at all', () => {
+  const ctx = gas({ UrlFetchApp: { fetch: () => assert.fail('must not call LINE verify without an idToken') } });
+  assert.equal(ctx.resolveVerifiedLineUserId_({ lineUserId: 'U-x', idToken: '' }), '');
+});
+
+test('resolveVerifiedLineUserId_ fails safe (returns "") when LINE_LOGIN_CHANNEL_ID is not configured yet', () => {
+  const ctx = gas({
+    PropertiesService: { getScriptProperties: () => ({ getProperty: key => key === 'LINE_LOGIN_CHANNEL_ID' ? '' : 'test-only' }) },
+    UrlFetchApp: { fetch: () => assert.fail('must not call LINE verify without a configured channel id') }
+  });
+  assert.equal(ctx.resolveVerifiedLineUserId_({ lineUserId: 'U-x', idToken: 'some-token' }), '');
+});
+
+test("resolveVerifiedLineUserId_ returns \"\" when LINE's verify endpoint rejects the token (e.g. expired)", () => {
+  const ctx = gas({ UrlFetchApp: { fetch: () => response(400, { error: 'invalid_request' }) } });
+  assert.equal(ctx.resolveVerifiedLineUserId_({ lineUserId: 'U-x', idToken: 'expired-token' }), '');
+});
+
+test('handleWebForm (diagnosis): a failed/expired ID token never blocks the diagnosis save, it only drops the LINE link', () => {
+  const ctx = gas({
+    UrlFetchApp: { fetch: url => url.includes('oauth2/v2.1/verify') ? response(400, {}) : response(200, { id: 'saved' }) }
+  });
+  ctx.isTokenValid_   = () => ({ ok: true });
+  ctx.isRateLimited   = () => false;
+  ctx.validatePayload_ = () => ({ ok: true });
+  ctx.tryLockSlot     = () => true;
+  const result = JSON.parse(ctx.handleWebForm({ name: '架空', lineUserId: 'U-spoofed', idToken: 'expired' }).text);
+  assert.equal(result.status, 'success');
+  assert.equal(result.confirmed, true);
+});
+
+test('handleWebForm: an ambiguous phone match does not fail the diagnosis save, it only skips the customer-master link', () => {
+  const ctx = gas({
+    UrlFetchApp: { fetch: url => {
+      if (url.includes('/query')) {
+        return response(200, { results: [
+          { id: 'cust-1', properties: { '電話番号': { rich_text: [{ plain_text: '09055556666' }] } } },
+          { id: 'cust-2', properties: { '電話番号': { rich_text: [{ plain_text: '09055556666' }] } } }
+        ] });
+      }
+      return response(200, { id: 'saved' });
+    } },
+    CalendarApp: { getDefaultCalendar: () => ({ createEvent() {} }) },
+    MailApp: { sendEmail() {} },
+    Session: { getEffectiveUser: () => ({ getEmail: () => 'test@example.invalid' }) }
+  });
+  ctx.isTokenValid_   = () => ({ ok: true });
+  ctx.isRateLimited   = () => false;
+  ctx.validatePayload_ = () => ({ ok: true });
+  ctx.tryLockSlot     = () => true;
+  const result = JSON.parse(ctx.handleWebForm({ name: '架空', tel: '09055556666' }).text);
+  assert.equal(result.status, 'success');
+  assert.equal(result.confirmed, true);
+});
+
 function formContext(fetchResult) {
   const ctx = gas({ UrlFetchApp: { fetch: () => fetchResult },
     CalendarApp: { getDefaultCalendar: () => ({ createEvent() {} }) },
@@ -1066,7 +1226,10 @@ test('handleDiagnosisAutoReply_ sends the night-time acceptance wording for 19:0
 
 test('handleDiagnosisAutoReply_ falls back to a read-only phone lookup (priority 3) when lineUserId is absent from the form', () => {
   const { ctx, pushedMessages } = diagContext({
-    notionCustomerResults: [{ properties: { 'LINE_userid': { rich_text: [{ plain_text: 'line-user-from-phone' }] } } }]
+    notionCustomerResults: [{ properties: {
+      '電話番号': { rich_text: [{ plain_text: '09000000002' }] },
+      'LINE_userid': { rich_text: [{ plain_text: 'line-user-from-phone' }] }
+    } }]
   });
   const jstNow = new Date(Date.UTC(2026, 9, 19, 10, 0, 0));
   ctx.handleDiagnosisAutoReply_(

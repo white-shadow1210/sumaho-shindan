@@ -6,6 +6,18 @@
 
 ## [未リリース]
 
+### 2026-10-22  セキュリティ強化(1/3): LINE紐付けの保護(PR-A)
+- **何が守られたか**: 他人の電話番号を知っているだけで、自分のLINEアカウントをその人の顧客マスターへ勝手に紐付け、LINEの「マイページ」でその人の情報を見られてしまう脆弱性を修正。
+- `index.html`の診断フォーム送信時に`liff.getIDToken()`を取得して送信するようにし、GAS側で`https://api.line.me/oauth2/v2.1/verify`に照会して検証済みの`sub`と一致した場合だけ`lineUserId`を信頼する(`verifyLineIdToken_` / `resolveVerifiedLineUserId_`)。検証できない(トークン無し・期限切れ・不一致)場合は`lineUserId`を「なし」として扱うが、**診断フォームの送信自体は止めない**。
+- 顧客マスター(`upsertCustomerMaster`)は、電話番号が一致した既存顧客の`LINE_userid`を無条件に上書きしていたのを、以下のルールに変更：既存が空なら紐付け、既存と同じなら表示名だけ更新、**既存と異なる場合は上書きせずオーナーへメール通知**(電話番号は末尾4桁のみ表示)。検証済みIDが無い場合はLINE_userid/LINE_displayNameを一切書き込まない。
+- 電話番号の照合を、Notionの`contains`検索結果をそのまま使うのではなく、正規化後の完全一致だけに絞り込むように変更(`findExactPhoneMatchPages_`)。**完全一致が2件以上(あいまい)の場合は自動紐付けをせず、オーナーへメール通知するが、お客様側はエラーにせず診断保存は成功として応答する**。同じ完全一致ロジックを、診断自動返信(PR #35)の電話番号照合`findLineUserIdByPhone_`にも適用し、あいまい・不一致は既存の【要連絡・LINE送信不可】扱いに自然に落ちるようにした。
+- 診断自動返信(PR #35)のLINE送り先・優先順1(フォームの`lineUserId`)も、検証済みのIDだけを使うように変更。検証できない場合は、既存の優先順2(「カルテ診断完了 #受付ID」)・優先順3(電話番号照合)にそのまま進む(動作変更なし)。
+- 予約フォーム(`data.date`+`data.time`)のポイント付与(`addMachiPoint`)は、この検証とは無関係の既存仕様のため**今回は対象外**(raw `lineUserId`を使い続ける)。
+- 新しいScript Property `LINE_LOGIN_CHANNEL_ID`(LINEログイン(LIFF)チャネルのChannel ID)を追加。設定手順はPR本文に記載。
+- **調査のみ(今回は実装しない)**: `chiiki.html`の投稿機能(`handleChiikiPost`)は、未検証の`liff.getProfile().userId`を信じて顧客マスターへ履歴追記・ポイント付与しており、同種のリスクがある(別PRで対応予定)。`oshirase.html`はリアクション回数制限のキーとしてのみ使用し顧客マスターへの書き込みはないため低リスク。`prices.html`はStripeの`client_reference_id`に設定するだけでGAS側が読み戻すコードは存在せず、リスクなし。詳細はPR本文に記載。
+- `node --test tests/regression.test.cjs`：139件合格(前回までの125件 + 新規14件)。電話番号の正規化同一性(ハイフン・全角・桁数違い)、LINE_useridの上書き保護テーブル(空→紐付け/同じ→OK/異なる→保護+通知)、電話番号あいまい一致時の非上書き+通知、`findLineUserIdByPhone_`の完全一致限定、IDトークン検証(一致/不一致/トークン無し/未設定/期限切れ)、検証失敗時も診断保存・あいまい一致時も診断保存が成功することを検証。
+- `mitsumori.html`・`gas/mitsumori-save.gs`は無変更。Notionへの新しい書き込み・削除は追加していない（既存の書き込み条件を厳しくしただけ）。
+
 ### 2026-10-19  スマホ診断の結果を「メール確認 → LINE自動返信」で返す
 - 無料スマホ診断(`index.html`)の回答直後、お客様のLINEには「受付メッセージ」だけを送り(日中/19時以降で文面を分ける)、同時にオーナーのメールへ「回答内容・判定タイプ・LINE返信文の案・自動送信予定時刻」を送るようにした。
 - 判定ロジック(付録1の6タイプ)・ワンポイント(付録3、最大2つ)・返信文(付録2)は、すべて純粋関数として実装(`judgeDiagnosisType_` / `buildDiagnosisOnePoints_` / `buildDiagnosisMessage_`)。

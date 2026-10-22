@@ -37,7 +37,19 @@ const MAP_SHEET_ID       = props.getProperty("MAP_SHEET_ID");
 const IMAGE_FOLDER_ID    = props.getProperty("IMAGE_FOLDER_ID");
 const OWNER_KEY          = props.getProperty("OWNER_KEY");   // 運営者専用API用。未設定なら拒否（fail-safe）
 const OWNER_EMAIL        = props.getProperty("OWNER_EMAIL"); // 診断自動返信メールの宛先。未設定なら送信スキップ（fail-safe）
+const LINE_LOGIN_CHANNEL_ID = props.getProperty("LINE_LOGIN_CHANNEL_ID"); // LINEログイン(LIFF)チャネルのChannel ID。IDトークン検証のclient_idに使う。未設定なら検証不可→lineUseridは常に「未検証」扱い（fail-safe）
 const LP_VIEW_LOG_DB_ID  = "c8016744-4a6f-427b-ac2c-d20b4eb432f8";   // LP閲覧ログ（doGet?action=pv が書き込む）
+
+// セキュリティ強化(2026-10-22): 電話番号の完全一致2件以上(あいまい)を理由に
+// 顧客マスターへの自動紐付けをスキップしたことを示す内部マーカー。
+// upsertCustomerMaster() の戻り値としてのみ使い、呼び出し側(handleWebForm)は
+// これを「保存失敗」ではなく「紐付けなし」として扱う。
+const PHONE_MATCH_AMBIGUOUS_ = '__PHONE_MATCH_AMBIGUOUS__';
+
+// セキュリティ強化(2026-10-22): 検証済みLINE_useridの完全一致が2件以上(データ不整合)
+// だったため、顧客マスターへの自動更新をスキップしたことを示す内部マーカー。
+// upsertCustomerMasterByLineId() の戻り値としてのみ使う。
+const LINE_MATCH_AMBIGUOUS_ = '__LINE_MATCH_AMBIGUOUS__';
 
 const FREE_SLOT_MAX_PER_MONTH = 3;
 
@@ -258,6 +270,30 @@ function normalizeTel_(tel) {
 }
 
 // ==========================================
+// 📞 電話番号の完全一致照合（LINEアカウント乗っ取り対策）
+// ==========================================
+// Notionの電話番号プロパティは rich_text の contains でしか検索できないため、
+// 候補を複数件取得し、normalizeTel_ 後の完全一致だけに絞り込む。
+// 戻り値: 完全一致した顧客マスターのページ配列。
+//   - 0件   : 一致なし
+//   - 1件   : 一意に特定できた
+//   - 2件以上: 「あいまい」（呼び出し側で自動紐付けしない判断に使う）
+// cleanTel は呼び出し側で normalizeTel_ 済みであること。
+function findExactPhoneMatchPages_(cleanTel) {
+  if (!cleanTel) return [];
+  const searchRes = checkedNotionFetch_("https://api.notion.com/v1/databases/" + CUSTOMER_MASTER_ID + "/query",
+    { method: "post", headers: notionHeaders(),
+      payload: JSON.stringify({ filter: { property: "電話番号", rich_text: { contains: cleanTel } }, page_size: 20 }),
+      muteHttpExceptions: true });
+  const results = JSON.parse(searchRes.getContentText()).results || [];
+  return results.filter(function (page) {
+    const prop = page.properties && page.properties["電話番号"];
+    const stored = (prop && prop.rich_text && prop.rich_text[0]) ? prop.rich_text[0].plain_text : "";
+    return normalizeTel_(stored) === cleanTel;
+  });
+}
+
+// ==========================================
 // 📝 正規化ヘルパー（memo → Notion rich_text 配列）
 // ==========================================
 // Notion API では rich_text の単一 text オブジェクトは 2000 文字制限。
@@ -370,12 +406,13 @@ const PAYLOAD_SCHEMAS = {
   },
   // index.html answers（formType なし。token+name+detail で診断送信）
   diagnosis: {
-    name:   { required: true,  type: 'string', maxLen: 100, severity: 'reject' },
-    tel:    { required: false, type: 'string', maxLen: 20 },
-    detail: { required: false, type: 'string', maxLen: 1000 },
-    q1:     { required: false, type: 'string', maxLen: 100 },
-    q2:     { required: false, type: 'string', maxLen: 100 },
-    source: { required: false, type: 'string', maxLen: 100 }
+    name:    { required: true,  type: 'string', maxLen: 100, severity: 'reject' },
+    tel:     { required: false, type: 'string', maxLen: 20 },
+    detail:  { required: false, type: 'string', maxLen: 1000 },
+    q1:      { required: false, type: 'string', maxLen: 100 },
+    q2:      { required: false, type: 'string', maxLen: 100 },
+    source:  { required: false, type: 'string', maxLen: 100 },
+    idToken: { required: false, type: 'string', maxLen: 4000 } // LIFF liff.getIDToken()（LINE紐付けのサーバー側検証に使用）
   },
   // reserve fallback（main.gs に届いた場合のみ。本番 reserve.html は別 GAS）
   reserve: {
@@ -507,6 +544,64 @@ function isTokenValid_(token) {
   if (current && token === current) return { ok: true, legacy: false };
   if (legacy  && token === legacy)  return { ok: true, legacy: true  };
   return { ok: false };
+}
+
+// ==========================================
+// 🔒 LIFF IDトークン検証（LINEアカウント乗っ取り対策）
+// ==========================================
+// liff.getIDToken() が返すIDトークンをLINEの検証エンドポイントに照会し、
+// 検証済みのLINE userId（sub）を返す。失敗時は null。
+function verifyLineIdToken_(idToken) {
+  if (!idToken) return null;
+  const clientId = LINE_LOGIN_CHANNEL_ID;
+  if (!clientId) return null; // 未設定 = 検証不可 → fail-safe（lineUseridは信頼しない）
+  try {
+    const res = UrlFetchApp.fetch("https://api.line.me/oauth2/v2.1/verify", {
+      method: "post",
+      payload: { id_token: idToken, client_id: clientId },
+      muteHttpExceptions: true
+    });
+    if (res.getResponseCode() !== 200) return null;
+    const body = JSON.parse(res.getContentText());
+    return body.sub || null;
+  } catch (e) {
+    console.error("verifyLineIdToken_ error: " + e);
+    return null;
+  }
+}
+
+// フォームから届いた lineUserId を、IDトークン検証済みの場合のみ信頼する。
+// トークン欠落・検証失敗・sub不一致のときは空文字（=紐付けに使わない）を返す。
+// 呼び出し側は、この結果に関わらずフォーム送信自体は継続してよい。
+function resolveVerifiedLineUserId_(data) {
+  if (!data || !data.lineUserId) return '';
+  const sub = verifyLineIdToken_(data.idToken);
+  if (sub && sub === data.lineUserId) return data.lineUserId;
+  if (sub && sub !== data.lineUserId) {
+    console.warn('⚠️ LINE IDトークンのsubとlineUseridが不一致のため、lineUseridを無視します');
+  }
+  return '';
+}
+
+// ==========================================
+// 📧 LINE紐付け保護の運営者通知
+// ==========================================
+// あいまい一致・別LINEアカウントからのアクセスをOWNER_EMAILへメール通知する。
+// 電話番号は末尾4桁のみ表示（全桁は絶対にログ・メール本文に出さない）。
+function notifyOwnerLineLinkProtection_(subject, bodyLines) {
+  if (!OWNER_EMAIL) {
+    console.warn('OWNER_EMAIL 未設定のため、LINE紐付け保護の通知を送信できません: ' + subject);
+    return;
+  }
+  try {
+    MailApp.sendEmail(OWNER_EMAIL, subject, bodyLines.join('\n'));
+  } catch (e) {
+    console.error('notifyOwnerLineLinkProtection_ error: ' + e);
+  }
+}
+function telLast4_(tel) {
+  const clean = normalizeTel_(tel);
+  return clean ? clean.slice(-4) : '不明';
 }
 
 /**
@@ -769,14 +864,22 @@ function upsertCustomerMaster(params) {
   const jstNow   = new Date(new Date().getTime() + 9*60*60*1000);
   const todayStr = jstNow.toISOString().substring(0, 10);
   let existingPageId = null;
+  let existingLineUserId = '';
   try {
-    const searchRes = checkedNotionFetch_("https://api.notion.com/v1/databases/" + CUSTOMER_MASTER_ID + "/query",
-      { method: "post", headers: notionHeaders(),
-        payload: JSON.stringify({ filter: { property: "電話番号", rich_text: { contains: tel } } }),
-        muteHttpExceptions: true });
-    if (searchRes.getResponseCode() === 200) {
-      const results = JSON.parse(searchRes.getContentText()).results;
-      if (results && results.length > 0) existingPageId = results[0].id;
+    const matches = findExactPhoneMatchPages_(tel);
+    if (matches.length === 1) {
+      existingPageId = matches[0].id;
+      const lineProp = matches[0].properties && matches[0].properties["LINE_userid"];
+      existingLineUserId = (lineProp && lineProp.rich_text && lineProp.rich_text[0]) ? lineProp.rich_text[0].plain_text : '';
+    } else if (matches.length >= 2) {
+      // あいまい（電話番号の完全一致が複数件）→ 自動紐付けしない。オーナーへ通知。
+      notifyOwnerLineLinkProtection_(
+        '【要確認】電話番号の完全一致が複数件のため自動紐付けをスキップしました',
+        ['電話番号(末尾4桁): ' + telLast4_(params.tel),
+         '完全一致した件数: ' + matches.length,
+         '顧客マスターを直接確認し、重複データの解消をご検討ください。']
+      );
+      return PHONE_MATCH_AMBIGUOUS_;
     }
   } catch (e) { console.error("顧客マスター検索例外: " + e); return null; }
 
@@ -785,8 +888,21 @@ function upsertCustomerMaster(params) {
       const updatePayload = { properties: { "最終来店日": { date: { start: todayStr } } } };
       if (params.email)      updatePayload.properties["メールアドレス"]    = { rich_text: [{ text: { content: params.email } }] };
       if (params.lineUserId) {
-        updatePayload.properties["LINE_userid"]      = { rich_text: [{ text: { content: params.lineUserId } }] };
-        updatePayload.properties["LINE_displayName"] = { rich_text: [{ text: { content: params.lineDisplayName || '' } }] };
+        if (!existingLineUserId) {
+          // 既存にLINE_useridが無い → 紐付ける
+          updatePayload.properties["LINE_userid"]      = { rich_text: [{ text: { content: params.lineUserId } }] };
+          updatePayload.properties["LINE_displayName"] = { rich_text: [{ text: { content: params.lineDisplayName || '' } }] };
+        } else if (existingLineUserId === params.lineUserId) {
+          // 既存と同じLINEアカウント → 表示名だけ更新してOK
+          updatePayload.properties["LINE_displayName"] = { rich_text: [{ text: { content: params.lineDisplayName || '' } }] };
+        } else {
+          // 既存と異なるLINEアカウント → 上書きしない。オーナーへ通知。
+          notifyOwnerLineLinkProtection_(
+            '【要確認】別のLINEアカウントからのアクセスのため、LINE紐付けを更新しませんでした',
+            ['電話番号(末尾4桁): ' + telLast4_(params.tel),
+             '顧客マスターを直接確認し、どちらのLINEアカウントが正しいかご確認ください。']
+          );
+        }
       }
       if (params.lineName)      updatePayload.properties["LINE_displayName"] = { rich_text: [{ text: { content: params.lineName } }] };
       if (params.carrier)       updatePayload.properties["利用キャリア"]      = { rich_text: [{ text: { content: params.carrier } }] };
@@ -917,11 +1033,22 @@ function upsertCustomerMasterByLineId(data) {
   try {
     const searchRes = checkedNotionFetch_("https://api.notion.com/v1/databases/" + CUSTOMER_MASTER_ID + "/query",
       { method: "post", headers: notionHeaders(),
-        payload: JSON.stringify({ filter: { property: "LINE_userid", rich_text: { equals: data.lineUserId } } }),
+        payload: JSON.stringify({ filter: { property: "LINE_userid", rich_text: { equals: data.lineUserId } }, page_size: 20 }),
         muteHttpExceptions: true });
     if (searchRes.getResponseCode() === 200) {
-      const results = JSON.parse(searchRes.getContentText()).results;
-      if (results && results.length > 0) existingPageId = results[0].id;
+      const results = JSON.parse(searchRes.getContentText()).results || [];
+      if (results.length === 1) {
+        existingPageId = results[0].id;
+      } else if (results.length >= 2) {
+        // 本来LINE_useridは一意のはずだが、データ不整合に備えた防御。自動更新せずオーナーへ通知。
+        notifyOwnerLineLinkProtection_(
+          '【要確認】同じLINE_useridの顧客マスターが複数件あるため更新をスキップしました',
+          ['LINE_userid: ' + data.lineUserId,
+           '一致した件数: ' + results.length,
+           '顧客マスターを直接確認し、重複データの解消をご検討ください。']
+        );
+        return LINE_MATCH_AMBIGUOUS_;
+      }
     }
   } catch (e) { console.error("LINE ID検索エラー: " + e); return null; }
 
@@ -2512,28 +2639,6 @@ function listPendingDiagnosisRows_(status) {
   return out;
 }
 
-// 電話番号で顧客マスターを照合し、登録されているLINEのuserIdがあれば返す（読み取りのみ）。
-function findLineUserIdByPhone_(cleanTel) {
-  if (!cleanTel) return "";
-  try {
-    const res = UrlFetchApp.fetch(
-      "https://api.notion.com/v1/databases/" + CUSTOMER_MASTER_ID + "/query",
-      { method: "post", headers: notionHeaders(),
-        payload: JSON.stringify({ filter: { property: "電話番号", rich_text: { contains: cleanTel } }, page_size: 1 }),
-        muteHttpExceptions: true }
-    );
-    if (res.getResponseCode() !== 200) return "";
-    const results = JSON.parse(res.getContentText()).results || [];
-    if (results.length === 0) return "";
-    const prop = results[0].properties && results[0].properties["LINE_userid"];
-    const val = (prop && prop.rich_text && prop.rich_text[0]) ? prop.rich_text[0].plain_text : "";
-    return val || "";
-  } catch (e) {
-    console.error("findLineUserIdByPhone_ error: " + e);
-    return "";
-  }
-}
-
 // オーナーへメールを送り（GmailApp。MailAppでは返信を確認できないため）、
 // 直後にスレッドIDを特定して返す（後で返信確認に使うため）。
 function sendDiagnosisOwnerEmail_(ownerEmail, subject, body) {
@@ -2587,12 +2692,11 @@ function handleDiagnosisAutoReply_(data, ctx) {
   const message = buildDiagnosisMessage_(name, answers, typeCode, tips);
   const telClean = data.tel ? normalizeTel_(data.tel) : "";
 
-  // LINE送り先の決定：優先順位1(フォーム同時送信) → 3(電話番号での顧客マスター照合・読み取りのみ)
+  // LINE送り先の決定：優先順位1(フォーム同時送信・IDトークン検証済みのみ)。
   // 優先順位2(「カルテ診断完了 #受付ID」での紐付け)は、後からhandleLineEvent側で埋まる。
+  // セキュリティ強化(2026-10-22): 電話番号での顧客マスター照合によるフォールバックは廃止。
+  // 電話番号は本人確認の手段にならない(他人の番号を知っているだけで送れてしまう)ため。
   let lineUserId = data.lineUserId || "";
-  if (!lineUserId && telClean) {
-    lineUserId = findLineUserIdByPhone_(telClean) || "";
-  }
 
   const answeredAtMs = ctx.jstNow.getTime();
   const scheduledAtMs = computeScheduledSendAtMs_(answeredAtMs);
@@ -2695,11 +2799,10 @@ function processOnePendingDiagnosisRow_(row, nowMs, ownerEmail) {
 }
 
 function sendPendingDiagnosisNow_(sheet, rowNum, row, messageText, nowMs) {
-  let lineUserId = row.lineUserId;
-  if (!lineUserId && row.tel) {
-    lineUserId = findLineUserIdByPhone_(row.tel) || "";
-    if (lineUserId) sheet.getRange(rowNum, DIAG_COL["lineUserId"] + 1).setValue(lineUserId);
-  }
+  // セキュリティ強化(2026-10-22): 電話番号での顧客マスター照合によるフォールバックは廃止。
+  // 宛先は、受付時に保存された検証済みlineUserId(優先順1)か、
+  // 「カルテ診断完了 #受付ID」での紐付け(優先順2)で埋まったものだけを使う。
+  const lineUserId = row.lineUserId;
   if (!lineUserId) {
     sheet.getRange(rowNum, DIAG_COL["状態"] + 1).setValue("送信不可");
     sheet.getRange(rowNum, DIAG_COL["備考"] + 1).setValue("LINE IDが不明のため送信不可");
@@ -2822,6 +2925,13 @@ function handleWebForm(data) {
     return ContentService.createTextOutput(JSON.stringify({ status: "error", message: "SLOT_CONFLICT" })).setMimeType(ContentService.MimeType.JSON);
   }
 
+  // セキュリティ強化(2026-10-22): 顧客マスターへのLINE紐付けに使うlineUseridは、
+  // LIFFのIDトークン検証を通った値だけを信頼する(resolveVerifiedLineUserId_)。
+  // 検証できない場合は空文字(=紐付けしない)になるが、フォーム送信自体は続行する。
+  // ★ 予約フォームのポイント付与(addMachiPoint)は、この検証とは別の既存仕様のため
+  //   対象外(raw data.lineUserId を使い続ける)。別PRで検討予定。
+  const verifiedLineUserId = resolveVerifiedLineUserId_(data);
+
   // サブスク申し込み → Notionに自動反映
   if (data.formType === 'subscription') {
     try {
@@ -2892,12 +3002,59 @@ function handleWebForm(data) {
     return ContentService.createTextOutput(JSON.stringify({ status: 'success' })).setMimeType(ContentService.MimeType.JSON);
   }
 
+  // セキュリティ強化(2026-10-22): 電話番号での既存顧客への自動紐付け(更新)を、
+  // 診断フォーム(公開・匿名の自己診断。formTypeが下記の業務用途のいずれでもない場合)では
+  // 一切行わないようにする。未知のformType値もここに含める(安全側デフォルト)。
+  // karte/app_check/simulation(対面・スタッフ運用)と予約フォームは、既存の電話番号照合の
+  // 挙動を維持する(スタッフの通常業務を壊さないため)。
+  const PHONE_MATCH_LEGACY_FORM_TYPES_ = ['app_check', 'karte', 'simulation', 'reserve'];
+  const useLegacyPhoneMatch_ = PHONE_MATCH_LEGACY_FORM_TYPES_.indexOf(resolvedFormType) !== -1;
+
   let customerMasterPageId = null;
-  if (data.tel) {
+
+  if (!useLegacyPhoneMatch_) {
+    // --- 診断フォーム: 既存顧客の特定は「検証済みLINE_useridの完全一致」のみ ---
+    if (verifiedLineUserId) {
+      const lineResult = upsertCustomerMasterByLineId({
+        lineUserId: verifiedLineUserId, lineDisplayName: data.lineDisplayName || '',
+        name: data.name || '', tel: data.tel || '', email: data.email || '',
+        q1: data.q1 || '', q2: data.q2 || '', q6: data.q6 || '',
+        source: cleanSource
+      });
+      customerMasterPageId = (lineResult === LINE_MATCH_AMBIGUOUS_) ? null : lineResult;
+    }
+    // 電話番号の一致は、顧客マスターの更新・新規作成の判断には使わない。
+    // 既存顧客と0件一致(重複なし)のときだけ、安全に新規作成する。
+    // 1件以上一致したときは、本人確認ができないため何も書き込まず、オーナーへ通知するだけにする。
+    if (!customerMasterPageId && data.tel) {
+      const diagCleanTel = normalizeTel_(data.tel);
+      let phoneMatchCount = 0;
+      try { phoneMatchCount = findExactPhoneMatchPages_(diagCleanTel).length; } catch (e) { console.error('電話番号の重複確認エラー: ' + e); }
+      if (phoneMatchCount === 0) {
+        const newCustomerResult = upsertCustomerMaster({
+          name: data.name || '', tel: data.tel, email: data.email || '',
+          lineUserId: verifiedLineUserId, lineDisplayName: data.lineDisplayName || '',
+          carrier: data.q1 || '', source: cleanSource,
+          historyText: "【スマホ診断】" + (data.q1 ? "キャリア:" + data.q1 : '') + (data.q2 ? " 料金:" + data.q2 : '') + (cleanSource ? ' [流入:' + cleanSource + ']' : '')
+        });
+        // ここは0件一致のときだけ呼ぶので通常はありえないが、念のため(直後の重複登録等)
+        // あいまいマーカーを顧客マスターIDとして使ってしまわないように防御する。
+        customerMasterPageId = (newCustomerResult === PHONE_MATCH_AMBIGUOUS_) ? null : newCustomerResult;
+      } else {
+        notifyOwnerLineLinkProtection_(
+          '【要確認】電話番号が既存顧客と一致しました(診断フォーム)',
+          ['電話番号(末尾4桁): ' + telLast4_(data.tel),
+           '一致した件数: ' + phoneMatchCount,
+           'LINEでの本人確認ができないため、顧客マスターへの自動反映はしていません。',
+           '必要であれば、Notionで手動で紐付けをご検討ください。']
+        );
+      }
+    }
+  } else if (data.tel) {
     let historyText = "";
     const upsertParams = {
       name: data.name||'', tel: data.tel||'', email: data.email||'',
-      lineUserId: data.lineUserId||'', lineDisplayName: data.lineDisplayName||'',
+      lineUserId: verifiedLineUserId, lineDisplayName: data.lineDisplayName||'',
       lineName: data.lineName||'',
       source: cleanSource  // ★ v6.9.1: 流入経路
     };
@@ -2977,11 +3134,20 @@ function handleWebForm(data) {
     customerMasterPageId = upsertCustomerMaster(upsertParams);
   }
 
-  // LINE表示名は一意ではない。失敗時に別顧客へのフォールバックをしない。
-  if (data.tel && !customerMasterPageId) return formSaveError_('Customer save not confirmed');
-  if (!customerMasterPageId && data.lineUserId) {
-    const lineData = Object.assign({}, data, { source: cleanSource });
-    customerMasterPageId = upsertCustomerMasterByLineId(lineData);
+  if (useLegacyPhoneMatch_) {
+    // セキュリティ強化(2026-10-22): 電話番号の完全一致が複数件(あいまい)だった場合は、
+    // 顧客マスターへの紐付けをしなかっただけで「保存失敗」ではない。
+    // お客様側はエラーにせず、保存は成功として応答を続ける(オーナーへは別途メール通知済み)。
+    const phoneMatchAmbiguous = (customerMasterPageId === PHONE_MATCH_AMBIGUOUS_);
+    if (phoneMatchAmbiguous) customerMasterPageId = null;
+
+    // LINE表示名は一意ではない。失敗時に別顧客へのフォールバックをしない。
+    if (data.tel && !customerMasterPageId && !phoneMatchAmbiguous) return formSaveError_('Customer save not confirmed');
+    if (!customerMasterPageId && verifiedLineUserId) {
+      const lineData = Object.assign({}, data, { source: cleanSource, lineUserId: verifiedLineUserId });
+      const lineResult = upsertCustomerMasterByLineId(lineData);
+      customerMasterPageId = (lineResult === LINE_MATCH_AMBIGUOUS_) ? null : lineResult;
+    }
   }
 
   if (data.formType === 'karte' && customerMasterPageId) {
@@ -3023,7 +3189,7 @@ function handleWebForm(data) {
   if (data.tel)        payload.properties["電話番号"]      = { rich_text: [{ text: { content: normalizeTel_(data.tel) } }] };
   if (data.email)      payload.properties["メールアドレス"] = { rich_text: [{ text: { content: data.email } }] };
   if (customerMasterPageId) payload.properties["顧客マスター"] = { relation: [{ id: customerMasterPageId }] };
-  if (data.lineUserId) payload.properties["LINE_userid"]    = { rich_text: [{ text: { content: data.lineUserId } }] };
+  if (verifiedLineUserId) payload.properties["LINE_userid"] = { rich_text: [{ text: { content: verifiedLineUserId } }] };
 
   if (data.date && data.time) {
     try {
@@ -3056,7 +3222,9 @@ function handleWebForm(data) {
   if (resolvedFormType === 'diagnosis') {
     var diagReceptionId = '';
     try {
-      diagReceptionId = handleDiagnosisAutoReply_(data, {
+      // 優先順1(フォームのlineUserId)は、IDトークン検証済みの値だけを渡す。
+      // 検証できない場合は空文字になり、既存の優先順2以降(カルテ診断完了の紐付け→電話番号照合)に進む。
+      diagReceptionId = handleDiagnosisAutoReply_(Object.assign({}, data, { lineUserId: verifiedLineUserId }), {
         customerMasterPageId: customerMasterPageId,
         cleanSource: cleanSource,
         jstNow: jstNow,

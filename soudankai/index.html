@@ -1,0 +1,740 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta property="og:type" content="website">
+<meta property="og:title" content="スマホのちょこっと相談会｜街のスマホ相談士">
+<meta property="og:description" content="操作・写真・料金・不審なメッセージなど、小さな困りごとを一緒に整理します。売らない・急かさない・どこにも属さない。">
+<meta property="og:url" content="https://white-shadow1210.github.io/sumaho-shindan/soudankai/">
+<meta property="og:image" content="https://white-shadow1210.github.io/sumaho-shindan/soudankai/img/ryu-cut.png">
+<style>html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+<title>スマホのちょこっと相談</title>
+<meta name="description" content="街のスマホ相談士の相談会。操作・写真・料金・不審なメッセージなど、小さな困りごとを一緒に整理します。売らない・急かさない・どこにも属さない。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@700;800;900&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap">
+<style>
+/* Layout: 相談会チラシの世界をそのままWebへ。黄色の地、太い黒枠の白パネル、深緑の極太見出し、オレンジの丸バッジ。
+   チラシと同じ一つの世界観で統一するため、ライト/ダーク共通の固定配色。 */
+:root{
+  color-scheme:light;
+  --yellow:#F4D21A; --yellow-deep:#E9C200; --green:#2F6B55; --green-deep:#22513F; --green-pale:#E4EFE8;
+  --orange:#F08A24; --orange-deep:#C9660A; --ink:#1E1E1E; --paper:#FFFDF6; --muted:#55524A; --line-green:#06C755;
+  --f-pop:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Hiragino Sans",sans-serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",sans-serif;
+  --bd:3px solid var(--ink); --sh:6px 6px 0 var(--ink); --sh-s:4px 4px 0 var(--ink);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--yellow);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.75;font-weight:500;-webkit-text-size-adjust:100%;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:20;background:var(--green)}
+img{max-width:100%;display:block}
+a{color:inherit}
+h1,h2,h3{font-family:var(--f-pop);line-height:1.3;margin:0;word-break:keep-all;overflow-wrap:anywhere;text-wrap:balance}
+p{margin:0}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+section{scroll-margin-top:72px}
+:focus-visible{outline:4px solid var(--orange);outline-offset:3px}
+
+/* ---------- parts ---------- */
+.panel{background:var(--paper);border:var(--bd);border-radius:22px;box-shadow:var(--sh)}
+.ribbon{display:inline-block;background:var(--green);color:#fff;font-family:var(--f-pop);font-weight:800;padding:.35em 1.1em .4em;transform:rotate(-3deg);box-shadow:var(--sh-s);clip-path:polygon(0 0,100% 0,97% 50%,100% 100%,0 100%,3% 50%)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5em;min-height:56px;padding:.6em 1.5em;border:var(--bd);border-radius:999px;font:800 1.05rem var(--f-pop);text-decoration:none;cursor:pointer;box-shadow:var(--sh-s);transition:transform .12s ease,box-shadow .12s ease;color:var(--ink);background:var(--paper)}
+.btn:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--ink)}
+.btn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
+.btn-green{background:var(--green);color:#fff}
+.btn-orange{background:var(--orange);color:#fff}
+.btn-line{background:var(--line-green);color:#fff}
+.btn[disabled]{opacity:.45;cursor:not-allowed;transform:none;box-shadow:var(--sh-s)}
+.kicker{display:inline-block;font:800 .95rem var(--f-pop);background:var(--ink);color:var(--yellow);padding:.15em .8em;border-radius:6px;letter-spacing:.04em}
+.sec{padding-block:80px}
+.sec-head{display:grid;gap:12px;justify-items:start;margin-bottom:36px}
+.sec h2{font-size:clamp(1.8rem,5.2vw,3rem);font-weight:900;color:var(--green)}
+.sec-head p{max-width:36em}
+
+/* ---------- header ---------- */
+.site-head{position:sticky;top:env(safe-area-inset-top,0px);z-index:15;background:var(--green);color:#fff;border-bottom:3px solid var(--ink)}
+.site-head .wrap{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:60px}
+.brand{display:flex;align-items:center;gap:8px;text-decoration:none;font:900 1.05rem var(--f-pop);white-space:nowrap}
+.brand img{width:34px;height:34px;background:#fff;border-radius:50%;padding:2px}
+.site-head nav{display:flex;gap:22px;font-weight:700;font-size:.95rem}
+.site-head nav a{text-decoration:none}
+.site-head nav a:hover{color:var(--yellow)}
+.site-head .btn{min-height:42px;padding:.3em 1.1em;font-size:.9rem;border-width:2px;box-shadow:3px 3px 0 var(--ink)}
+@media (max-width:860px){.site-head nav{display:none}}
+
+/* ---------- hero ---------- */
+.hero{padding-block:34px 0;position:relative}
+.hero .wrap{display:grid;grid-template-columns:1.25fr .75fr;gap:28px;align-items:end}
+.hero-main{display:grid;gap:22px;min-width:0}
+.hero .ribbon{justify-self:start;font-size:clamp(.95rem,2.6vw,1.2rem)}
+.stage{position:relative;padding-top:clamp(70px,13vw,118px)}
+.people{position:absolute;top:0;left:4%;right:4%;display:flex;justify-content:space-around;align-items:flex-end;pointer-events:none;z-index:1}
+.people img{width:clamp(70px,13vw,124px);aspect-ratio:1;object-fit:contain;object-position:bottom;clip-path:inset(0 0 2px 0);animation:peek .6s cubic-bezier(.3,1.5,.5,1) both}
+.people img:nth-child(2){animation-delay:.08s}.people img:nth-child(3){animation-delay:.16s}.people img:nth-child(4){animation-delay:.24s}
+.hero-card{position:relative;z-index:2;padding:clamp(18px,3.4vw,34px);display:grid;gap:10px;animation:pop .5s cubic-bezier(.3,1.4,.5,1) both}
+.cats{font:800 clamp(.9rem,2.6vw,1.25rem) var(--f-pop);color:var(--ink);display:flex;flex-wrap:wrap;gap:.2em .5em}
+.cats span+span::before{content:"｜";color:var(--muted);margin-right:.5em}
+.subline{font:800 clamp(.95rem,2.6vw,1.2rem) var(--f-pop)}
+.subline b{color:var(--green);font-size:1.15em}
+.title{font:900 clamp(3rem,11.5vw,6.6rem)/1.08 var(--f-pop);color:var(--green);letter-spacing:-.01em;margin-block:4px 6px}
+.title .s{display:block}
+.title .s:nth-child(2){font-size:.62em;color:var(--ink)}
+.badge{position:absolute;right:clamp(-10px,-1vw,0px);bottom:clamp(-26px,-2vw,-10px);width:clamp(108px,20vw,168px);aspect-ratio:1;border-radius:50%;background:var(--orange);color:#fff;border:var(--bd);box-shadow:var(--sh-s);display:grid;place-items:center;text-align:center;font:900 clamp(1.05rem,2.9vw,1.55rem)/1.2 var(--f-pop);transform:rotate(10deg);animation:wobble 4s ease-in-out infinite}
+.badge small{display:block;font-size:.58em;font-weight:800}
+.hero-copy{display:grid;gap:16px;padding-top:14px}
+.hero-copy h1{font-size:clamp(1.45rem,4.2vw,2.15rem);font-weight:900}
+.hero-copy h1 em{font-style:normal;background:linear-gradient(transparent 58%,#fff 58%);padding-inline:.1em}
+.cta-row{display:flex;flex-wrap:wrap;gap:14px}
+.hero-side{position:relative;align-self:end;justify-self:center;width:min(100%,360px);padding-top:96px}
+.hero-side .ring{position:absolute;left:50%;top:110px;width:105%;transform:translateX(-50%);animation:spin 80s linear infinite;opacity:.9}
+.hero-side .me{position:relative;width:88%;margin-inline:auto;filter:drop-shadow(6px 6px 0 rgba(0,0,0,.18))}
+.hero-side .say{position:absolute;left:0;top:0;background:var(--paper);border:var(--bd);border-radius:18px;padding:.5em .9em;font:800 .95rem/1.45 var(--f-pop);box-shadow:var(--sh-s);animation:float 6s ease-in-out infinite;z-index:2}
+.hero-side .say::after{content:"";position:absolute;right:28px;bottom:-12px;width:18px;height:18px;background:var(--paper);border-right:var(--bd);border-bottom:var(--bd);transform:rotate(45deg)}
+.hero-side .nameplate{position:absolute;left:50%;bottom:16px;transform:translateX(-50%) rotate(-3deg);background:var(--green);color:#fff;border:var(--bd);padding:.3em 1em;font:800 .95rem var(--f-pop);white-space:nowrap;box-shadow:var(--sh-s);z-index:2}
+@media (max-width:860px){
+  .hero .wrap{grid-template-columns:1fr}
+  .hero-side{width:min(80%,300px);margin-top:10px}
+}
+
+/* marquee */
+.marquee{margin-top:40px;background:var(--green);border-block:3px solid var(--ink);overflow:hidden;color:#fff}
+.marquee .track{display:flex;width:max-content;animation:slide 32s linear infinite}
+.marquee span{font:800 1.05rem var(--f-pop);padding:.7em 1.4em;white-space:nowrap}
+.marquee span::before{content:"●";color:var(--yellow);margin-right:.7em;font-size:.7em;vertical-align:.15em}
+
+/* ---------- check list ---------- */
+.checks{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.check{display:flex;gap:14px;align-items:center;text-align:left;padding:16px 18px;font:700 1.05rem/1.55 var(--f-body);cursor:pointer;color:var(--ink);transition:transform .15s ease,background .15s ease}
+.check .box{flex:none;width:32px;height:32px;border:3px solid var(--green);border-radius:6px;display:grid;place-items:center;background:#fff}
+.check .box svg{width:24px;height:24px;stroke:var(--green);stroke-width:4;fill:none;stroke-dasharray:30;stroke-dashoffset:30;transition:stroke-dashoffset .25s ease}
+.check b{color:var(--green);font-size:1.15em}
+.check[aria-pressed="true"]{background:var(--green-pale)}
+.check[aria-pressed="true"] .box svg{stroke-dashoffset:0}
+.check:active{transform:scale(.98)}
+.check-note{margin-top:22px;font:800 clamp(1.1rem,3vw,1.4rem) var(--f-pop);text-align:center;min-height:2.2em}
+.check-note .n{display:inline-block;background:var(--orange);color:#fff;border-radius:999px;padding:0 .6em;margin-inline:.15em}
+@media (max-width:700px){.checks{grid-template-columns:1fr}}
+
+/* ---------- chat play ---------- */
+.band-green{background:var(--green);color:#fff;border-block:3px solid var(--ink)}
+.band-green .sec h2,.band-green h2{color:#fff}
+.band-green .kicker{background:var(--yellow);color:var(--ink)}
+.play{display:grid;grid-template-columns:1fr 340px;gap:40px;align-items:start}
+.topics{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.topic{display:flex;align-items:center;gap:10px;min-height:66px;padding:.6em .9em;background:var(--paper);color:var(--ink);border:var(--bd);border-radius:16px;box-shadow:var(--sh-s);font:800 1rem var(--f-pop);text-align:left;cursor:pointer;transition:transform .12s ease,box-shadow .12s ease,background .15s ease}
+.topic svg{width:32px;height:32px;flex:none;stroke:var(--green)}
+.topic:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
+.topic[aria-pressed="true"]{background:var(--yellow)}
+.play-note{margin-top:18px;font-size:.95rem;opacity:.92}
+.phone{justify-self:center;width:100%;max-width:340px;background:var(--ink);border-radius:42px;padding:12px;box-shadow:8px 8px 0 rgba(0,0,0,.35);transform:rotate(2deg)}
+.screen{background:#8CABD9;border-radius:32px;overflow:hidden;height:540px;display:flex;flex-direction:column}
+.screen .bar{background:var(--green);color:#fff;display:flex;align-items:center;gap:10px;padding:26px 16px 12px;font:800 .95rem var(--f-pop)}
+.screen .bar img{width:34px;height:34px;border-radius:50%;background:#fff;object-fit:cover;object-position:50% 10%}
+.log{flex:1;overflow-y:auto;padding:16px 12px;display:flex;flex-direction:column;gap:10px;color:var(--ink)}
+.msg{max-width:84%;padding:.6em .85em;border-radius:18px;font-size:.92rem;line-height:1.6;animation:msg .25s ease both}
+.msg.me{align-self:flex-end;background:#9BE36C;border-bottom-right-radius:4px}
+.msg.you{align-self:flex-start;background:#fff;border-bottom-left-radius:4px}
+.msg.you b{display:block;color:var(--green);font-family:var(--f-pop);font-size:1rem;margin-bottom:2px}
+.msg.you .hint{display:block;margin-top:6px;padding-top:6px;border-top:1px dashed #ccc;font-size:.85rem}
+.msg.you .hint::before{content:"準備のヒント　";font-weight:900;color:var(--orange-deep)}
+.msg.sys{align-self:center;background:rgba(0,0,0,.18);color:#fff;font-size:.78rem;padding:.2em .8em;border-radius:999px}
+.typing{align-self:flex-start;background:#fff;border-radius:18px;padding:.7em .9em;display:flex;gap:4px}
+.typing i{width:7px;height:7px;border-radius:50%;background:#999;animation:dot 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@media (max-width:860px){.play{grid-template-columns:1fr}.phone{transform:none;max-width:320px}.screen{height:460px}}
+@media (max-width:360px){.topics{grid-template-columns:1fr}}
+
+/* ---------- flow ---------- */
+.flow{display:grid;grid-template-columns:1.1fr .9fr;gap:36px;align-items:center}
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:18px;counter-reset:s}
+.steps li{position:relative;padding:18px 18px 18px 78px}
+.steps li::before{counter-increment:s;content:counter(s);position:absolute;left:14px;top:50%;transform:translateY(-50%) rotate(-6deg);width:50px;height:50px;border-radius:50%;background:var(--orange);color:#fff;border:var(--bd);display:grid;place-items:center;font:900 1.5rem var(--f-pop)}
+.steps b{display:block;font:900 1.2rem var(--f-pop);color:var(--green)}
+.steps span{font-size:.95rem;color:var(--muted)}
+.photo{position:relative;transform:rotate(-2deg)}
+.photo img{border:var(--bd);border-radius:18px;box-shadow:var(--sh);aspect-ratio:4/3;object-fit:cover;width:100%}
+.photo .tape{position:absolute;top:-14px;left:50%;width:120px;height:30px;transform:translateX(-50%) rotate(3deg);background:rgba(240,138,36,.85);border:2px solid var(--ink)}
+.photo figcaption{margin-top:12px;font-size:.85rem;font-weight:700;text-align:center}
+.flow-note{margin-top:22px;padding:16px 18px;font-weight:700}
+@media (max-width:860px){.flow{grid-template-columns:1fr}}
+
+/* ---------- events ---------- */
+.events{display:grid;gap:22px}
+.event{overflow:hidden}
+.event-row{display:grid;grid-template-columns:auto 1fr;gap:10px 16px;padding:20px 22px;align-items:baseline}
+.lbl{background:var(--green);color:#fff;font:800 .95rem var(--f-pop);padding:.15em .8em;border-radius:4px;white-space:nowrap}
+.event .val{font:800 clamp(1.1rem,3.4vw,1.5rem) var(--f-pop);min-width:0}
+.event .val small{display:block;font:700 .9rem var(--f-body);color:var(--muted)}
+.event .welcome{grid-column:1/-1;justify-self:start;background:var(--orange);color:#fff;font:800 1rem var(--f-pop);padding:.2em .9em;border-radius:999px;border:2px solid var(--ink)}
+.event .acts{display:flex;flex-wrap:wrap;gap:12px;padding:0 22px 22px}
+.pending{padding:30px 24px;display:grid;gap:14px;text-align:center;justify-items:center}
+.pending h3{font-size:clamp(1.4rem,4.4vw,2rem);color:var(--green)}
+.pending .stamp{font:900 1rem var(--f-pop);background:var(--yellow);border:var(--bd);border-radius:999px;padding:.15em 1em;transform:rotate(-4deg)}
+.info-row{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:22px}
+.info-row .panel{padding:18px 20px}
+.info-row b{font-family:var(--f-pop);color:var(--green);display:block;margin-bottom:4px}
+@media (max-width:700px){.info-row{grid-template-columns:1fr}}
+
+/* ---------- form ---------- */
+.form-wrap{padding:clamp(20px,4vw,36px);max-width:760px;margin-inline:auto}
+.demo-flag{display:inline-block;background:var(--orange);color:#fff;font:800 .85rem var(--f-pop);padding:.1em .8em;border-radius:999px;border:2px solid var(--ink);margin-bottom:14px}
+.field{display:grid;gap:8px;margin-bottom:24px;border:0;padding:0;min-width:0}
+.field>legend,.field>label.q{font:900 1.1rem var(--f-pop);color:var(--green);padding:0;margin-bottom:8px}
+.req{font:700 .75rem var(--f-body);background:var(--ink);color:#fff;border-radius:4px;padding:.05em .45em;margin-left:.5em;vertical-align:.2em}
+.opt-tag{font:700 .75rem var(--f-body);background:#ddd;border-radius:4px;padding:.05em .45em;margin-left:.5em;vertical-align:.2em}
+.choices{display:grid;gap:10px}
+.choice{display:flex;align-items:center;gap:12px;padding:12px 14px;border:3px solid var(--ink);border-radius:14px;background:#fff;cursor:pointer;font-weight:700}
+.choice input{width:22px;height:22px;accent-color:var(--green);flex:none}
+.choice:has(input:checked){background:var(--yellow)}
+.choice small{display:block;font-weight:500;color:var(--muted)}
+.chipset{display:flex;flex-wrap:wrap;gap:10px}
+.chipset label{display:inline-flex;align-items:center;gap:6px;border:3px solid var(--ink);border-radius:999px;padding:.35em .95em;background:#fff;font-weight:700;cursor:pointer}
+.chipset input{width:18px;height:18px;accent-color:var(--green)}
+.chipset label:has(input:checked){background:var(--green);color:#fff}
+.counter{display:flex;align-items:center;gap:16px}
+.counter button{width:52px;height:52px;border-radius:50%;border:var(--bd);background:var(--paper);font:900 1.6rem var(--f-pop);cursor:pointer;box-shadow:3px 3px 0 var(--ink);color:var(--ink)}
+.counter button:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.counter output{font:900 2rem var(--f-pop);min-width:3.2em;text-align:center}
+.inp{width:100%;min-height:54px;border:3px solid var(--ink);border-radius:12px;padding:.55em .8em;font:500 1.05rem var(--f-body);background:#fff;color:var(--ink)}
+textarea.inp{min-height:96px;resize:vertical}
+.err{color:#B3261E;font-weight:700;font-size:.9rem}
+.privacy{font-size:.9rem;color:var(--muted);margin-bottom:20px}
+.field-note{font-size:.92rem;font-weight:700;color:var(--muted)}
+.line-steps{background:#E8F9EE;border:3px solid var(--line-green);border-radius:16px;padding:16px 18px;margin-bottom:22px}
+.line-steps ol{margin:.4em 0;padding-left:1.4em;display:grid;gap:4px}
+.small{font-size:.88rem;color:var(--muted)}
+.confirm dl{display:grid;grid-template-columns:8em 1fr;gap:10px 14px;margin:0 0 24px}
+.confirm dt{font:800 .95rem var(--f-pop);color:var(--green)}
+.confirm dd{margin:0;min-width:0;font-weight:700}
+.done{text-align:center;display:grid;gap:16px;justify-items:center;padding-block:20px}
+.done .big{font:900 clamp(2rem,6vw,3rem) var(--f-pop);color:var(--green)}
+.done .circle{width:96px;height:96px;border-radius:50%;background:var(--orange);border:var(--bd);display:grid;place-items:center;animation:pop .5s cubic-bezier(.3,1.5,.5,1) both}
+.done .circle svg{width:52px;height:52px;stroke:#fff;stroke-width:6;fill:none}
+@media (max-width:520px){.confirm dl{grid-template-columns:1fr;gap:2px}.confirm dd{margin-bottom:10px}}
+
+/* ---------- profile ---------- */
+.profile{display:grid;grid-template-columns:auto 1fr auto;gap:24px;align-items:end;padding:26px 26px 0;overflow:hidden}
+.profile .logo{width:120px;align-self:center;border-radius:50%;background:#fff;border:var(--bd);padding:6px}
+.profile .who{display:grid;gap:10px;padding-bottom:26px;min-width:0}
+.profile .role{font:800 .95rem var(--f-pop);color:var(--green)}
+.profile h3{font-size:clamp(1.8rem,5vw,2.4rem)}
+.profile h3 small{font:700 .85rem var(--f-body);color:var(--muted);margin-left:.6em}
+.profile .me{width:210px}
+@media (max-width:760px){.profile{grid-template-columns:1fr;justify-items:center;text-align:left;padding:22px 20px 0}.profile .logo{width:96px}.profile .who{padding-bottom:0}.profile .me{width:200px}}
+
+/* ---------- faq ---------- */
+.faq{display:grid;gap:14px;max-width:820px}
+.faq details{background:var(--paper);border:var(--bd);border-radius:16px;box-shadow:var(--sh-s)}
+.faq summary{cursor:pointer;list-style:none;padding:18px 54px 18px 20px;font:800 1.02rem/1.55 var(--f-pop);position:relative}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::before{content:"Q";display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--green);color:#fff;margin-right:.6em;font-size:.95rem}
+.faq summary::after{content:"+";position:absolute;right:20px;top:50%;transform:translateY(-50%);font:900 1.6rem var(--f-pop);color:var(--green)}
+.faq details[open] summary::after{content:"−"}
+.faq .a{padding:0 20px 18px 58px}
+
+/* ---------- footer band ---------- */
+.promise-band{background:var(--green);color:#fff;border-top:3px solid var(--ink);padding-block:40px 30px}
+.promise-band .big{font:900 clamp(1.4rem,5vw,2.4rem) var(--f-pop);display:flex;flex-wrap:wrap;gap:.2em .5em;justify-content:center}
+.promise-band .big span:nth-child(odd){color:#fff}
+.promise-band .big em{font-style:normal;color:var(--yellow)}
+.promise-band .big .sep{color:rgba(255,255,255,.5)}
+.promise-band .closing{text-align:center;display:grid;gap:18px;justify-items:center}
+.promise-band .cta-row{justify-content:center}
+footer{background:var(--green-deep);color:#fff;padding-block:28px;font-size:.9rem}
+footer .wrap{display:grid;gap:6px}
+footer .fbrand{font:900 1.1rem var(--f-pop)}
+.devmemo{margin-top:16px;border:2px dashed var(--yellow);border-radius:12px;padding:14px 16px;font-size:.88rem}
+.devmemo b{color:var(--yellow)}
+.devmemo ul{margin:.4em 0 0;padding-left:1.2em}
+
+/* ---------- motion ---------- */
+@keyframes pop{from{transform:scale(.88);opacity:0}to{transform:none;opacity:1}}
+@keyframes peek{from{transform:translateY(60%);opacity:0}to{transform:none;opacity:1}}
+@keyframes wobble{0%,100%{transform:rotate(10deg)}50%{transform:rotate(2deg) scale(1.04)}}
+@keyframes spin{to{transform:translateX(-50%) rotate(360deg)}}
+@keyframes float{50%{transform:translateY(-7px)}}
+@keyframes slide{to{transform:translateX(-50%)}}
+@keyframes msg{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes dot{50%{transform:translateY(-4px);background:#555}}
+.rv{transition:opacity .5s ease,transform .5s cubic-bezier(.3,1.3,.5,1)}
+.js .rv.wait{opacity:.001;transform:translateY(24px) rotate(-1deg)}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  html{scroll-behavior:auto}
+  .js .rv.wait{opacity:1;transform:none}
+  .marquee .track{flex-wrap:wrap;width:auto}
+}
+</style>
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="#top"><img src="img/ring.png" alt="" width="34" height="34">街のスマホ相談士</a>
+    <nav aria-label="ページ内">
+      <a href="#play">相談できること</a>
+      <a href="#events">開催案内</a>
+      <a href="#about">相談士について</a>
+    </nav>
+    <a class="btn btn-orange" href="#entry">申し込む</a>
+  </div>
+</header>
+
+<main id="top">
+<!-- ===== HERO ===== -->
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-main">
+      <span class="ribbon">スマホのことで、お困りの方へ</span>
+      <div class="stage">
+        <div class="people" aria-hidden="true">
+          <img src="img/p-senior-m.png" alt="">
+          <img src="img/p-senior-w.png" alt="">
+          <img src="img/p-young.png" alt="">
+          <img src="img/p-woman.png" alt="">
+        </div>
+        <div class="hero-card panel">
+          <p class="cats"><span>使い方</span><span>料金プラン</span><span>データ移行</span><span>買い替え</span></p>
+          <p class="subline">携帯業界10年の<b>スマホの相談士</b>と、一緒に整理</p>
+          <p class="title" aria-label="スマホのちょこっと相談会"><span class="s">スマホの</span><span class="s">ちょこっと</span><span class="s">相談会</span></p>
+          <div class="badge" aria-label="売り込みなし">売り込み<br>なし<small>急かしません</small></div>
+        </div>
+      </div>
+      <div class="hero-copy">
+        <h1>その<em>「ちょっと困った」</em>、<wbr>近くで、<wbr>聞いてみませんか。</h1>
+        <p>操作のこと。写真のこと。料金のこと。家族には何度も聞きづらい、小さな疑問からどうぞ。</p>
+        <div class="cta-row">
+          <a class="btn btn-green" href="#events">開催案内を見る</a>
+          <a class="btn btn-orange" href="#entry">参加を申し込む</a>
+        </div>
+      </div>
+    </div>
+    <div class="hero-side" aria-hidden="true">
+      <img class="ring" src="img/ring.png" alt="">
+      <span class="say">どんな小さなことでも<br>お聞かせください</span>
+      <img class="me" src="img/ryu-cut.png" alt="">
+      <span class="nameplate">相談士 櫻井 龍之介</span>
+    </div>
+  </div>
+  <div class="marquee" aria-hidden="true"><div class="track" id="track">
+    <span>写真がいっぱいで撮れない</span><span>このSMS、開いて大丈夫？</span><span>スマホ代が高い気がする</span><span>LINEの引き継ぎが心配</span><span>文字を大きくしたい</span><span>親のスマホ、どうしたら？</span><span>パスワードが分からない</span><span>買い替えのタイミング</span>
+  </div></div>
+</section>
+
+<!-- ===== こんな方へ ===== -->
+<section class="sec" id="for">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="kicker">こんな方へ</span>
+      <h2>ひとつでも、<wbr>あてはまりますか？</h2>
+      <p>タップしてチェックしてみてください。</p>
+    </div>
+    <div class="checks">
+      <button type="button" class="check panel rv" aria-pressed="false"><span class="box"><svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6"/></svg></span><span><b>操作</b>が分からなくて、つまずいてしまう</span></button>
+      <button type="button" class="check panel rv" aria-pressed="false"><span class="box"><svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6"/></svg></span><span><b>料金</b>が高い気がするけど、誰に聞けばいいか分からない</span></button>
+      <button type="button" class="check panel rv" aria-pressed="false"><span class="box"><svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6"/></svg></span><span><b>家族</b>には、なんとなく聞きづらい</span></button>
+      <button type="button" class="check panel rv" aria-pressed="false"><span class="box"><svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6"/></svg></span><span><b>怪しいメッセージ</b>が届いて、不安になることがある</span></button>
+    </div>
+    <p class="check-note" id="checkNote" aria-live="polite">うまく説明できなくても大丈夫です。</p>
+  </div>
+</section>
+
+<!-- ===== いま、気になるのは？ ===== -->
+<div class="band-green">
+<section class="sec" id="play">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kicker">タップして試してみる</span>
+      <h2>いま、気になるのは？</h2>
+      <p>ボタンを押すと、相談士からの返事がスマホに届きます。相談会でできることと、当日の準備のヒントです。</p>
+    </div>
+    <div class="play">
+      <div>
+        <div class="topics" role="group" aria-label="気になること">
+          <button class="topic" type="button" data-k="op" aria-pressed="false"><svg viewBox="0 0 32 32" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="3" width="14" height="26" rx="3"/><path d="M12 25h4"/><path d="M19 9h8a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-3l-3 3v-3"/></svg>操作・LINE</button>
+          <button class="topic" type="button" data-k="photo" aria-pressed="false"><svg viewBox="0 0 32 32" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="6" width="18" height="14" rx="2"/><circle cx="10" cy="11" r="2"/><path d="m4 18 5-4 4 3 3-2 6 5"/><path d="M14 22v6h14V16h-4"/></svg>写真・容量</button>
+          <button class="topic" type="button" data-k="fee" aria-pressed="false"><svg viewBox="0 0 32 32" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h14l5 5v10"/><path d="M6 3v26h10"/><path d="M10 11h10M10 16h8M10 21h4"/><circle cx="23" cy="23" r="4"/><path d="m26 26 3 3"/></svg>料金・契約</button>
+          <button class="topic" type="button" data-k="move" aria-pressed="false"><svg viewBox="0 0 32 32" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="8" width="10" height="18" rx="2"/><rect x="20" y="6" width="10" height="20" rx="2"/><path d="M13 16h6m-2-3 3 3-3 3"/></svg>買い替え・移行</button>
+          <button class="topic" type="button" data-k="sms" aria-pressed="false"><svg viewBox="0 0 32 32" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="20" height="14" rx="2"/><path d="m3 9 10 7 10-7"/><circle cx="23" cy="22" r="4.5"/><path d="m26.5 25.5 3 3"/></svg>不審なメッセージ</button>
+          <button class="topic" type="button" data-k="family" aria-pressed="false"><svg viewBox="0 0 32 32" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="13" height="23" rx="3"/><rect x="19" y="12" width="9" height="16" rx="2.5"/><path d="M9 24h3M22 24h3"/></svg>家族のスマホ</button>
+        </div>
+        <p class="play-note">これは相談会の内容紹介です。診断や判定をするものではありません。ここで選んだ内容は送信されません。</p>
+        <div class="cta-row" style="margin-top:18px"><a class="btn btn-orange" href="#entry">このまま申し込む</a><a class="btn" href="#events">開催案内を見る</a></div>
+      </div>
+      <div class="phone" aria-hidden="false">
+        <div class="screen">
+          <div class="bar"><img src="img/ryunosuke.jpg" alt="">街のスマホ相談士</div>
+          <div class="log" id="log" aria-live="polite">
+            <p class="msg sys">ボタンを押してみてください</p>
+            <p class="msg you"><b>こんにちは！</b>気になっていることを、ひとつ選んでみてください。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</div>
+
+<!-- ===== 流れ ===== -->
+<section class="sec" id="flow">
+  <div class="wrap">
+    <div class="sec-head rv"><span class="kicker">相談会のながれ</span><h2>相談会は、<wbr>こんな時間です。</h2></div>
+    <div class="flow">
+      <div>
+        <ol class="steps">
+          <li class="panel rv"><b>困っていることを話す</b><span>うまくまとまっていなくて大丈夫です。</span></li>
+          <li class="panel rv"><b>画面や状況を一緒に確認する</b><span>いつものスマホを、いつもの使い方で見せてください。</span></li>
+          <li class="panel rv"><b>次にすることを整理する</b><span>その場でできることと、窓口で確認することを分けてお伝えします。</span></li>
+        </ol>
+        <p class="flow-note panel rv">その場で解決できることも、専門の窓口で確認した方がよいこともあります。どこへ、何を相談すればよいかを考えるところまで、お手伝いします。</p>
+      </div>
+      <figure class="photo rv" style="margin:0">
+        <span class="tape" aria-hidden="true"></span>
+        <img src="img/consult.jpg" alt="テーブルで資料とスマホを一緒に見ながら相談している手元の様子" loading="lazy">
+        <figcaption>実際の相談の様子（お顔は写していません）</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 開催案内 ===== -->
+<section class="sec" id="events" style="padding-top:20px">
+  <div class="wrap">
+    <div class="sec-head rv"><span class="kicker">開催のご案内</span><h2>次の相談会</h2><p>地域の公会堂やお店など、いろいろな場所で開いていきます。</p></div>
+    <div class="events" id="eventList">
+      <div class="pending panel">
+        <span class="stamp">準備中</span>
+        <h3>次回の詳しい日程は<wbr>準備中です</h3>
+        <p>決まり次第、このページと公式LINEでお知らせします。</p>
+        <div class="cta-row"><a class="btn btn-line" href="https://line.me/R/ti/p/@281jfkpu" target="_blank" rel="noopener">開催についてLINEで聞く</a></div>
+      </div>
+    </div>
+    <div class="info-row">
+      <div class="panel rv"><b>持ち物</b>いつも使っているスマホ。気になることを1つ、メモしてきても大丈夫です。</div>
+      <div class="panel rv"><b>料金について</b>相談会での基本相談と、個別の設定・移行などの作業は分けてご案内します。有料の作業は、内容と料金をご説明し、ご希望を確認してから進めます。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 申し込み ===== -->
+<section class="sec" id="entry" style="padding-top:20px">
+  <div class="wrap">
+    <div class="sec-head rv"><span class="kicker">参加申し込み</span><h2>参加を申し込む</h2><p>1分ほどで終わります。分からない項目は空けたままで大丈夫です。</p></div>
+    <div class="form-wrap panel">
+      <span class="demo-flag" id="demoFlag" hidden>デモ表示：まだ送信されません</span>
+
+      <form id="entryForm" novalidate>
+        <fieldset class="field">
+          <legend>参加する回<span class="req">必須</span></legend>
+          <div class="choices" id="eventChoices"></div>
+        </fieldset>
+
+        <fieldset class="field">
+          <legend>参加人数<span class="req">必須</span></legend>
+          <div class="counter">
+            <button type="button" id="minus" aria-label="1人減らす">−</button>
+            <output id="count" aria-live="polite">1人</output>
+            <button type="button" id="plus" aria-label="1人増やす">＋</button>
+          </div>
+        </fieldset>
+
+        <fieldset class="field">
+          <legend>相談したいこと<span class="opt-tag">いくつでも</span></legend>
+          <div class="chipset" id="topicChips"></div>
+        </fieldset>
+
+        <div class="field">
+          <label class="q" for="fName">お名前<span class="req">必須</span></label>
+          <input class="inp" id="fName" name="name" autocomplete="name" placeholder="例：吉田 花子（ニックネームでも可）">
+          <p class="err" id="eName" hidden>お名前を入力してください。</p>
+        </div>
+
+        <fieldset class="field">
+          <legend>ご連絡方法<span class="req">必須</span></legend>
+          <div class="choices">
+            <label class="choice"><input type="radio" name="contactType" value="LINE" checked><span>公式LINEで申し込む<small>最後にLINEが開きます。友だち追加もその場でできます</small></span></label>
+            <label class="choice" id="phoneChoice"><input type="radio" name="contactType" value="電話"><span>電話で連絡がほしい<small>電話番号を入力してください</small></span></label>
+          </div>
+          <div id="phoneWrap" hidden>
+            <input class="inp" id="fContact" name="contact" type="tel" placeholder="電話番号（例：090-1234-5678）" autocomplete="tel">
+            <p class="err" id="eContact" hidden>電話番号を入力してください。</p>
+          </div>
+          <p class="field-note" id="noPhoneNote" hidden>LINEをお使いでない方の申し込み方法は、準備中です。</p>
+        </fieldset>
+
+        <div class="field">
+          <label class="q" for="fMemo">ひとことメモ<span class="opt-tag">任意</span></label>
+          <textarea class="inp" id="fMemo" name="memo" placeholder="例：写真をパソコンなしで残す方法が知りたい"></textarea>
+        </div>
+
+        <p class="privacy">パスワード・暗証番号・認証コードは書かないでください。ご入力の内容は、相談会のご案内と当日の準備に使います。</p>
+        <button class="btn btn-green" type="submit" style="width:100%">入力内容を確認する</button>
+      </form>
+
+      <div class="confirm" id="confirm" hidden>
+        <h3 style="color:var(--green);margin-bottom:16px;font-size:1.5rem">この内容でよろしいですか？</h3>
+        <dl id="confirmList"></dl>
+        <div class="line-steps" id="lineNote" hidden>
+          <p><b>このあとの流れ</b></p>
+          <ol>
+            <li>下の緑のボタンを押すと、LINEが開きます</li>
+            <li>申し込み内容が入った状態になっています</li>
+            <li><b>LINEの送信ボタンを押したら、申し込み完了です</b></li>
+          </ol>
+          <p class="small">友だち追加がまだの方は、トーク画面の「追加」も押してください。</p>
+        </div>
+        <div class="cta-row"><a class="btn btn-line" id="sendLine" href="#" hidden>LINEで送って申し込む</a><button class="btn btn-orange" type="button" id="send">この内容で申し込む</button><button class="btn" type="button" id="back">修正する</button></div>
+      </div>
+
+      <div class="done" id="done" hidden>
+        <div class="circle"><svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6"/></svg></div>
+        <p class="big" id="doneTitle">受け付けました</p>
+        <p id="doneText">ご案内は、お電話でご連絡します。当日はいつものスマホをお持ちください。</p>
+        <p class="err" id="demoDone" hidden>現在はデモ表示のため、実際には送信されていません。</p>
+        <div class="cta-row" id="lineRetry" hidden><a class="btn btn-line" id="reopenLine" href="#">LINEをもう一度開く</a></div>
+        <p class="small" id="lineHelp" hidden>LINEが開かないときは、先に<a id="addFriend" href="#" target="_blank" rel="noopener">友だち追加</a>をしてから、もう一度お試しください。</p>
+        <button class="btn" type="button" id="again">最初の画面に戻る</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 相談士 ===== -->
+<section class="sec" id="about" style="padding-top:20px">
+  <div class="wrap">
+    <div class="profile panel rv">
+      <img class="logo" src="img/ring.png" alt="街のスマホ相談士のロゴ">
+      <div class="who">
+        <span class="role">街のスマホ相談士</span>
+        <h3>櫻井 龍之介<small>さくらい りゅうのすけ</small></h3>
+        <p>携帯業界で約10年、さまざまなスマホの相談に携わってきました。吉田町で活動する、二人の娘の父です。</p>
+        <p>お店で働く中で聞いてきたのは、「気軽に聞ける人がいたら」という声。すぐに買い替えや契約を決める前に、まずはあなたの話を聞く相談先でありたいと思っています。</p>
+      </div>
+      <img class="me" src="img/ryu-cut.png" alt="櫻井龍之介の写真" loading="lazy">
+    </div>
+  </div>
+</section>
+
+<!-- ===== FAQ ===== -->
+<section class="sec" id="faq" style="padding-top:20px">
+  <div class="wrap">
+    <div class="sec-head rv"><span class="kicker">よくある質問</span><h2>はじめての方へ</h2></div>
+    <div class="faq">
+      <details><summary>こんな小さなことでも相談していいですか？</summary><p class="a">はい。操作の途中で迷ったこと、誰に聞けばいいか分からないことからお聞かせください。</p></details>
+      <details><summary>スマホを買ったり、乗り換えたりする必要はありますか？</summary><p class="a">購入や乗り換えを前提にした相談会ではありません。今の使い方や契約を続ける選択肢も含め、一緒に考えます。</p></details>
+      <details><summary>その地域の人でないと参加できませんか？</summary><p class="a">参加できる方は、開催ごとの案内に記載します。分からないときは、LINEでお気軽にお問い合わせください。</p></details>
+      <details><summary>お金はかかりますか？</summary><p class="a">参加費は開催ごとの案内に記載します。個別の設定・移行などの作業が必要な場合は、内容と料金をご説明し、ご希望を確認してから進めます。</p></details>
+      <details><summary>申し込まずに行ってもいいですか？</summary><p class="a">開催ごとに異なります。開催案内に参加方法を記載しますので、そちらをご確認ください。</p></details>
+      <details><summary>その場で直らないこともありますか？</summary><p class="a">内容によっては、携帯ショップ、端末メーカー、アプリの公式サポートなどでの確認が必要です。その場合も、次に相談する先を一緒に整理します。</p></details>
+      <details><summary>LINEで先に質問できますか？</summary><p class="a">開催や相談テーマについてのお問い合わせは、公式LINEで受け付けています。暗証番号・パスワード・認証コードは送らないでください。</p></details>
+    </div>
+  </div>
+</section>
+</main>
+
+<div class="promise-band">
+  <div class="wrap closing">
+    <p class="big"><span>売らない</span><span class="sep">｜</span><em>急かさない</em><span class="sep">｜</span><span>どこにも属さない</span></p>
+    <p>分からないまま、ひとりで抱えなくて大丈夫。次に何をしたらよいか、一緒に考えましょう。</p>
+    <div class="cta-row"><a class="btn btn-orange" href="#entry">参加を申し込む</a><a class="btn btn-line" href="https://line.me/R/ti/p/@281jfkpu" target="_blank" rel="noopener">LINEで聞いてみる</a></div>
+  </div>
+</div>
+<footer>
+  <div class="wrap">
+    <span class="fbrand">街のスマホ相談士</span>
+    <span>静岡県吉田町を中心に活動しています ／ 公式LINE：@281jfkpu</span>
+    <div class="devmemo" id="devmemo" hidden></div>
+  </div>
+</footer>
+
+<script>
+/* ===== ここを書き換えるだけで更新できます ===== */
+const CONFIG = {
+  LINE_URL: "https://line.me/R/ti/p/@281jfkpu",   // 友だち追加
+  LINE_ID: "@281jfkpu",                            // 申し込み内容を送るLINE公式アカウント
+  // 電話申し込みの送信先（GAS等）。null の間は「電話で連絡」の選択肢を表示しません
+  FORM_ENDPOINT: null,
+  SHOW_DEV_MEMO: false,  // true にすると、ページ最下部に未設定項目の一覧が出ます
+  MAX_PEOPLE: 5,
+  // 開催一覧。空なら「準備中」。未定の項目は null で非表示。
+  EVENTS: [
+    /* 記入例（コメントを外して使います）
+    { id:"2026-11-nishihama", date:"11月○日（日）", time:"組長常会 終了後", place:"西浜公会堂",
+      address:null, mapUrl:null, fee:null, method:null, target:"組長以外の方も参加歓迎！" },
+    */
+  ]
+};
+
+const TOPICS = {
+  op:{label:"操作・LINE",ask:"この操作、何度やっても分からなくて…",h:"困っている画面から、一緒に",b:"どの操作で止まってしまうかを確認し、手順を整理します。",t:"いつも使うスマホ。何をしたい時に困るか、ひとことメモがあれば十分です。"},
+  photo:{label:"写真・容量",ask:"写真がいっぱいで、もう撮れないんです",h:"残したい思い出を、先に確認",b:"容量を使っているものと、写真・動画の保存先を一緒に確認します。",t:"相談前に、無理に写真を削除しなくて大丈夫です。"},
+  fee:{label:"料金・契約",ask:"スマホ代、高い気がするんだけど…",h:"今の契約を知るところから",b:"何に料金がかかっているか、確認する順番を整理します。",t:"用意できれば料金が分かる画面。事前に送る必要はありません。"},
+  move:{label:"買い替え・移行",ask:"買い替えたいけど、写真やLINEが心配",h:"買う前・移す前に、ひと確認",b:"写真やLINEなど、引き継ぎたいものと必要な準備を整理します。",t:"買い替え前でも相談できます。購入や初期化を急がないでください。"},
+  sms:{label:"不審なメッセージ",ask:"このSMS、開いて大丈夫？",h:"開く前に、確かめよう",b:"メッセージの確認方法と、公式の問い合わせ先を一緒に整理します。",t:"リンクを開いたり返信したりせず、届いた状況をお聞かせください。"},
+  family:{label:"家族のスマホ",ask:"親や子どものスマホ、どうしたらいい？",h:"ご家族の希望から、一緒に",b:"子どもや親の困りごとと、ご本人が大切にしている使い方を整理します。",t:"ご家族ご本人の希望や、困っている場面がわかると助かります。"}
+};
+
+document.documentElement.classList.add("js");
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* marquee: 2周分にしてループ */
+(() => { const t = $("#track"); t.innerHTML += t.innerHTML; })();
+
+/* こんな方へ：チェック */
+(() => {
+  const btns = [...document.querySelectorAll(".check")], note = $("#checkNote");
+  btns.forEach(b => b.addEventListener("click", () => {
+    b.setAttribute("aria-pressed", b.getAttribute("aria-pressed") !== "true");
+    const n = btns.filter(x => x.getAttribute("aria-pressed") === "true").length;
+    note.innerHTML = n ? `<span class="n">${n}つ</span>あてはまりました。ひとつでもあれば、相談会でお話しください。` : "うまく説明できなくても大丈夫です。";
+  }));
+})();
+
+/* 申し込みで選ぶテーマ（チャットで選んだものは自動でチェック） */
+const picked = new Set();
+
+/* いま、気になるのは？：チャット */
+(() => {
+  const log = $("#log"), btns = document.querySelectorAll(".topic");
+  let timer = null;
+  const add = html => { log.insertAdjacentHTML("beforeend", html); log.scrollTop = log.scrollHeight; };
+  btns.forEach(b => b.addEventListener("click", () => {
+    const d = TOPICS[b.dataset.k];
+    btns.forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+    picked.add(b.dataset.k); syncChips();
+    clearTimeout(timer); log.querySelector(".typing")?.remove();
+    add(`<p class="msg me">${esc(d.ask)}</p>`);
+    const reply = `<p class="msg you"><b>${esc(d.h)}</b>${esc(d.b)}<span class="hint">${esc(d.t)}</span></p>`;
+    if (reduce) { add(reply); return; }
+    add(`<div class="typing" aria-hidden="true"><i></i><i></i><i></i></div>`);
+    timer = setTimeout(() => { log.querySelector(".typing")?.remove(); add(reply); }, 700);
+  }));
+})();
+
+/* 開催案内 */
+(() => {
+  const list = $("#eventList");
+  const lineBtn = CONFIG.LINE_URL ? `<a class="btn btn-line" href="${esc(CONFIG.LINE_URL)}" target="_blank" rel="noopener">開催についてLINEで聞く</a>` : "";
+  if (!CONFIG.EVENTS.length) {
+    list.innerHTML = `<div class="pending panel"><span class="stamp">準備中</span><h3>次回の詳しい日程は<wbr>準備中です</h3><p>決まり次第、このページと公式LINEでお知らせします。<br>「うちの地区でもやってほしい」というご相談もどうぞ。</p><div class="cta-row"><a class="btn btn-orange" href="#entry">案内がほしいと伝える</a>${lineBtn}</div></div>`;
+    return;
+  }
+  list.innerHTML = CONFIG.EVENTS.map(e => {
+    const r = (k, v) => v ? `<span class="lbl">${k}</span><span class="val">${v}</span>` : "";
+    const place = e.place ? esc(e.place) + (e.address ? `<small>${esc(e.address)}</small>` : "") + (e.mapUrl ? `<small><a href="${esc(e.mapUrl)}" target="_blank" rel="noopener">地図を開く</a></small>` : "") : "";
+    return `<article class="event panel rv"><div class="event-row">${r("日時", esc(e.date || "日程調整中") + (e.time ? `<small>${esc(e.time)}</small>` : ""))}${r("会場", place)}${r("参加費", e.fee && esc(e.fee))}${r("参加方法", e.method && esc(e.method))}${e.target ? `<span class="welcome">${esc(e.target)}</span>` : ""}</div><div class="acts"><a class="btn btn-orange" href="#entry" data-ev="${esc(e.id)}">この回に申し込む</a>${lineBtn}</div></article>`;
+  }).join("");
+  list.addEventListener("click", ev => {
+    const a = ev.target.closest("[data-ev]"); if (!a) return;
+    const r = document.querySelector(`input[name="event"][value="${CSS.escape(a.dataset.ev)}"]`); if (r) r.checked = true;
+  });
+})();
+
+/* 申し込みフォーム
+   - LINEで申し込む：入力内容を入れた状態で公式LINEのトークを開き、本人が送信して完了
+   - 電話で連絡：FORM_ENDPOINT が設定されたときだけ表示・送信 */
+const syncChips = () => document.querySelectorAll('#topicChips input').forEach(i => { if (picked.has(i.value)) i.checked = true; });
+(() => {
+  const phoneOn = !!CONFIG.FORM_ENDPOINT;
+  $("#phoneChoice").hidden = !phoneOn;
+  $("#noPhoneNote").hidden = phoneOn;
+  $("#addFriend").href = CONFIG.LINE_URL;
+
+  const evs = CONFIG.EVENTS.length ? CONFIG.EVENTS.map((e, i) => ({id:e.id || "ev" + i, title:`${e.date || "日程調整中"}　${e.place || ""}`, sub:e.time || ""}))
+                                   : [{id:"next", title:"次回の開催案内がほしい", sub:"日程が決まったらお知らせします"}];
+  $("#eventChoices").innerHTML = evs.map((e, i) => `<label class="choice"><input type="radio" name="event" value="${esc(e.id)}" ${i === 0 ? "checked" : ""}><span>${esc(e.title)}${e.sub ? `<small>${esc(e.sub)}</small>` : ""}</span></label>`).join("");
+  $("#topicChips").innerHTML = Object.entries(TOPICS).map(([k, d]) => `<label><input type="checkbox" value="${k}">${esc(d.label)}</label>`).join("");
+
+  let n = 1; const out = $("#count");
+  const setN = v => { n = Math.max(1, Math.min(CONFIG.MAX_PEOPLE, v)); out.textContent = n + "人"; $("#minus").disabled = n === 1; $("#plus").disabled = n === CONFIG.MAX_PEOPLE; };
+  $("#minus").onclick = () => setN(n - 1); $("#plus").onclick = () => setN(n + 1); setN(1);
+
+  const contact = $("#fContact");
+  const type = () => $('input[name="contactType"]:checked').value;
+  document.querySelectorAll('input[name="contactType"]').forEach(r => r.addEventListener("change", () => { $("#phoneWrap").hidden = type() !== "電話"; }));
+
+  const lineText = d => [
+    "【スマホ相談会 申し込み】",
+    `お名前：${d.name}`,
+    `参加する回：${d.eventLabel}`,
+    `人数：${d.people}人`,
+    `相談したいこと：${d.topics.join("、") || "まだ決めていない"}`,
+    d.memo ? `メモ：${d.memo}` : ""
+  ].filter(Boolean).join("\n");
+  const lineHref = text => `https://line.me/R/oaMessage/${encodeURIComponent(CONFIG.LINE_ID)}/?${encodeURIComponent(text)}`;
+
+  const form = $("#entryForm"), conf = $("#confirm"), done = $("#done");
+  let data = null, href = "#";
+  form.addEventListener("submit", ev => {
+    ev.preventDefault();
+    const isLine = type() === "LINE";
+    const name = $("#fName").value.trim(), c = contact.value.trim();
+    $("#eName").hidden = !!name; $("#eContact").hidden = isLine || !!c;
+    if (!name) return $("#fName").focus();
+    if (!isLine && !c) return contact.focus();
+    const evId = form.querySelector('input[name="event"]:checked').value;
+    data = {
+      event: evId, eventLabel: evs.find(e => e.id === evId).title, people: n,
+      topics: [...form.querySelectorAll('#topicChips input:checked')].map(i => TOPICS[i.value].label),
+      name, contactType: type(), contact: isLine ? "" : c, memo: $("#fMemo").value.trim()
+    };
+    href = lineHref(lineText(data));
+    const row = (k, v) => `<dt>${k}</dt><dd>${esc(v) || "—"}</dd>`;
+    $("#confirmList").innerHTML = row("参加する回", data.eventLabel) + row("参加人数", data.people + "人") + row("相談したいこと", data.topics.join("、")) + row("お名前", data.name) + row("ご連絡方法", isLine ? "公式LINE" : `電話：${data.contact}`) + row("ひとことメモ", data.memo);
+    $("#lineNote").hidden = !isLine; $("#sendLine").hidden = !isLine; $("#send").hidden = isLine;
+    $("#sendLine").href = href; $("#reopenLine").href = href;
+    form.hidden = true; conf.hidden = false; conf.scrollIntoView({behavior: reduce ? "auto" : "smooth", block: "start"});
+  });
+  $("#back").onclick = () => { conf.hidden = true; form.hidden = false; };
+
+  const showDone = isLine => {
+    $("#doneTitle").textContent = isLine ? "あと1ステップです" : "受け付けました";
+    $("#doneText").textContent = isLine ? "LINEの送信ボタンを押したら、申し込み完了です。こちらからLINEでご案内します。" : "ご案内は、お電話でご連絡します。当日はいつものスマホをお持ちください。";
+    $("#lineRetry").hidden = !isLine; $("#lineHelp").hidden = !isLine; $("#demoDone").hidden = true;
+    conf.hidden = true; done.hidden = false; done.scrollIntoView({behavior: reduce ? "auto" : "smooth", block: "center"});
+  };
+  // LINE：リンク自体でLINEを開く（リンクの動作は止めない）
+  $("#sendLine").addEventListener("click", () => {
+    if (CONFIG.FORM_ENDPOINT) { try { fetch(CONFIG.FORM_ENDPOINT, {method:"POST", body: JSON.stringify(data), keepalive:true}); } catch (e) {} }
+    setTimeout(() => showDone(true), 400);
+  });
+  // 電話
+  $("#send").onclick = async () => {
+    const btn = $("#send");
+    btn.disabled = true; btn.textContent = "送信中…";
+    try { await fetch(CONFIG.FORM_ENDPOINT, {method:"POST", body: JSON.stringify(data)}); }
+    catch (e) { btn.disabled = false; btn.textContent = "この内容で申し込む"; $("#confirmList").insertAdjacentHTML("afterend", `<p class="err">送信できませんでした。通信状況を確かめて、もう一度押してください。</p>`); return; }
+    btn.disabled = false; btn.textContent = "この内容で申し込む";
+    showDone(false);
+  };
+  $("#again").onclick = () => { done.hidden = true; form.hidden = false; form.reset(); setN(1); picked.clear(); $("#phoneWrap").hidden = true; };
+})();
+
+/* 制作中メモ */
+(() => {
+  if (!CONFIG.SHOW_DEV_MEMO) return;
+  const miss = [];
+  if (!CONFIG.FORM_ENDPOINT) miss.push("電話申し込みの送信先（FORM_ENDPOINT）：未設定のため「電話で連絡」は非表示");
+  if (!CONFIG.EVENTS.length) miss.push("開催一覧（EVENTS）：日程・場所・時間・参加費・参加方法");
+  miss.push("フォームの「ご入力の内容は…に使います」の文言確認（個人情報の扱い）");
+  const m = $("#devmemo");
+  m.innerHTML = `<b>制作中メモ（公開前に SHOW_DEV_MEMO を false に）</b><ul>${miss.map(x => `<li>${esc(x)}</li>`).join("")}</ul>`;
+  m.hidden = false;
+})();
+
+/* スクロールでポンッと出る（最初から見えているものはそのまま） */
+(() => {
+  if (!("IntersectionObserver" in window) || reduce) return;
+  const io = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) { en.target.classList.remove("wait"); io.unobserve(en.target); } }), {rootMargin:"0px 0px -8% 0px"});
+  document.querySelectorAll(".rv").forEach((el, i) => {
+    if (el.getBoundingClientRect().top > innerHeight) { el.style.transitionDelay = (i % 4) * 60 + "ms"; el.classList.add("wait"); io.observe(el); }
+  });
+})();
+</script>
+
+</body>
+</html>

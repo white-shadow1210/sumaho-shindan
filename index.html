@@ -326,7 +326,7 @@
     consult_type: consultType,
     q1: "", q2: "", q3: [], q4: "", q5: "", q6: "", q7: [], detail: "", name: "", tel: "",
     token: SECRET_TOKEN,
-    lineUserId: "", lineDisplayName: "",
+    lineUserId: "", lineDisplayName: "", idToken: "",
     source: ""  // ★ 流入経路
   };
 
@@ -429,6 +429,14 @@
     answers.token           = SECRET_TOKEN;
     answers.lineUserId      = liffUserId;
     answers.lineDisplayName = liffDisplayName;
+    // ★ セキュリティ強化(2026-10-22): サーバー側でlineUserIdを検証するためのIDトークン。
+    //   取得できない場合も送信は止めない（GAS側でlineUserIdを「未検証」扱いにするだけ）。
+    try {
+      answers.idToken = liffReady ? (liff.getIDToken() || '') : '';
+    } catch(e) {
+      console.warn('[LIFF finish] IDトークン取得エラー:', e);
+      answers.idToken = '';
+    }
     answers.source          = window.getSumahoSource();  // ★ 流入経路を取得
 
     const loading = document.getElementById('loading');
